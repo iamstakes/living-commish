@@ -1,0 +1,765 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		04A2C1D93D8E4F5A91B2C3D4 /* RiveRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 14B3D2EA4E9F506BA2C3D4E5 /* RiveRuntime */; };
+		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
+		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
+		1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */; };
+		276243E54FF8A20A882E5340 /* AppleFoundationModelsCommishProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */; };
+		291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */; };
+		311F2AE4B23074277A437894 /* DeterministicCommishProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */; };
+		3CC7A45A49ADCEF33572B7E0 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = 7BE16418C9820B460476CC54 /* Animations */; };
+		3D53D1C0774F555B23F7E686 /* LivingCommishTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */; };
+		4B4DE15373F50A9D1CC3353A /* LivingCommishUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */; };
+		5CA139DACC9C0409AE228DE1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
+		66E93DB92E2728414CE9CDB6 /* CommishControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */; };
+		67BEAACBDABC09DCD2BAA59A /* AdaptiveCommishIntelligenceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */; };
+		6D2AD1D422969217F78B3497 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */; };
+		76EF0FB51CA8DB28ADEAD25A /* FramePreloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95660CDE28BCADF8572041AC /* FramePreloader.swift */; };
+		7F83C8B3A2FC7836428E6984 /* PngSequenceCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */; };
+		8816B6D6169BD608C63A5459 /* CommishIntelligenceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */; };
+		974B6F1C6A328C9C9205C848 /* CommishInstructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */; };
+		99476478ECA9A48348E199EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01E471777D8B335930125AB5 /* Assets.xcassets */; };
+		A3AB1B6CC153E0A212B89C74 /* ReactWithCommishIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */; };
+		A75A800FDFBBCD7729DE5E00 /* ReactionBriefBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */; };
+		AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */; };
+		B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */; };
+		C3548076ACE499799FE21736 /* CommishStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4633392F54F4BFEFC82F59BA /* CommishStageView.swift */; };
+		D29C7628ADFC0551FFBEA7C3 /* FanMemoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */; };
+		D7C66B4FAC9A08B1A614478F /* AnimationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */; };
+		DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */; };
+		DC997F1748BCBB8918E17E41 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
+		DE4346248EB4DAFC55C33430 /* CommishMemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */; };
+		EDACFA8FF8536C0E64499490 /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */; };
+		EF055ACDDED7E12933B22606 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		204DB9EADF13EB46D5767BD0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3718C4509035A1739D8CF7A7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A751107BB35758F2D66339C;
+			remoteInfo = LivingCommish;
+		};
+		CE213A52ACC976B1E1C41930 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3718C4509035A1739D8CF7A7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A751107BB35758F2D66339C;
+			remoteInfo = LivingCommish;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01E471777D8B335930125AB5 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
+		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
+		158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactWithCommishIntent.swift; sourceTree = "<group>"; };
+		188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
+		1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FanMemoryModels.swift; sourceTree = "<group>"; };
+		2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
+		420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4633392F54F4BFEFC82F59BA /* CommishStageView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishStageView.swift; sourceTree = "<group>"; };
+		481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishMemoryStore.swift; sourceTree = "<group>"; };
+		540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelsCommishProvider.swift; sourceTree = "<group>"; };
+		58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeterministicCommishProvider.swift; sourceTree = "<group>"; };
+		60A153C6A94238A0F245A6DB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactionBriefBuilder.swift; sourceTree = "<group>"; };
+		7BE16418C9820B460476CC54 /* Animations */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
+		7F3A7281957F0F6EF7B785FD /* LivingCommishUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishTests.swift; sourceTree = "<group>"; };
+		8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdaptiveCommishIntelligenceProvider.swift; sourceTree = "<group>"; };
+		95660CDE28BCADF8572041AC /* FramePreloader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FramePreloader.swift; sourceTree = "<group>"; };
+		9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishUITests.swift; sourceTree = "<group>"; };
+		9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdaptiveCommishController.swift; sourceTree = "<group>"; };
+		9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishModels.swift; sourceTree = "<group>"; };
+		C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishIntelligenceProviding.swift; sourceTree = "<group>"; };
+		C54836E744033EE117E5BCBA /* LivingCommish.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LivingCommish.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RiveCommishController.swift; sourceTree = "<group>"; };
+		CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PngSequenceCommishController.swift; sourceTree = "<group>"; };
+		D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishApp.swift; sourceTree = "<group>"; };
+		DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryPolicy.swift; sourceTree = "<group>"; };
+		EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishInstructions.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		789BFCE561B1F54B41ADC637 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04A2C1D93D8E4F5A91B2C3D4 /* RiveRuntime in Frameworks */,
+				5CA139DACC9C0409AE228DE1 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A138E340D4245A2F216050CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC997F1748BCBB8918E17E41 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F20DABE2A34BF9D43B781FEB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B870C613E1505EE6F0C8E77 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */,
+				D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */,
+			);
+			name = App;
+			path = App;
+			sourceTree = "<group>";
+		};
+		0BED4FDD2A29C83192AE1652 /* LivingCommishTests */ = {
+			isa = PBXGroup;
+			children = (
+				868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */,
+			);
+			name = LivingCommishTests;
+			path = LivingCommishTests;
+			sourceTree = "<group>";
+		};
+		38A0C49943A20891EC95E42B /* LivingCommish */ = {
+			isa = PBXGroup;
+			children = (
+				0B870C613E1505EE6F0C8E77 /* App */,
+				DCA1AB85ADCF93466C280A25 /* Models */,
+				5B8DE46569D585A0418122B7 /* Animation */,
+				9E1B015EA9E1428B044DCB09 /* Intelligence */,
+				E691E9A0603BE49C97A6ED62 /* Memory */,
+				BB5DFF5BB0CEF5D443806A90 /* Intents */,
+				E304AA5F2B523E975E0343B9 /* Views */,
+				B0B0DDA06D618D342B318C80 /* Resources */,
+			);
+			name = LivingCommish;
+			path = .;
+			sourceTree = "<group>";
+		};
+		5B8DE46569D585A0418122B7 /* Animation */ = {
+			isa = PBXGroup;
+			children = (
+				9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */,
+				0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */,
+				07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */,
+				95660CDE28BCADF8572041AC /* FramePreloader.swift */,
+				CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */,
+				C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */,
+			);
+			name = Animation;
+			path = Animation;
+			sourceTree = "<group>";
+		};
+		795E59B245D8F614C16F7446 = {
+			isa = PBXGroup;
+			children = (
+				B796877D1FD03BA889CB34EC /* Products */,
+				C5DBBE7012D70E5932A2CE40 /* Frameworks */,
+				38A0C49943A20891EC95E42B /* LivingCommish */,
+				0BED4FDD2A29C83192AE1652 /* LivingCommishTests */,
+				A8AB57C99E9C703842144AA2 /* LivingCommishUITests */,
+			);
+			sourceTree = "<group>";
+		};
+		9E1B015EA9E1428B044DCB09 /* Intelligence */ = {
+			isa = PBXGroup;
+			children = (
+				8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */,
+				540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */,
+				EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */,
+				C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */,
+				58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */,
+				77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */,
+			);
+			name = Intelligence;
+			path = Intelligence;
+			sourceTree = "<group>";
+		};
+		A4BF32244E60F2AE9BC91EF9 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				60A153C6A94238A0F245A6DB /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		A8AB57C99E9C703842144AA2 /* LivingCommishUITests */ = {
+			isa = PBXGroup;
+			children = (
+				9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */,
+			);
+			name = LivingCommishUITests;
+			path = LivingCommishUITests;
+			sourceTree = "<group>";
+		};
+		B0B0DDA06D618D342B318C80 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				01E471777D8B335930125AB5 /* Assets.xcassets */,
+				9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */,
+				7BE16418C9820B460476CC54 /* Animations */,
+			);
+			name = Resources;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B796877D1FD03BA889CB34EC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C54836E744033EE117E5BCBA /* LivingCommish.app */,
+				420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */,
+				7F3A7281957F0F6EF7B785FD /* LivingCommishUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BB5DFF5BB0CEF5D443806A90 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */,
+			);
+			name = Intents;
+			path = Intents;
+			sourceTree = "<group>";
+		};
+		C5DBBE7012D70E5932A2CE40 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A4BF32244E60F2AE9BC91EF9 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		DCA1AB85ADCF93466C280A25 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */,
+				1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */,
+			);
+			name = Models;
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E304AA5F2B523E975E0343B9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				4633392F54F4BFEFC82F59BA /* CommishStageView.swift */,
+				188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */,
+			);
+			name = Views;
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E691E9A0603BE49C97A6ED62 /* Memory */ = {
+			isa = PBXGroup;
+			children = (
+				481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */,
+				2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */,
+				DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */,
+			);
+			name = Memory;
+			path = Memory;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2A751107BB35758F2D66339C /* LivingCommish */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C7DEC367471DD0E287F7DD0 /* Build configuration list for PBXNativeTarget "LivingCommish" */;
+			buildPhases = (
+				573D7FDFD772EE5BF439CEF5 /* Sources */,
+				789BFCE561B1F54B41ADC637 /* Frameworks */,
+				A9F989B0F180DCD47A2DECB4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LivingCommish;
+			packageProductDependencies = (
+				14B3D2EA4E9F506BA2C3D4E5 /* RiveRuntime */,
+			);
+			productName = LivingCommish;
+			productReference = C54836E744033EE117E5BCBA /* LivingCommish.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5F4B6CA528B979273B1A6645 /* LivingCommishUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13863FD34AE094EE15A5F5C6 /* Build configuration list for PBXNativeTarget "LivingCommishUITests" */;
+			buildPhases = (
+				2EDE2E70649E13619B3CC9E5 /* Sources */,
+				A138E340D4245A2F216050CE /* Frameworks */,
+				B341793C9D4AD78432C20ED3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D50AC14F89A682DB0E108C31 /* PBXTargetDependency */,
+			);
+			name = LivingCommishUITests;
+			productName = LivingCommishUITests;
+			productReference = 7F3A7281957F0F6EF7B785FD /* LivingCommishUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		CC22280C4D8500540EB3C4F1 /* LivingCommishTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B256A3ACA6049E6A9FA13039 /* Build configuration list for PBXNativeTarget "LivingCommishTests" */;
+			buildPhases = (
+				918A60593BCEE98B4BE910AB /* Sources */,
+				F20DABE2A34BF9D43B781FEB /* Frameworks */,
+				51920117ECF279C4DFC4D2EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1030276A5DB1C95D3D3A8D6 /* PBXTargetDependency */,
+			);
+			name = LivingCommishTests;
+			productName = LivingCommishTests;
+			productReference = 420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3718C4509035A1739D8CF7A7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
+			};
+			buildConfigurationList = C2B8962B2BCA581F2D6122DF /* Build configuration list for PBXProject "LivingCommish" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 795E59B245D8F614C16F7446;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B796877D1FD03BA889CB34EC /* Products */;
+			packageReferences = (
+				24C4E3FB5FA0617CB3D4E5F6 /* XCRemoteSwiftPackageReference "rive-ios" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2A751107BB35758F2D66339C /* LivingCommish */,
+				CC22280C4D8500540EB3C4F1 /* LivingCommishTests */,
+				5F4B6CA528B979273B1A6645 /* LivingCommishUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		51920117ECF279C4DFC4D2EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A9F989B0F180DCD47A2DECB4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99476478ECA9A48348E199EE /* Assets.xcassets in Resources */,
+				6D2AD1D422969217F78B3497 /* PrivacyInfo.xcprivacy in Resources */,
+				3CC7A45A49ADCEF33572B7E0 /* Animations in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B341793C9D4AD78432C20ED3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2EDE2E70649E13619B3CC9E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4B4DE15373F50A9D1CC3353A /* LivingCommishUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		573D7FDFD772EE5BF439CEF5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */,
+				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
+				DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */,
+				D29C7628ADFC0551FFBEA7C3 /* FanMemoryModels.swift in Sources */,
+				AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */,
+				D7C66B4FAC9A08B1A614478F /* AnimationConfiguration.swift in Sources */,
+				66E93DB92E2728414CE9CDB6 /* CommishControlling.swift in Sources */,
+				76EF0FB51CA8DB28ADEAD25A /* FramePreloader.swift in Sources */,
+				7F83C8B3A2FC7836428E6984 /* PngSequenceCommishController.swift in Sources */,
+				0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */,
+				67BEAACBDABC09DCD2BAA59A /* AdaptiveCommishIntelligenceProvider.swift in Sources */,
+				276243E54FF8A20A882E5340 /* AppleFoundationModelsCommishProvider.swift in Sources */,
+				974B6F1C6A328C9C9205C848 /* CommishInstructions.swift in Sources */,
+				8816B6D6169BD608C63A5459 /* CommishIntelligenceProviding.swift in Sources */,
+				311F2AE4B23074277A437894 /* DeterministicCommishProvider.swift in Sources */,
+				A75A800FDFBBCD7729DE5E00 /* ReactionBriefBuilder.swift in Sources */,
+				DE4346248EB4DAFC55C33430 /* CommishMemoryStore.swift in Sources */,
+				EF055ACDDED7E12933B22606 /* DemoDataSeeder.swift in Sources */,
+				1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */,
+				A3AB1B6CC153E0A212B89C74 /* ReactWithCommishIntent.swift in Sources */,
+				C3548076ACE499799FE21736 /* CommishStageView.swift in Sources */,
+				EDACFA8FF8536C0E64499490 /* MemoryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		918A60593BCEE98B4BE910AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D53D1C0774F555B23F7E686 /* LivingCommishTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C1030276A5DB1C95D3D3A8D6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LivingCommish;
+			target = 2A751107BB35758F2D66339C /* LivingCommish */;
+			targetProxy = 204DB9EADF13EB46D5767BD0 /* PBXContainerItemProxy */;
+		};
+		D50AC14F89A682DB0E108C31 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LivingCommish;
+			target = 2A751107BB35758F2D66339C /* LivingCommish */;
+			targetProxy = CE213A52ACC976B1E1C41930 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3E2F2E51DB5A9AD1A3194A0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish.tests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LivingCommish.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LivingCommish";
+			};
+			name = Debug;
+		};
+		468D53FC356811ED2F867E7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Living Commish";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		881469EDF2BF69CC240FEB8E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish.tests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LivingCommish.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LivingCommish";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		902F183E9A9D2491F351CB2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = LivingCommish;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AC6AF517D7B7AAB39CCEC721 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B755CEBCA42ADCAA7DE2AC8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = LivingCommish;
+			};
+			name = Debug;
+		};
+		C265A159152B08E0B853F93B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Living Commish";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.sports";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takes.livingcommish;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E0C0692E8AD00D940C57516A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		13863FD34AE094EE15A5F5C6 /* Build configuration list for PBXNativeTarget "LivingCommishUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				902F183E9A9D2491F351CB2D /* Release */,
+				B755CEBCA42ADCAA7DE2AC8A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5C7DEC367471DD0E287F7DD0 /* Build configuration list for PBXNativeTarget "LivingCommish" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C265A159152B08E0B853F93B /* Release */,
+				468D53FC356811ED2F867E7A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B256A3ACA6049E6A9FA13039 /* Build configuration list for PBXNativeTarget "LivingCommishTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				881469EDF2BF69CC240FEB8E /* Release */,
+				3E2F2E51DB5A9AD1A3194A0A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C2B8962B2BCA581F2D6122DF /* Build configuration list for PBXProject "LivingCommish" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC6AF517D7B7AAB39CCEC721 /* Debug */,
+				E0C0692E8AD00D940C57516A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		24C4E3FB5FA0617CB3D4E5F6 /* XCRemoteSwiftPackageReference "rive-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rive-app/rive-ios";
+			requirement = {
+				kind = exactVersion;
+				version = 6.21.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		14B3D2EA4E9F506BA2C3D4E5 /* RiveRuntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 24C4E3FB5FA0617CB3D4E5F6 /* XCRemoteSwiftPackageReference "rive-ios" */;
+			productName = RiveRuntime;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 3718C4509035A1739D8CF7A7 /* Project object */;
+}

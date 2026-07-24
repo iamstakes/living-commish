@@ -1,32 +1,56 @@
-# React + TypeScript + Vite
+# Living Commish
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Living Commish is a hackathon prototype for a personalized sports commissioner character. The repository contains the native iOS implementation and the earlier React/Vite prototype.
 
-Currently, two official plugins are available:
+## Native iOS prototype
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The SwiftUI app uses Apple Foundation Models for on-device copy generation when available. Inspectable Swift code owns event interpretation, action and emotion selection, validation, memory, and animation. A personalized deterministic provider keeps the demo functional when the Apple model is unavailable or fails.
 
-## React Compiler
+The latest reaction policy recognizes intent, valence, arousal, punctuation, anticipation, team relationships, and known traditions. Explicit approval or correction is stored locally in SwiftData and adjusts bounded weights for similar future situations. For example, excited Whiteout attendance starts with `foamFinger` and `electric` instead of the old catch-all `pointRight` behavior.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Requirements
 
-## Expanding the Oxlint configuration
+- Xcode 26.4.1 or newer
+- iOS 26.0 or newer
+- An Apple Intelligence-capable simulator or device for the Foundation Models path
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+No backend, API key, or remote model is required.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+### Run
+
+1. Open `LivingCommish.xcodeproj`.
+2. Select the `LivingCommish` scheme and an iOS 26 simulator.
+3. Press Run.
+
+The checked-in PNG sequences are the production-safe renderer fallback. Rive is optional; see `RIVE_SETUP.md` and `Documentation/RIVE_IMPLEMENTATION.md`.
+
+### Verify
+
+```sh
+xcodebuild \
+  -project LivingCommish.xcodeproj \
+  -scheme LivingCommish \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  build
+
+xcodebuild \
+  -project LivingCommish.xcodeproj \
+  -scheme LivingCommish \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  test
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Start with:
+
+- `Documentation/ARCHITECTURE.md` for the reaction, intelligence, renderer, and learning boundaries
+- `Documentation/APPLE_INTELLIGENCE_SETUP.md` for runtime behavior and the simulator workaround
+- `Documentation/DEMO_SCRIPT.md` for the review flow
+
+## Web prototype
+
+```sh
+npm install
+npm run dev
+```
+
+Other useful commands are `npm run build` and `npm run lint`.
