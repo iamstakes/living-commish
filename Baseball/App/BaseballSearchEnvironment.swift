@@ -100,6 +100,12 @@ final class BaseballSearchEnvironment {
 
         do {
             let query = try await queryInterpreter.interpret(cleaned, profile: profile)
+            guard query.intent != .unknown else {
+                throw BaseballSearchArchitectureError.needsRefinement(
+                    query.ambiguity
+                        ?? "Try a player, team, game, comparison, or playoff question."
+                )
+            }
             let plan = planner.plan(for: query)
             state = .loading(plan: plan)
 

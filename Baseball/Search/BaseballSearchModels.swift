@@ -39,6 +39,8 @@ struct BaseballEntityReference: Equatable, Identifiable, Sendable {
 }
 
 enum BaseballSearchIntent: String, CaseIterable, Equatable, Sendable {
+    case favoriteTeam
+    case favoritePlayer
     case entityLookup
     case teamLookup
     case gamesTonight

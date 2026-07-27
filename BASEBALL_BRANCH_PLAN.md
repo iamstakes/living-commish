@@ -734,3 +734,22 @@ Verification:
 - visual inspection on the iPhone 17 Pro simulator confirmed that search is above the fold and the home does not read as a transcript
 
 The next incremental phase is Phase 4: deepen the personalized discovery rail, card destinations, and provenance/freshness presentation without introducing a generic news feed.
+
+## Post-Phase 3 search trust hardening
+
+The first manual profile-query test exposed two invalid assumptions: unknown intent was allowed to render recovery instructions as a result, and the result UI labeled every host line as opinion regardless of claim type.
+
+The hardening pass:
+
+- adds explicit favorite-team and favorite-player intents with multiple supported phrasings
+- answers profile lookups directly from the injected fan profile
+- labels grounded profile answers as facts rather than host opinions
+- routes unknown queries to refinement/error state instead of result presentation
+- prevents mock player or team fixtures from being silently substituted for unsupported favorites
+
+Verification:
+
+- 31 of 31 unit tests passed
+- all 3 Baseball Living Host UI tests passed
+- the focused legacy Living Commish launch UI test passed
+- the exact query `What is my favorite team?` was visually verified to render `FACT — Your favorite team is the Colorado Rockies.`

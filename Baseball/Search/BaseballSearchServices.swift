@@ -34,12 +34,15 @@ protocol BaseballResultComposing: Sendable {
 
 enum BaseballSearchArchitectureError: LocalizedError, Equatable {
     case emptyQuery
+    case needsRefinement(String)
     case noFixture(String)
 
     var errorDescription: String? {
         switch self {
         case .emptyQuery:
             "Enter a player, team, game, or baseball question."
+        case .needsRefinement(let guidance):
+            guidance
         case .noFixture(let query):
             "The prototype has no structured fixture for “\(query)” yet."
         }
@@ -60,7 +63,11 @@ struct DeterministicBaseballQueryInterpreter: BaseballQueryInterpreting {
         let entities = recognizedEntities(in: normalized, profile: profile)
 
         let intent: BaseballSearchIntent
-        if containsAny(normalized, ["compare ", " versus ", " vs. ", " vs "]) {
+        if asksForFavoriteTeam(normalized) {
+            intent = .favoriteTeam
+        } else if asksForFavoritePlayer(normalized) {
+            intent = .favoritePlayer
+        } else if containsAny(normalized, ["compare ", " versus ", " vs. ", " vs "]) {
             intent = .playerComparison
         } else if containsAny(normalized, ["when was my last", "my last game", "last game i attended"]) {
             intent = .personalAttendanceHistory
@@ -130,6 +137,24 @@ struct DeterministicBaseballQueryInterpreter: BaseballQueryInterpreting {
             entities.append(entity)
         }
 
+        if asksForFavoriteTeam(text) {
+            append(
+                .init(
+                    id: "team-\(slug(profile.favoriteTeam))",
+                    kind: .team,
+                    canonicalName: profile.favoriteTeam
+                )
+            )
+        }
+        if asksForFavoritePlayer(text), let favoritePlayer = profile.favoritePlayers.first {
+            append(
+                .init(
+                    id: "player-\(slug(favoritePlayer))",
+                    kind: .player,
+                    canonicalName: favoritePlayer
+                )
+            )
+        }
         if containsAny(text, ["aaron judge", "judge"]) {
             append(.init(id: "player-aaron-judge", kind: .player, canonicalName: "Aaron Judge"))
         }
@@ -161,6 +186,31 @@ struct DeterministicBaseballQueryInterpreter: BaseballQueryInterpreting {
         terms.contains(where: text.contains)
     }
 
+    private func asksForFavoriteTeam(_ text: String) -> Bool {
+        containsAny(
+            text,
+            [
+                "my favorite team",
+                "my favourite team",
+                "team do i root for",
+                "team am i a fan of",
+                "which team do i support",
+            ]
+        )
+    }
+
+    private func asksForFavoritePlayer(_ text: String) -> Bool {
+        containsAny(
+            text,
+            [
+                "my favorite player",
+                "my favourite player",
+                "player do i follow",
+                "player am i a fan of",
+            ]
+        )
+    }
+
     private func slug(_ value: String) -> String {
         value.lowercased().replacingOccurrences(of: " ", with: "-")
     }
@@ -172,6 +222,12 @@ struct DefaultBaseballSearchPlanner: BaseballSearchPlanning {
         let behavior: HostBehavior
 
         switch query.intent {
+        case .favoriteTeam:
+            modules = [.hostReaction, .team, .whyThisMatters, .relatedSearches]
+            behavior = .greet
+        case .favoritePlayer:
+            modules = [.hostReaction, .player, .whyThisMatters, .relatedSearches]
+            behavior = .greet
         case .entityLookup:
             modules = [
                 .hostReaction, .player, .highlight, .game, .statcast,

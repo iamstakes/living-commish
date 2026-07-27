@@ -445,7 +445,7 @@ private struct SearchExperienceOverview: View {
 
             if let reaction = experience.modules.compactMap(\.hostReaction).first {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("HOST OPINION", systemImage: "sparkles")
+                    Label(reaction.kind.displayName.uppercased(), systemImage: "sparkles")
                         .font(.caption2.weight(.black))
                         .tracking(1)
                         .foregroundStyle(.purple)

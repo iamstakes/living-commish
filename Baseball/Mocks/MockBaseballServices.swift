@@ -217,11 +217,16 @@ struct MockBaseballDataService: BaseballDataProviding {
             switch requestedModule {
             case .player:
                 let players = requestedPlayers(for: plan.query)
-                (players.isEmpty ? [MockBaseballFixtures.goodman] : players).forEach {
+                let fallbackPlayers = plan.query.intent == .favoritePlayer
+                    ? []
+                    : [MockBaseballFixtures.goodman]
+                (players.isEmpty ? fallbackPlayers : players).forEach {
                     append(.player($0))
                 }
             case .team:
-                append(.team(requestedTeam(for: plan.query, profile: profile)))
+                if let team = requestedTeam(for: plan.query, profile: profile) {
+                    append(.team(team))
+                }
             case .game, .liveScore, .schedule:
                 append(.game(MockBaseballFixtures.rockiesGame))
             case .standings:
@@ -268,7 +273,7 @@ struct MockBaseballDataService: BaseballDataProviding {
     private func requestedTeam(
         for query: BaseballSearchQuery,
         profile: BaseballFanProfileSnapshot
-    ) -> BaseballTeamCard {
+    ) -> BaseballTeamCard? {
         if query.entities.contains(where: { $0.id == "team-los-angeles-dodgers" }) {
             return MockBaseballFixtures.dodgers
         }
@@ -276,7 +281,7 @@ struct MockBaseballDataService: BaseballDataProviding {
             || profile.favoriteTeam == "Colorado Rockies" {
             return MockBaseballFixtures.rockies
         }
-        return MockBaseballFixtures.rockies
+        return nil
     }
 }
 

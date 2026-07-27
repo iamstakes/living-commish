@@ -40,6 +40,9 @@ final class BaseballArchitectureTests: XCTestCase {
     func testInterpreterRecognizesPrioritySearches() async throws {
         let interpreter = DeterministicBaseballQueryInterpreter()
         let cases: [(String, BaseballSearchIntent)] = [
+            ("What is my favorite team?", .favoriteTeam),
+            ("Which team do I support?", .favoriteTeam),
+            ("Who is my favorite player?", .favoritePlayer),
             ("Aaron Judge", .entityLookup),
             ("Rockies", .teamLookup),
             ("Games tonight", .gamesTonight),
@@ -58,6 +61,100 @@ final class BaseballArchitectureTests: XCTestCase {
             )
             XCTAssertEqual(result.intent, expectedIntent, rawQuery)
         }
+    }
+
+    func testFavoriteTeamQuestionReturnsAGroundedProfileFact() async throws {
+        let profile = MockMichaelProfile.value
+        let interpreter = DeterministicBaseballQueryInterpreter()
+        let query = try await interpreter.interpret(
+            "What is my favorite team?",
+            profile: profile
+        )
+        let plan = DefaultBaseballSearchPlanner().plan(for: query)
+        let snapshot = try await MockBaseballDataService().fetch(
+            plan: plan,
+            profile: profile
+        )
+        let editorial = try await DeterministicBaseballHostEditor().editorial(
+            for: plan,
+            snapshot: snapshot,
+            profile: profile
+        )
+
+        XCTAssertEqual(query.intent, .favoriteTeam)
+        XCTAssertEqual(query.entities.first?.canonicalName, "Colorado Rockies")
+        XCTAssertEqual(editorial.reaction.line, "Your favorite team is the Colorado Rockies.")
+        XCTAssertEqual(editorial.reaction.kind, .fact)
+        XCTAssertFalse(editorial.reaction.groundedFactIDs.isEmpty)
+        XCTAssertTrue(snapshot.modules.contains { module in
+            if case .team(let team) = module {
+                return team.name == "Colorado Rockies"
+            }
+            return false
+        })
+    }
+
+    func testFavoritePlayerQuestionUsesProfileWithoutSubstitutingAnotherFixture() async throws {
+        let base = MockMichaelProfile.value
+        let profile = BaseballFanProfileSnapshot(
+            id: "custom-fan",
+            name: base.name,
+            favoriteTeam: base.favoriteTeam,
+            favoritePlayers: ["A Player Without A Fixture"],
+            rivalTeams: base.rivalTeams,
+            interests: base.interests,
+            stadiumVisits: base.stadiumVisits,
+            frequentSearchThemes: base.frequentSearchThemes
+        )
+        let query = try await DeterministicBaseballQueryInterpreter().interpret(
+            "Who is my favorite player?",
+            profile: profile
+        )
+        let plan = DefaultBaseballSearchPlanner().plan(for: query)
+        let snapshot = try await MockBaseballDataService().fetch(
+            plan: plan,
+            profile: profile
+        )
+        let editorial = try await DeterministicBaseballHostEditor().editorial(
+            for: plan,
+            snapshot: snapshot,
+            profile: profile
+        )
+
+        XCTAssertEqual(
+            editorial.reaction.line,
+            "Your favorite player is A Player Without A Fixture."
+        )
+        XCTAssertFalse(snapshot.modules.contains { module in
+            if case .player(let player) = module {
+                return player.name == "Hunter Goodman"
+            }
+            return false
+        })
+    }
+
+    func testUnknownQuestionBecomesARefinementFailure() async {
+        let commish = TestCommishController()
+        let environment = BaseballSearchEnvironment(
+            dependencies: BaseballSearchDependencies(
+                profile: MockMichaelProfile.value,
+                queryInterpreter: DeterministicBaseballQueryInterpreter(),
+                planner: DefaultBaseballSearchPlanner(),
+                dataProvider: MockBaseballDataService(),
+                discoveryProvider: MockBaseballDiscoveryService(),
+                hostEditor: DeterministicBaseballHostEditor(),
+                resultComposer: DefaultBaseballResultComposer(),
+                host: LegacyCommishHostAdapter(controller: commish)
+            )
+        )
+
+        await environment.search("Tell me something")
+
+        guard case .failed(let failure) = environment.state else {
+            return XCTFail("Unknown queries must not become host opinions")
+        }
+        XCTAssertTrue(failure.message.contains("Try a player"))
+        XCTAssertEqual(commish.currentAction, .idle)
     }
 
     func testPlannerProducesVisualModulePlansInsteadOfTextResponses() async throws {

@@ -41,6 +41,22 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["LIVING COMMISH"].exists)
     }
 
+    func testFavoriteTeamQuestionReturnsTheProfileFact() {
+        let app = launchApp()
+        let field = app.textFields["baseball-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        field.tap()
+        field.typeText("What is my favorite team?")
+        app.buttons["baseball-search-button"].tap()
+
+        XCTAssertTrue(app.otherElements["baseball-results-overview"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["FACT"].exists)
+        XCTAssertTrue(
+            app.staticTexts["Your favorite team is the Colorado Rockies."].exists
+        )
+        XCTAssertFalse(app.staticTexts["HOST OPINION"].exists)
+    }
+
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--baseball-ui-testing"]
