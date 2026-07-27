@@ -3,8 +3,12 @@ import SwiftUI
 
 @main
 struct LivingCommishApp: App {
-    @State private var environment = AppEnvironment()
+    @State private var commishEnvironment = AppEnvironment()
+    @State private var baseballEnvironment = BaseballSearchEnvironment()
     private let modelContainer: ModelContainer
+    private let experienceMode = AppExperienceMode.resolve(
+        arguments: ProcessInfo.processInfo.arguments
+    )
 
     init() {
         let inMemory = ProcessInfo.processInfo.arguments.contains("--ui-testing")
@@ -24,11 +28,21 @@ struct LivingCommishApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CommishStageView()
-                .environment(environment)
-                .task {
-                    environment.configure(modelContext: modelContainer.mainContext)
+            Group {
+                switch experienceMode {
+                case .baseballSearch:
+                    BaseballSearchHomeView()
+                        .environment(baseballEnvironment)
+                case .livingCommish:
+                    CommishStageView()
+                        .environment(commishEnvironment)
+                        .task {
+                            commishEnvironment.configure(
+                                modelContext: modelContainer.mainContext
+                            )
+                        }
                 }
+            }
         }
         .modelContainer(modelContainer)
     }

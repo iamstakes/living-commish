@@ -698,3 +698,39 @@ Verification:
 - focused Living Commish launch UI test passed
 
 The next incremental phase is Phase 3: build the search-first home screen against these contracts while preserving the legacy launch path for regression tests.
+
+## Phase 3 implementation status
+
+Phase 3 was approved and completed on July 27, 2026.
+
+Implemented:
+
+- Baseball Living Host is the default app experience on this branch
+- `--legacy-commish` preserves an explicit manual launch path for Living Commish
+- existing `--ui-testing` launches remain mapped to Living Commish so its regression suite is unchanged
+- `--baseball-ui-testing` provides an isolated deterministic launch path for the new experience
+- a search-first home with the search field before the animated guide in the visual hierarchy
+- native iOS 26 Liquid Glass containers and buttons, dark spatial depth, reduced-motion support, lifecycle handling, and VoiceOver identifiers
+- a character-neutral `AnimatedHostView` rendering the current PNG/Rive adapter without search UI knowledge of Commish actions or assets
+- a personalized Michael/Rockies identity and discovery empty state
+- explicit prototype-data and fictional-guide disclosures
+- visual loading, result, empty, and recoverable-error states
+- a modular result overview with host opinion, typed result previews, why-it-matters content, and related search actions
+
+Intentionally deferred:
+
+- live MLB data and production source attribution
+- dedicated full layouts for every result-module family
+- baseball-specific SwiftData persistence and feedback
+- Apple Foundation Models baseball query interpretation/editorial
+- replacement host art
+
+Verification:
+
+- native iOS 26.4 simulator build passed
+- 28 of 28 unit tests passed: 8 baseball architecture tests and 20 existing Living Commish tests
+- 2 of 2 Baseball Living Host UI tests passed
+- focused legacy Living Commish launch UI test passed
+- visual inspection on the iPhone 17 Pro simulator confirmed that search is above the fold and the home does not read as a transcript
+
+The next incremental phase is Phase 4: deepen the personalized discovery rail, card destinations, and provenance/freshness presentation without introducing a generic news feed.

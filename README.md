@@ -2,6 +2,12 @@
 
 Living Commish is a hackathon prototype for a personalized sports commissioner character. The repository contains the native iOS implementation and the earlier React/Vite prototype.
 
+## Baseball Living Host branch
+
+On `feature/baseball-search`, the native app launches into Baseball Living Host: a search-first, visual baseball experience with an animated guide. It uses isolated, clearly labeled prototype fixtures for Michael, a Colorado Rockies fan; it does not claim that the displayed MLB data is live.
+
+Run the app normally for the baseball experience. To inspect the original Living Commish experience, add `--legacy-commish` to the scheme's launch arguments. The implementation plan and phase status live in `BASEBALL_BRANCH_PLAN.md`.
+
 ## Native iOS prototype
 
 The SwiftUI app uses Apple Foundation Models for on-device copy generation when available. Inspectable Swift code owns event interpretation, action and emotion selection, validation, memory, and animation. A personalized deterministic provider keeps the demo functional when the Apple model is unavailable or fails.

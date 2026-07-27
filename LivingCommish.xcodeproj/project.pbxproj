@@ -16,6 +16,10 @@
 		B10000000000000000000006 /* MockBaseballServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* MockBaseballServices.swift */; };
 		B10000000000000000000007 /* BaseballSearchEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* BaseballSearchEnvironment.swift */; };
 		B10000000000000000000008 /* BaseballArchitectureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* BaseballArchitectureTests.swift */; };
+		B10000000000000000000009 /* AppExperienceMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* AppExperienceMode.swift */; };
+		B10000000000000000000010 /* AnimatedHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* AnimatedHostView.swift */; };
+		B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* BaseballSearchHomeView.swift */; };
+		B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* BaseballSearchHomeUITests.swift */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
 		1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */; };
@@ -75,6 +79,10 @@
 		A10000000000000000000006 /* MockBaseballServices.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockBaseballServices.swift; sourceTree = "<group>"; };
 		A10000000000000000000007 /* BaseballSearchEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchEnvironment.swift; sourceTree = "<group>"; };
 		A10000000000000000000008 /* BaseballArchitectureTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballArchitectureTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* AppExperienceMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppExperienceMode.swift; sourceTree = "<group>"; };
+		A10000000000000000000010 /* AnimatedHostView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedHostView.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* BaseballSearchHomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeView.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* BaseballSearchHomeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeUITests.swift; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
 		158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactWithCommishIntent.swift; sourceTree = "<group>"; };
@@ -145,6 +153,7 @@
 				C10000000000000000000006 /* Intelligence */,
 				C10000000000000000000007 /* Mocks */,
 				C10000000000000000000004 /* Search */,
+				C10000000000000000000008 /* Views */,
 			);
 			name = Baseball;
 			path = Baseball;
@@ -205,9 +214,20 @@
 			path = Mocks;
 			sourceTree = "<group>";
 		};
+		C10000000000000000000008 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000010 /* AnimatedHostView.swift */,
+				A10000000000000000000011 /* BaseballSearchHomeView.swift */,
+			);
+			name = Views;
+			path = Views;
+			sourceTree = "<group>";
+		};
 		0B870C613E1505EE6F0C8E77 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000009 /* AppExperienceMode.swift */,
 				B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */,
 				D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */,
 			);
@@ -292,6 +312,7 @@
 		A8AB57C99E9C703842144AA2 /* LivingCommishUITests */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000012 /* BaseballSearchHomeUITests.swift */,
 				9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */,
 			);
 			name = LivingCommishUITests;
@@ -492,6 +513,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */,
 				4B4DE15373F50A9D1CC3353A /* LivingCommishUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -507,6 +529,9 @@
 				B10000000000000000000005 /* BaseballHostEditorializing.swift in Sources */,
 				B10000000000000000000006 /* MockBaseballServices.swift in Sources */,
 				B10000000000000000000007 /* BaseballSearchEnvironment.swift in Sources */,
+				B10000000000000000000009 /* AppExperienceMode.swift in Sources */,
+				B10000000000000000000010 /* AnimatedHostView.swift in Sources */,
+				B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */,
 				B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */,
 				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
 				DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */,

@@ -5,6 +5,26 @@ import XCTest
 
 @MainActor
 final class BaseballArchitectureTests: XCTestCase {
+    func testBaseballSearchIsDefaultAndLegacyLaunchModesRemainExplicit() {
+        XCTAssertEqual(AppExperienceMode.resolve(arguments: []), .baseballSearch)
+        XCTAssertEqual(
+            AppExperienceMode.resolve(arguments: ["--baseball-ui-testing"]),
+            .baseballSearch
+        )
+        XCTAssertEqual(
+            AppExperienceMode.resolve(arguments: ["--legacy-commish"]),
+            .livingCommish
+        )
+        XCTAssertEqual(
+            AppExperienceMode.resolve(arguments: ["--ui-testing"]),
+            .livingCommish
+        )
+        XCTAssertEqual(
+            AppExperienceMode.resolve(arguments: ["--ui-testing", "--baseball-ui-testing"]),
+            .baseballSearch
+        )
+    }
+
     func testMockMichaelProfileIsRichAndIsolated() {
         let michael = MockMichaelProfile.value
 
