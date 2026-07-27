@@ -664,3 +664,37 @@ Gate:
 ## Phase 1 decision
 
 Proceed to Phase 2 only after review of this plan. The first implementation change should establish generic host and baseball search contracts with mock dependencies while leaving Living Commish behavior intact.
+
+## Phase 2 implementation status
+
+Phase 2 was approved and completed on July 27, 2026.
+
+Implemented:
+
+- character-neutral `AnimatedHostControlling`, `AnimatedHostDescriptor`, and `HostBehavior` contracts
+- `LegacyCommishHostAdapter`, allowing search UI to use the current animation without Commish-specific knowledge
+- typed baseball facts with claim classification, provenance, freshness, and explicit mock-data disclosure
+- typed player, team, game, standings, highlight, Statcast, comparison, personal-memory, related-search, and watch-next modules
+- explicit baseball query, search-plan, search-experience, discovery-card, and experience-state models
+- deterministic interpretation and modular planning for every priority query in the product brief
+- replaceable query, planning, data, discovery, editorial, composition, and host dependencies
+- isolated Michael profile and deterministic prototype MLB fixtures
+- a complete `BaseballSearchEnvironment` orchestration pipeline without adding a search screen
+- seven focused architecture tests
+
+Intentionally deferred:
+
+- changing the app root or existing Living Commish UI
+- baseball SwiftData persistence
+- Apple Foundation Models baseball interpretation/editorial
+- production MLB services
+- baseball search and result views
+- Hunter-inspired assets
+
+Verification:
+
+- native build passed
+- 27 of 27 unit tests passed: 7 baseball architecture tests and 20 existing Living Commish tests
+- focused Living Commish launch UI test passed
+
+The next incremental phase is Phase 3: build the search-first home screen against these contracts while preserving the legacy launch path for regression tests.
