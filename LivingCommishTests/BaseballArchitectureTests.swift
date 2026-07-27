@@ -167,11 +167,86 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(plan.hostBehavior, .explain)
         XCTAssertEqual(plan.requestedModules.first, .hostReaction)
         XCTAssertTrue(plan.requestedModules.contains(.player))
-        XCTAssertTrue(plan.requestedModules.contains(.highlight))
         XCTAssertTrue(plan.requestedModules.contains(.statcast))
         XCTAssertTrue(plan.requestedModules.contains(.whyThisMatters))
-        XCTAssertTrue(plan.requestedModules.contains(.watchNext))
-        XCTAssertGreaterThanOrEqual(Set(plan.requestedModules).count, 6)
+        XCTAssertTrue(plan.requestedModules.contains(.relatedSearches))
+        XCTAssertFalse(plan.requestedModules.contains(.game))
+        XCTAssertFalse(plan.requestedModules.contains(.highlight))
+        XCTAssertFalse(plan.requestedModules.contains(.watchNext))
+        XCTAssertEqual(Set(plan.requestedModules).count, 5)
+    }
+
+    func testJudgeLookupUsesOnlyJudgeRelevantFixturesAndSpecificEditorial() async throws {
+        let profile = MockMichaelProfile.value
+        let query = try await DeterministicBaseballQueryInterpreter().interpret(
+            "aaron judge",
+            profile: profile
+        )
+        let plan = DefaultBaseballSearchPlanner().plan(for: query)
+        let snapshot = try await MockBaseballDataService().fetch(
+            plan: plan,
+            profile: profile
+        )
+        let editorial = try await DeterministicBaseballHostEditor().editorial(
+            for: plan,
+            snapshot: snapshot,
+            profile: profile
+        )
+
+        XCTAssertTrue(snapshot.modules.contains { module in
+            if case .player(let player) = module { return player.name == "Aaron Judge" }
+            return false
+        })
+        XCTAssertTrue(snapshot.modules.contains { module in
+            if case .statcast(let statcast) = module {
+                return statcast.id == MockBaseballFixtures.judgeStatcast.id
+            }
+            return false
+        })
+        XCTAssertFalse(snapshot.modules.contains { module in
+            if case .game = module { return true }
+            if case .highlight = module { return true }
+            if case .watchNext = module { return true }
+            return false
+        })
+        XCTAssertTrue(editorial.reaction.line.contains("Aaron Judge"))
+        XCTAssertTrue(editorial.reaction.line.contains("Contact quality"))
+        XCTAssertFalse(editorial.reaction.line.contains("spotlight"))
+        XCTAssertFalse(editorial.reaction.line.contains("deserves your time"))
+        XCTAssertTrue(editorial.whyThisMatters.explanation.contains("explicit subject"))
+        XCTAssertFalse(editorial.whyThisMatters.explanation.contains("playoff implications"))
+    }
+
+    func testOhtaniLookupCannotBorrowJudgeOrRockiesFixtures() async throws {
+        let profile = MockMichaelProfile.value
+        let query = try await DeterministicBaseballQueryInterpreter().interpret(
+            "shohei ohtani",
+            profile: profile
+        )
+        let plan = DefaultBaseballSearchPlanner().plan(for: query)
+        let snapshot = try await MockBaseballDataService().fetch(
+            plan: plan,
+            profile: profile
+        )
+        let editorial = try await DeterministicBaseballHostEditor().editorial(
+            for: plan,
+            snapshot: snapshot,
+            profile: profile
+        )
+
+        XCTAssertTrue(snapshot.modules.contains { module in
+            if case .player(let player) = module { return player.name == "Shohei Ohtani" }
+            return false
+        })
+        XCTAssertFalse(snapshot.modules.contains { module in
+            if case .statcast = module { return true }
+            if case .game = module { return true }
+            if case .highlight = module { return true }
+            if case .watchNext = module { return true }
+            return false
+        })
+        XCTAssertTrue(editorial.reaction.line.contains("designated hitter"))
+        XCTAssertTrue(editorial.reaction.line.contains("current sourcing"))
     }
 
     func testMockDataIsAlwaysMarkedAsFixtureData() async throws {

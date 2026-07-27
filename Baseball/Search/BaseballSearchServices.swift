@@ -229,10 +229,22 @@ struct DefaultBaseballSearchPlanner: BaseballSearchPlanning {
             modules = [.hostReaction, .player, .whyThisMatters, .relatedSearches]
             behavior = .greet
         case .entityLookup:
-            modules = [
-                .hostReaction, .player, .highlight, .game, .statcast,
-                .whyThisMatters, .relatedSearches, .watchNext,
-            ]
+            if query.entities.contains(where: { $0.id == "player-aaron-judge" }) {
+                modules = [
+                    .hostReaction, .player, .statcast,
+                    .whyThisMatters, .relatedSearches,
+                ]
+            } else if query.entities.contains(where: { $0.id == "player-hunter-goodman" }) {
+                modules = [
+                    .hostReaction, .player, .game, .highlight,
+                    .whyThisMatters, .relatedSearches, .watchNext,
+                ]
+            } else {
+                modules = [
+                    .hostReaction, .player,
+                    .whyThisMatters, .relatedSearches,
+                ]
+            }
             behavior = .explain
         case .teamLookup:
             modules = [

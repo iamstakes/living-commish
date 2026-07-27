@@ -61,10 +61,10 @@ enum MockBaseballFixtures {
         name: "Aaron Judge",
         teamName: "New York Yankees",
         position: "Outfielder",
-        summary: "A visual prototype profile centered on power, recent form, and what to watch next.",
+        summary: "Prototype coverage includes his Yankees role and one illustrative contact-quality view. Live statistics and schedule data are not connected.",
         facts: [
             fact("judge-power", "Fixture: Judge’s result experience leads with power and contact quality."),
-            fact("judge-next-game", "Fixture: Judge has a scheduled game in the prototype slate."),
+            fact("judge-role", "Fixture: Judge is listed as a New York Yankees outfielder in this prototype."),
         ]
     )
 
@@ -73,7 +73,7 @@ enum MockBaseballFixtures {
         name: "Shohei Ohtani",
         teamName: "Los Angeles Dodgers",
         position: "Designated hitter",
-        summary: "A prototype profile separating current role, availability context, and historical comparison.",
+        summary: "Separate the roles: this fixture covers Ohtani as a hitter and does not guess at his pitching availability.",
         facts: [
             fact("ohtani-role", "Fixture: Ohtani is listed as designated hitter in this prototype."),
             fact("ohtani-pitching", "Fixture: The availability card explains that pitching status requires sourced context."),
@@ -85,7 +85,7 @@ enum MockBaseballFixtures {
         name: "Hunter Goodman",
         teamName: "Colorado Rockies",
         position: "Catcher / first baseman",
-        summary: "The prototype’s emerging-player recommendation for the injected fan profile.",
+        summary: "An emerging Rockies player matched to Michael’s favorite team and interest in players on the rise.",
         facts: [
             fact("goodman-emerging", "Fixture: Goodman is tagged as an emerging player for the demo profile."),
             fact("goodman-rockies", "Fixture: Goodman is connected to the profile’s favorite team."),
@@ -228,13 +228,21 @@ struct MockBaseballDataService: BaseballDataProviding {
                     append(.team(team))
                 }
             case .game, .liveScore, .schedule:
-                append(.game(MockBaseballFixtures.rockiesGame))
+                if supportsRockiesContext(plan.query) {
+                    append(.game(MockBaseballFixtures.rockiesGame))
+                }
             case .standings:
-                append(.standings(MockBaseballFixtures.standings))
+                if supportsRockiesContext(plan.query) {
+                    append(.standings(MockBaseballFixtures.standings))
+                }
             case .highlight:
-                append(.highlight(MockBaseballFixtures.highlight))
+                if supportsRockiesContext(plan.query) {
+                    append(.highlight(MockBaseballFixtures.highlight))
+                }
             case .statcast:
-                append(.statcast(MockBaseballFixtures.judgeStatcast))
+                if plan.query.entities.contains(where: { $0.id == "player-aaron-judge" }) {
+                    append(.statcast(MockBaseballFixtures.judgeStatcast))
+                }
             case .historicalComparison:
                 append(.comparison(MockBaseballFixtures.comparison))
             case .personalMemory:
@@ -242,7 +250,9 @@ struct MockBaseballDataService: BaseballDataProviding {
             case .relatedSearches:
                 append(.relatedSearches(MockBaseballFixtures.related))
             case .watchNext:
-                append(.watchNext(MockBaseballFixtures.watchNext))
+                if supportsRockiesContext(plan.query) {
+                    append(.watchNext(MockBaseballFixtures.watchNext))
+                }
             case .hostReaction, .whyThisMatters, .fantasyImpact, .ticketOpportunity:
                 break
             }
@@ -267,6 +277,34 @@ struct MockBaseballDataService: BaseballDataProviding {
             case "player-hunter-goodman": MockBaseballFixtures.goodman
             default: nil
             }
+        }
+    }
+
+    private func supportsRockiesContext(_ query: BaseballSearchQuery) -> Bool {
+        if query.entities.contains(where: {
+            $0.id == "team-colorado-rockies"
+                || $0.id == "team-los-angeles-dodgers"
+                || $0.id == "player-hunter-goodman"
+        }) {
+            return true
+        }
+
+        switch query.intent {
+        case .gamesTonight,
+             .playerRecommendation,
+             .missedGamesRecap,
+             .standingsImpact,
+             .personalAttendanceHistory,
+             .watchNext:
+            return true
+        case .favoriteTeam,
+             .favoritePlayer,
+             .entityLookup,
+             .teamLookup,
+             .playerComparison,
+             .availabilityExplanation,
+             .unknown:
+            return false
         }
     }
 

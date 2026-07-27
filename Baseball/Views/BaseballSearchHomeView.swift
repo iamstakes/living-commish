@@ -95,7 +95,7 @@ struct BaseballSearchHomeView: View {
         VStack(spacing: 2) {
             AnimatedHostView(
                 host: environment.host,
-                height: isShowingResults ? 210 : 230,
+                height: isShowingResults ? 135 : 230,
                 accent: .purple
             )
 
@@ -120,13 +120,19 @@ struct BaseballSearchHomeView: View {
     private var searchSection: some View {
         VStack(alignment: .leading, spacing: 13) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(isShowingResults ? "Search again" : "Search baseball")
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    .fontWidth(.expanded)
-                Text("Players, teams, games, history, and the moments that matter to you.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if isShowingResults {
+                    Text("Search again")
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .fontWidth(.expanded)
+                } else {
+                    Text("Search baseball")
+                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .fontWidth(.expanded)
+                    Text("Players, teams, games, history, and the moments that matter to you.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             GlassEffectContainer(spacing: 10) {
@@ -431,8 +437,9 @@ private struct SearchExperienceOverview: View {
                         .font(.caption2.weight(.black))
                         .tracking(1.1)
                         .foregroundStyle(.purple)
-                    Text(experience.query.rawText)
+                    Text(experience.displayTitle)
                         .font(.title2.bold())
+                        .accessibilityIdentifier("baseball-results-title")
                 }
                 Spacer()
                 Button(action: onReset) {
@@ -441,6 +448,10 @@ private struct SearchExperienceOverview: View {
                 .buttonStyle(.glass)
                 .accessibilityLabel("Back to discovery")
                 .accessibilityIdentifier("baseball-results-close")
+            }
+
+            if let featuredModule {
+                FeaturedResultCard(module: featuredModule)
             }
 
             if let reaction = experience.modules.compactMap(\.hostReaction).first {
@@ -461,12 +472,14 @@ private struct SearchExperienceOverview: View {
                 )
             }
 
-            Text("Built for this search")
-                .font(.headline)
+            if !remainingPreviewModules.isEmpty {
+                Text("Go deeper")
+                    .font(.headline)
 
-            LazyVStack(spacing: 11) {
-                ForEach(experience.modules.filter(\.isPreviewModule).prefix(5)) { module in
-                    ModulePreviewCard(module: module, onSearch: onSearch)
+                LazyVStack(spacing: 11) {
+                    ForEach(remainingPreviewModules.prefix(5)) { module in
+                        ModulePreviewCard(module: module, onSearch: onSearch)
+                    }
                 }
             }
 
@@ -489,6 +502,56 @@ private struct SearchExperienceOverview: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-results-overview")
+    }
+
+    private var featuredModule: BaseballResultModule? {
+        experience.modules.first(where: \.isPrimaryResult)
+    }
+
+    private var remainingPreviewModules: [BaseballResultModule] {
+        experience.modules.filter { module in
+            module.isPreviewModule && module.id != featuredModule?.id
+        }
+    }
+}
+
+private struct FeaturedResultCard: View {
+    let module: BaseballResultModule
+
+    var body: some View {
+        let content = module.featuredContent
+
+        VStack(alignment: .leading, spacing: 11) {
+            HStack(spacing: 8) {
+                Label(content.eyebrow, systemImage: content.systemImage)
+                    .font(.caption2.weight(.black))
+                    .tracking(1)
+                    .foregroundStyle(content.accent)
+                Spacer()
+                if module.facts.contains(where: \.provenance.isMock) {
+                    Text("PROTOTYPE DATA")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.orange)
+                }
+            }
+
+            Text(content.title)
+                .font(.title2.bold())
+            Text(content.metadata)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(content.summary)
+                .font(.body)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(
+            .regular.tint(content.accent.opacity(0.12)),
+            in: RoundedRectangle(cornerRadius: 25, style: .continuous)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("baseball-featured-result")
     }
 }
 
@@ -592,6 +655,26 @@ private struct ModulePreview {
     let destinationQuery: String?
 }
 
+private struct FeaturedResultContent {
+    let eyebrow: String
+    let title: String
+    let metadata: String
+    let summary: String
+    let systemImage: String
+    let accent: Color
+}
+
+private extension BaseballSearchExperience {
+    var displayTitle: String {
+        switch query.intent {
+        case .favoriteTeam, .favoritePlayer, .entityLookup, .teamLookup:
+            query.entities.first?.canonicalName ?? query.rawText
+        default:
+            query.rawText
+        }
+    }
+}
+
 private extension BaseballResultModule {
     var hostReaction: BaseballHostReaction? {
         if case .hostReaction(let value) = self { return value }
@@ -609,6 +692,47 @@ private extension BaseballResultModule {
             false
         default:
             true
+        }
+    }
+
+    var isPrimaryResult: Bool {
+        switch self {
+        case .player, .team:
+            true
+        default:
+            false
+        }
+    }
+
+    var featuredContent: FeaturedResultContent {
+        switch self {
+        case .player(let value):
+            .init(
+                eyebrow: "PLAYER PROFILE",
+                title: value.name,
+                metadata: "\(value.teamName) • \(value.position)",
+                summary: value.summary,
+                systemImage: "figure.baseball",
+                accent: .cyan
+            )
+        case .team(let value):
+            .init(
+                eyebrow: "TEAM PROFILE",
+                title: value.name,
+                metadata: value.abbreviation,
+                summary: value.summary,
+                systemImage: "shield.lefthalf.filled",
+                accent: .purple
+            )
+        default:
+            .init(
+                eyebrow: "RESULT",
+                title: preview.title,
+                metadata: preview.subtitle,
+                summary: "",
+                systemImage: preview.systemImage,
+                accent: preview.accent
+            )
         }
     }
 

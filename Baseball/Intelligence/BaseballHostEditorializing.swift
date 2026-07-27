@@ -35,7 +35,7 @@ struct DeterministicBaseballHostEditor: BaseballHostEditorializing {
             }
             reactionKind = .fact
         case .entityLookup:
-            line = "\(subject ?? "This player") gets the spotlight. Start with the signal, then decide what deserves your time."
+            line = entityLookupLine(subject: subject, snapshot: snapshot)
             reactionKind = .opinion
         case .teamLookup:
             line = "\(subject ?? profile.favoriteTeam) is on the board. Schedule, stakes, and the part you should care about—ready."
@@ -76,13 +76,17 @@ struct DeterministicBaseballHostEditor: BaseballHostEditorializing {
         if plan.query.intent == .favoriteTeam || plan.query.intent == .favoritePlayer {
             why = "This answer comes from \(profile.name)’s prototype fan profile."
             whyKind = .fact
-        } else if plan.query.intent == .standingsImpact || profile.interests.contains(.playoffRaces) {
+        } else if plan.query.intent == .entityLookup,
+                  let player = snapshot.modules.compactMap(\.player).first {
+            why = "\(player.name) was your explicit subject, so his role and the available player-specific evidence lead this result."
+            whyKind = .opinion
+        } else if plan.query.intent == .standingsImpact {
             why = "\(profile.name) follows playoff implications, so this view leads with standings consequences instead of a generic recap."
             whyKind = .opinion
         } else if plan.query.intent == .personalAttendanceHistory {
             why = "This connects \(profile.name)’s \(profile.favoriteTeam) fandom to the ballparks already in the profile."
             whyKind = .opinion
-        } else if plan.query.intent == .playerRecommendation || profile.interests.contains(.emergingPlayers) {
+        } else if plan.query.intent == .playerRecommendation {
             why = "\(profile.name) follows emerging players and great stories, so this emphasizes trajectory and watchability."
             whyKind = .opinion
         } else {
@@ -107,5 +111,41 @@ struct DeterministicBaseballHostEditor: BaseballHostEditorializing {
                 groundedFactIDs: groundedFactIDs
             )
         )
+    }
+
+    private func entityLookupLine(
+        subject: String?,
+        snapshot: BaseballDataSnapshot
+    ) -> String {
+        guard let player = snapshot.modules.compactMap(\.player).first else {
+            return "I found \(subject ?? "the player"), but there is no grounded player profile to interpret yet."
+        }
+
+        if player.id == "aaron-judge",
+           snapshot.modules.contains(where: \.isStatcast) {
+            return "For Aaron Judge, power is the story. Contact quality is the first thing I’d inspect."
+        }
+
+        if player.id == "shohei-ohtani" {
+            return "Shohei Ohtani is listed here as the Dodgers’ designated hitter. His pitching availability needs separate, current sourcing."
+        }
+
+        if player.id == "hunter-goodman" {
+            return "Hunter Goodman is the Rockies player to inspect here: an emerging catcher and first baseman matched to your profile."
+        }
+
+        return "\(player.name) is a \(player.position.lowercased()) for the \(player.teamName). The result below stays on the evidence available for him."
+    }
+}
+
+private extension BaseballResultModule {
+    var player: BaseballPlayerCard? {
+        if case .player(let player) = self { return player }
+        return nil
+    }
+
+    var isStatcast: Bool {
+        if case .statcast = self { return true }
+        return false
     }
 }
