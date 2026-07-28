@@ -107,6 +107,12 @@ final class BaseballSearchHomeUITests: XCTestCase {
             presentationStage.frame.minY + 180
         )
         XCTAssertTrue(firstCard.isHittable)
+        let nextCardButton = app.buttons["host-presentation-next"]
+        XCTAssertTrue(nextCardButton.exists)
+        XCTAssertLessThan(
+            app.windows.firstMatch.frame.maxY - nextCardButton.frame.maxY,
+            80
+        )
         let host = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(host.exists)
         XCTAssertGreaterThan(host.frame.height, 450)

@@ -196,10 +196,12 @@ struct BaseballSearchHomeView: View {
             if let activeDiscoveryCard {
                 HostPresentationStage(
                     host: environment.host,
-                    height: 500,
+                    height: 630,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
+                    hostHeight: 490,
                     hostScale: 1.40,
-                    hostYOffset: -58,
+                    hostYOffset: -48,
+                    hostAlignment: .topTrailing,
                     contentAlignment: .bottomLeading,
                     badgeAlignment: .topLeading
                 ) {
@@ -293,8 +295,10 @@ private struct HostPresentationStage<Content: View>: View {
     let host: any AnimatedHostControlling
     let height: CGFloat
     let accent: Color
+    let hostHeight: CGFloat?
     let hostScale: CGFloat
     let hostYOffset: CGFloat
+    let hostAlignment: Alignment
     let contentAlignment: Alignment
     let badgeAlignment: Alignment
     private let content: Content
@@ -303,8 +307,10 @@ private struct HostPresentationStage<Content: View>: View {
         host: any AnimatedHostControlling,
         height: CGFloat,
         accent: Color,
+        hostHeight: CGFloat? = nil,
         hostScale: CGFloat = 1.2,
         hostYOffset: CGFloat = 8,
+        hostAlignment: Alignment = .bottomTrailing,
         contentAlignment: Alignment = .topLeading,
         badgeAlignment: Alignment = .topTrailing,
         @ViewBuilder content: () -> Content
@@ -312,8 +318,10 @@ private struct HostPresentationStage<Content: View>: View {
         self.host = host
         self.height = height
         self.accent = accent
+        self.hostHeight = hostHeight
         self.hostScale = hostScale
         self.hostYOffset = hostYOffset
+        self.hostAlignment = hostAlignment
         self.contentAlignment = contentAlignment
         self.badgeAlignment = badgeAlignment
         self.content = content()
@@ -341,7 +349,7 @@ private struct HostPresentationStage<Content: View>: View {
 
                 AnimatedHostView(
                     host: host,
-                    height: height - 10,
+                    height: hostHeight ?? height - 10,
                     accent: accent,
                     contentScale: hostScale,
                     contentOffset: CGSize(width: -8, height: 2)
@@ -350,7 +358,7 @@ private struct HostPresentationStage<Content: View>: View {
                 .frame(
                     maxWidth: .infinity,
                     maxHeight: .infinity,
-                    alignment: .bottomTrailing
+                    alignment: hostAlignment
                 )
                 .offset(x: proxy.size.width * 0.19, y: hostYOffset)
                 .zIndex(1)
