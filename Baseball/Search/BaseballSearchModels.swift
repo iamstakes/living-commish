@@ -137,4 +137,24 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let destinationQuery: String
     let hostBehavior: HostBehavior
     let facts: [BaseballFact]
+    let finalScore: BaseballFinalScoreSnapshot?
+}
+
+struct BaseballFinalScoreSnapshot: Equatable, Sendable {
+    let visitorTeam: String
+    let visitorAbbreviation: String
+    let visitorRecord: String
+    let visitorRuns: Int
+    let visitorHits: Int
+    let visitorErrors: Int
+    let homeTeam: String
+    let homeAbbreviation: String
+    let homeRecord: String
+    let homeRuns: Int
+    let homeHits: Int
+    let homeErrors: Int
+    let winningPitcher: String
+    let winningPitcherLine: String
+    let losingPitcher: String
+    let losingPitcherLine: String
 }

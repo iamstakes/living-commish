@@ -281,6 +281,10 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(cards.allSatisfy { !$0.destinationQuery.isEmpty })
         XCTAssertTrue(cards.allSatisfy { !$0.facts.isEmpty })
         XCTAssertTrue(cards.flatMap(\.facts).allSatisfy(\.provenance.isMock))
+        XCTAssertEqual(cards.first?.finalScore?.visitorTeam, "Rockies")
+        XCTAssertEqual(cards.first?.finalScore?.homeTeam, "Brewers")
+        XCTAssertEqual(cards.first?.finalScore?.visitorRuns, 2)
+        XCTAssertEqual(cards.first?.finalScore?.homeRuns, 11)
     }
 
     func testDiscoveryCardSelectionDrivesHostChoreography() async {
@@ -304,7 +308,7 @@ final class BaseballArchitectureTests: XCTestCase {
             environment.activeDiscoveryCardID,
             "discovery-rockies-tonight"
         )
-        XCTAssertEqual(commish.currentAction, .foamFinger)
+        XCTAssertEqual(commish.currentAction, .sadShrug)
 
         environment.presentDiscoveryCard("discovery-goodman")
         XCTAssertEqual(environment.activeDiscoveryCardID, "discovery-goodman")
@@ -315,7 +319,7 @@ final class BaseballArchitectureTests: XCTestCase {
             environment.activeDiscoveryCardID,
             "discovery-rockies-tonight"
         )
-        XCTAssertEqual(commish.currentAction, .foamFinger)
+        XCTAssertEqual(commish.currentAction, .sadShrug)
     }
 
     func testLegacyHostAdapterMapsGenericBehaviorWithoutUIKnowledge() {

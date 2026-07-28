@@ -460,52 +460,52 @@ private struct DiscoveryPresentationDeck: View {
                     .rotationEffect(.degrees(-2))
 
                 Button(action: onOpen) {
-                    VStack(alignment: .leading, spacing: 11) {
-                        HStack {
-                            Image(systemName: card.systemImage)
-                                .font(.title2.weight(.semibold))
-                                .foregroundStyle(accent)
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption.bold())
-                                .foregroundStyle(.secondary)
+                    Group {
+                        if let finalScore = card.finalScore {
+                            FinalScoreDiscoveryCardContent(score: finalScore)
+                        } else {
+                            VStack(alignment: .leading, spacing: 11) {
+                                HStack {
+                                    Image(systemName: card.systemImage)
+                                        .font(.title2.weight(.semibold))
+                                        .foregroundStyle(accent)
+                                    Spacer()
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer(minLength: 0)
+
+                                Text(card.eyebrow)
+                                    .font(.caption2.weight(.black))
+                                    .tracking(1)
+                                    .foregroundStyle(accent)
+                                Text(card.title)
+                                    .font(.title3.weight(.bold))
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(3)
+                                Text(card.whyItMatters)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(3)
+                            }
+                            .padding(17)
+                            .frame(width: 230, height: 215, alignment: .leading)
+                            .glassEffect(
+                                .regular.tint(accent.opacity(0.16)).interactive(),
+                                in: RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            )
                         }
-
-                        Spacer(minLength: 0)
-
-                        Text(card.eyebrow)
-                            .font(.caption2.weight(.black))
-                            .tracking(1)
-                            .foregroundStyle(accent)
-                        Text(card.title)
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(.primary)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(3)
-                        Text(card.whyItMatters)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(3)
                     }
-                    .padding(17)
-                    .frame(width: 230, height: 215, alignment: .leading)
-                    .glassEffect(
-                        .regular.tint(accent.opacity(0.16)).interactive(),
-                        in: RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(card.title). \(card.whyItMatters)")
+                .accessibilityLabel(accessibilityLabel)
                 .accessibilityHint("Search \(card.destinationQuery)")
                 .accessibilityValue("\(position) of \(count)")
                 .accessibilityIdentifier("discovery-card-\(card.id)")
-                .overlay(alignment: .trailing) {
-                    Image(systemName: "arrowtriangle.right.fill")
-                        .font(.title3)
-                        .foregroundStyle(accent.opacity(0.75))
-                        .offset(x: 9)
-                }
             }
 
             HStack(spacing: 10) {
@@ -558,6 +558,198 @@ private struct DiscoveryPresentationDeck: View {
                     }
                 }
         )
+    }
+
+    private var accessibilityLabel: String {
+        guard let score = card.finalScore else {
+            return "\(card.title). \(card.whyItMatters)"
+        }
+
+        return """
+        Final. \(score.visitorTeam) \(score.visitorRuns), \
+        \(score.homeTeam) \(score.homeRuns). \
+        Winning pitcher \(score.winningPitcher), \(score.winningPitcherLine). \
+        Losing pitcher \(score.losingPitcher), \(score.losingPitcherLine).
+        """
+    }
+}
+
+private struct FinalScoreDiscoveryCardContent: View {
+    let score: BaseballFinalScoreSnapshot
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("FINAL")
+                    .font(.caption.weight(.heavy))
+                    .foregroundStyle(Color(white: 0.34))
+
+                Spacer()
+
+                scoreHeaders
+            }
+            .padding(.bottom, 7)
+
+            Divider()
+
+            VStack(spacing: 7) {
+                FinalScoreTeamRow(
+                    abbreviation: score.visitorAbbreviation,
+                    team: score.visitorTeam,
+                    record: score.visitorRecord,
+                    runs: score.visitorRuns,
+                    hits: score.visitorHits,
+                    errors: score.visitorErrors,
+                    isHomeTeam: false
+                )
+
+                FinalScoreTeamRow(
+                    abbreviation: score.homeAbbreviation,
+                    team: score.homeTeam,
+                    record: score.homeRecord,
+                    runs: score.homeRuns,
+                    hits: score.homeHits,
+                    errors: score.homeErrors,
+                    isHomeTeam: true
+                )
+            }
+            .padding(.vertical, 9)
+
+            Divider()
+
+            HStack(alignment: .top, spacing: 10) {
+                PitcherDecision(
+                    decision: "W",
+                    name: score.winningPitcher,
+                    line: score.winningPitcherLine,
+                    color: Color(red: 0.94, green: 0.70, blue: 0.12)
+                )
+                PitcherDecision(
+                    decision: "L",
+                    name: score.losingPitcher,
+                    line: score.losingPitcherLine,
+                    color: Color(white: 0.32)
+                )
+            }
+            .padding(.vertical, 9)
+
+            Divider()
+
+            HStack {
+                ForEach(["Watch", "Wrap", "Box", "Story"], id: \.self) { action in
+                    Text(action)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(Color(red: 0.02, green: 0.28, blue: 0.78))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding(13)
+        .frame(width: 230, height: 215)
+        .background(
+            Color.white,
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.16), radius: 12, y: 5)
+    }
+
+    private var scoreHeaders: some View {
+        HStack(spacing: 4) {
+            ForEach(["R", "H", "E"], id: \.self) { header in
+                Text(header)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(Color(white: 0.28))
+                    .frame(width: 20)
+            }
+        }
+    }
+}
+
+private struct FinalScoreTeamRow: View {
+    let abbreviation: String
+    let team: String
+    let record: String
+    let runs: Int
+    let hits: Int
+    let errors: Int
+    let isHomeTeam: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(abbreviation)
+                .font(.system(size: 9, weight: .black, design: .rounded))
+                .foregroundStyle(isHomeTeam ? .yellow : .white)
+                .frame(width: 22, height: 22)
+                .background(
+                    isHomeTeam
+                        ? Color(red: 0.02, green: 0.12, blue: 0.27)
+                        : Color(red: 0.22, green: 0.20, blue: 0.27),
+                    in: Circle()
+                )
+
+            HStack(spacing: 4) {
+                Text(team)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color(white: 0.13))
+                Text(record)
+                    .font(.caption2)
+                    .foregroundStyle(Color(white: 0.42))
+            }
+            .frame(width: 94, alignment: .leading)
+            .lineLimit(1)
+
+            Spacer(minLength: 0)
+
+            scoreValue(runs)
+            scoreValue(hits)
+            scoreValue(errors)
+        }
+    }
+
+    private func scoreValue(_ value: Int) -> some View {
+        Text("\(value)")
+            .font(.caption.weight(.bold).monospacedDigit())
+            .foregroundStyle(Color(white: 0.13))
+            .frame(width: 20)
+            .lineLimit(1)
+    }
+}
+
+private struct PitcherDecision: View {
+    let decision: String
+    let name: String
+    let line: String
+    let color: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 4) {
+            Text(decision)
+                .font(.caption2.weight(.black))
+                .foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(color, in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(decision): \(name)")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(Color(white: 0.32))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+                Text(line)
+                    .font(.system(size: 7, weight: .medium))
+                    .foregroundStyle(Color(white: 0.42))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

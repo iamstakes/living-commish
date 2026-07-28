@@ -128,6 +128,11 @@ enum MockBaseballFixtures {
         ]
     )
 
+    static let rockiesBrewersFinal = fact(
+        "rockies-brewers-final",
+        "Fixture: Milwaukee defeated Colorado 11–2; the Brewers had 14 hits and no errors, while the Rockies had five hits and one error."
+    )
+
     static let standings = BaseballStandingsCard(
         id: "nl-wild-card-prototype",
         title: "Wild Card pressure",
@@ -330,13 +335,31 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
         [
             BaseballDiscoveryCard(
                 id: "discovery-rockies-tonight",
-                eyebrow: "YOUR TEAM",
-                title: "Your \(profile.favoriteTeam) play tonight",
-                whyItMatters: "\(profile.favoriteTeam) is \(profile.name)’s favorite team, so this game leads the experience.",
+                eyebrow: "FINAL",
+                title: "Rockies 2, Brewers 11",
+                whyItMatters: "The final for \(profile.name)’s favorite team leads the experience.",
                 systemImage: "baseball.diamond.bases",
-                destinationQuery: "Rockies game tonight",
-                hostBehavior: .celebrate,
-                facts: [MockBaseballFixtures.rockiesGame.facts[0]]
+                destinationQuery: "What did I miss yesterday?",
+                hostBehavior: .concerned,
+                facts: [MockBaseballFixtures.rockiesBrewersFinal],
+                finalScore: BaseballFinalScoreSnapshot(
+                    visitorTeam: "Rockies",
+                    visitorAbbreviation: "CR",
+                    visitorRecord: "42–65",
+                    visitorRuns: 2,
+                    visitorHits: 5,
+                    visitorErrors: 1,
+                    homeTeam: "Brewers",
+                    homeAbbreviation: "M",
+                    homeRecord: "66–39",
+                    homeRuns: 11,
+                    homeHits: 14,
+                    homeErrors: 0,
+                    winningPitcher: "Misiorowski",
+                    winningPitcherLine: "11–4  |  1.58 ERA",
+                    losingPitcher: "Freeland, K",
+                    losingPitcherLine: "2–10  |  7.34 ERA"
+                )
             ),
             BaseballDiscoveryCard(
                 id: "discovery-goodman",
@@ -346,7 +369,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 systemImage: "figure.baseball",
                 destinationQuery: "Hunter Goodman",
                 hostBehavior: .explain,
-                facts: MockBaseballFixtures.goodman.facts
+                facts: MockBaseballFixtures.goodman.facts,
+                finalScore: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-wild-card",
@@ -356,7 +380,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 systemImage: "chart.line.uptrend.xyaxis",
                 destinationQuery: "How does tonight affect the Wild Card?",
                 hostBehavior: .explain,
-                facts: MockBaseballFixtures.standings.facts
+                facts: MockBaseballFixtures.standings.facts,
+                finalScore: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-dodgers-lost",
@@ -366,7 +391,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 systemImage: "arrow.down.right.circle.fill",
                 destinationQuery: "What does the Dodgers loss mean for the Rockies?",
                 hostBehavior: .tease,
-                facts: MockBaseballFixtures.dodgers.facts
+                facts: MockBaseballFixtures.dodgers.facts,
+                finalScore: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-condensed",
@@ -376,7 +402,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 systemImage: "play.rectangle.fill",
                 destinationQuery: MockBaseballFixtures.watchNext.query,
                 hostBehavior: .greet,
-                facts: MockBaseballFixtures.watchNext.facts
+                facts: MockBaseballFixtures.watchNext.facts,
+                finalScore: nil
             ),
         ]
     }
