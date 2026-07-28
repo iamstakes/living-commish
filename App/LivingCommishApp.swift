@@ -5,13 +5,18 @@ import SwiftUI
 struct LivingCommishApp: App {
     @State private var commishEnvironment = AppEnvironment()
     @State private var baseballEnvironment = BaseballSearchEnvironment()
+    @State private var baseballOnboarding = BaseballOnboardingState()
     private let modelContainer: ModelContainer
     private let experienceMode = AppExperienceMode.resolve(
         arguments: ProcessInfo.processInfo.arguments
     )
 
     init() {
-        let inMemory = ProcessInfo.processInfo.arguments.contains("--ui-testing")
+        let inMemory =
+            ProcessInfo.processInfo.arguments.contains("--ui-testing")
+            || ProcessInfo.processInfo.arguments.contains(
+                "--baseball-onboarding-ui-testing"
+            )
         let configuration = ModelConfiguration(isStoredInMemoryOnly: inMemory)
         do {
             modelContainer = try ModelContainer(
@@ -31,8 +36,9 @@ struct LivingCommishApp: App {
             Group {
                 switch experienceMode {
                 case .baseballSearch:
-                    BaseballSearchHomeView()
+                    BaseballExperienceRootView()
                         .environment(baseballEnvironment)
+                        .environment(baseballOnboarding)
                 case .livingCommish:
                     CommishStageView()
                         .environment(commishEnvironment)

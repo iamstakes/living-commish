@@ -12,6 +12,12 @@ final class BaseballArchitectureTests: XCTestCase {
             .baseballSearch
         )
         XCTAssertEqual(
+            AppExperienceMode.resolve(
+                arguments: ["--baseball-onboarding-ui-testing"]
+            ),
+            .baseballSearch
+        )
+        XCTAssertEqual(
             AppExperienceMode.resolve(arguments: ["--legacy-commish"]),
             .livingCommish
         )
@@ -22,6 +28,35 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(
             AppExperienceMode.resolve(arguments: ["--ui-testing", "--baseball-ui-testing"]),
             .baseballSearch
+        )
+    }
+
+    func testBaseballOnboardingPersistsTheRockiesSelection() {
+        let suiteName = "BaseballOnboardingStateTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let firstLaunch = BaseballOnboardingState(
+            defaults: defaults,
+            arguments: []
+        )
+        XCTAssertFalse(firstLaunch.hasCompletedOnboarding)
+        XCTAssertNil(firstLaunch.selectedTeam)
+
+        firstLaunch.selectTeam(.coloradoRockies)
+        XCTAssertEqual(firstLaunch.selectedTeam?.name, "Rockies")
+        XCTAssertTrue(firstLaunch.complete())
+
+        let returningLaunch = BaseballOnboardingState(
+            defaults: defaults,
+            arguments: []
+        )
+        XCTAssertTrue(returningLaunch.hasCompletedOnboarding)
+        XCTAssertEqual(
+            returningLaunch.selectedTeamID,
+            BaseballTeamChoice.coloradoRockies.id
         )
     }
 

@@ -20,6 +20,7 @@
 		B10000000000000000000010 /* AnimatedHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* AnimatedHostView.swift */; };
 		B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* BaseballSearchHomeView.swift */; };
 		B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* BaseballSearchHomeUITests.swift */; };
+		B10000000000000000000013 /* BaseballOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* BaseballOnboardingView.swift */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
 		1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */; };
@@ -83,6 +84,7 @@
 		A10000000000000000000010 /* AnimatedHostView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedHostView.swift; sourceTree = "<group>"; };
 		A10000000000000000000011 /* BaseballSearchHomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeView.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* BaseballSearchHomeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeUITests.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* BaseballOnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballOnboardingView.swift; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
 		158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactWithCommishIntent.swift; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 			children = (
 				A10000000000000000000010 /* AnimatedHostView.swift */,
 				A10000000000000000000011 /* BaseballSearchHomeView.swift */,
+				A10000000000000000000013 /* BaseballOnboardingView.swift */,
 			);
 			name = Views;
 			path = Views;
@@ -532,6 +535,7 @@
 				B10000000000000000000009 /* AppExperienceMode.swift in Sources */,
 				B10000000000000000000010 /* AnimatedHostView.swift in Sources */,
 				B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */,
+				B10000000000000000000013 /* BaseballOnboardingView.swift in Sources */,
 				B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */,
 				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
 				DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */,

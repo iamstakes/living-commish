@@ -5,7 +5,8 @@ enum AppExperienceMode: Equatable {
     case livingCommish
 
     static func resolve(arguments: [String]) -> AppExperienceMode {
-        if arguments.contains("--baseball-ui-testing") {
+        if arguments.contains("--baseball-ui-testing")
+            || arguments.contains("--baseball-onboarding-ui-testing") {
             return .baseballSearch
         }
         if arguments.contains("--legacy-commish") || arguments.contains("--ui-testing") {

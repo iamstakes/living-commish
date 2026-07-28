@@ -6,6 +6,63 @@ final class BaseballSearchHomeUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testFirstLaunchSelectsRockiesAndEntersThemedHome() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--baseball-onboarding-ui-testing"]
+        app.launch()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-onboarding"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertTrue(app.staticTexts["onboarding-team-title"].exists)
+
+        let rockies = app.buttons["onboarding-team-colorado-rockies"]
+        XCTAssertTrue(rockies.waitForExistence(timeout: 5))
+        XCTAssertEqual(rockies.value as? String, "Not selected")
+        rockies.tap()
+        XCTAssertEqual(rockies.value as? String, "Selected")
+
+        let pickerScreenshot = XCTAttachment(screenshot: app.screenshot())
+        pickerScreenshot.name = "Rockies out-of-box team selection"
+        pickerScreenshot.lifetime = .keepAlways
+        add(pickerScreenshot)
+
+        let continueButton = app.buttons["onboarding-continue"]
+        XCTAssertTrue(continueButton.isEnabled)
+        continueButton.tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["onboarding-confirmation"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.staticTexts["onboarding-confirmation-title"].exists
+        )
+
+        let confirmationScreenshot = XCTAttachment(screenshot: app.screenshot())
+        confirmationScreenshot.name = "Rockies onboarding confirmation"
+        confirmationScreenshot.lifetime = .keepAlways
+        add(confirmationScreenshot)
+
+        app.buttons["onboarding-finish"].tap()
+        XCTAssertTrue(
+            app.staticTexts["baseball-search-title"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["rockies-chrome-background"].exists
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["baseball-onboarding"].exists
+        )
+
+        let homeScreenshot = XCTAttachment(screenshot: app.screenshot())
+        homeScreenshot.name = "Rockies themed personalized home"
+        homeScreenshot.lifetime = .keepAlways
+        add(homeScreenshot)
+    }
+
     func testHomeIsSearchFirstAndPersonalized() {
         let app = launchApp()
 

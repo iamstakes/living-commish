@@ -11,7 +11,7 @@ struct BaseballSearchHomeView: View {
         @Bindable var environment = environment
 
         ZStack {
-            BaseballHomeBackground()
+            RockiesChromeBackground()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -124,7 +124,7 @@ struct BaseballSearchHomeView: View {
                         .frame(width: 25, height: 25)
                     }
                     .buttonStyle(.glassProminent)
-                    .tint(.purple)
+                    .tint(RockiesTheme.brightPurple)
                     .disabled(
                         environment.isSearching
                             || environment.searchText
@@ -143,7 +143,7 @@ struct BaseballSearchHomeView: View {
     private var profileBadge: some View {
         HStack(spacing: 7) {
             Circle()
-                .fill(.purple.gradient)
+                .fill(RockiesTheme.brightPurple.gradient)
                 .frame(width: 24, height: 24)
                 .overlay {
                     Text(String(environment.profile.name.prefix(1)))
@@ -306,7 +306,13 @@ struct BaseballSearchHomeView: View {
     }
 
     private func discoveryAccent(for index: Int) -> Color {
-        [.purple, .cyan, .orange, .pink, .mint][index % 5]
+        [
+            RockiesTheme.brightPurple,
+            .cyan,
+            RockiesTheme.silver,
+            .purple,
+            .mint,
+        ][index % 5]
     }
 
     private func submitSearch() {
@@ -1905,48 +1911,5 @@ private extension BaseballResultModule {
                 destinationQuery: nil
             )
         }
-    }
-}
-
-private struct BaseballHomeBackground: View {
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.025, green: 0.055, blue: 0.09),
-                    Color(red: 0.07, green: 0.035, blue: 0.12),
-                    Color(red: 0.02, green: 0.025, blue: 0.055),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            Circle()
-                .fill(.purple.opacity(0.17))
-                .frame(width: 340, height: 340)
-                .blur(radius: 70)
-                .offset(x: 170, y: -280)
-
-            Circle()
-                .fill(.cyan.opacity(0.1))
-                .frame(width: 280, height: 280)
-                .blur(radius: 80)
-                .offset(x: -170, y: 320)
-
-            Canvas { context, size in
-                let spacing: CGFloat = 34
-                var path = Path()
-                for x in stride(from: 0, through: size.width, by: spacing) {
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: size.height))
-                }
-                for y in stride(from: 0, through: size.height, by: spacing) {
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-                }
-                context.stroke(path, with: .color(.white.opacity(0.018)), lineWidth: 0.5)
-            }
-        }
-        .ignoresSafeArea()
     }
 }
