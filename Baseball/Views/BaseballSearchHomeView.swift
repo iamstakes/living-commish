@@ -14,7 +14,6 @@ struct BaseballSearchHomeView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    header
                     searchSection
                     hero
                     stateContent
@@ -38,57 +37,6 @@ struct BaseballSearchHomeView: View {
             reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.86),
             value: stateAnimationKey
         )
-    }
-
-    private var header: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "baseball.fill")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
-                .frame(width: 42, height: 42)
-                .glassEffect(
-                    .regular.tint(.purple.opacity(0.35)),
-                    in: Circle()
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("BASEBALL LIVING HOST")
-                    .font(.caption.weight(.black))
-                    .fontWidth(.expanded)
-                    .tracking(1.7)
-                    .foregroundStyle(.white.opacity(0.94))
-                    .accessibilityIdentifier("baseball-home-title")
-                Text("The game, shaped around you")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 8)
-
-            HStack(spacing: 7) {
-                Circle()
-                    .fill(.purple.gradient)
-                    .frame(width: 24, height: 24)
-                    .overlay {
-                        Text(String(environment.profile.name.prefix(1)))
-                            .font(.caption2.bold())
-                    }
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(environment.profile.name)
-                        .font(.caption.bold())
-                    Text("Rockies")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 8)
-            .glassEffect(.clear, in: Capsule())
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(
-                "\(environment.profile.name), \(environment.profile.favoriteTeam) fan"
-            )
-        }
     }
 
     private var hero: some View {
@@ -120,14 +68,23 @@ struct BaseballSearchHomeView: View {
     private var searchSection: some View {
         VStack(alignment: .leading, spacing: 13) {
             VStack(alignment: .leading, spacing: 6) {
-                if isShowingResults {
-                    Text("Search again")
-                        .font(.system(.title, design: .rounded, weight: .bold))
+                HStack {
+                    Text(isShowingResults ? "Search again" : "Search")
+                        .font(
+                            .system(
+                                isShowingResults ? .title : .largeTitle,
+                                design: .rounded,
+                                weight: .bold
+                            )
+                        )
                         .fontWidth(.expanded)
-                } else {
-                    Text("Search baseball")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .fontWidth(.expanded)
+                        .accessibilityIdentifier("baseball-search-title")
+
+                    Spacer(minLength: 12)
+                    profileBadge
+                }
+
+                if !isShowingResults {
                     Text("Players, teams, games, history, and the moments that matter to you.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -151,7 +108,7 @@ struct BaseballSearchHomeView: View {
                         .submitLabel(.search)
                         .focused($isSearchFocused)
                         .onSubmit(submitSearch)
-                        .accessibilityLabel("Search baseball")
+                        .accessibilityLabel("Search")
                         .accessibilityIdentifier("baseball-search-field")
 
                         if !environment.searchText.isEmpty {
@@ -201,6 +158,32 @@ struct BaseballSearchHomeView: View {
         .accessibilityIdentifier("baseball-search-section")
     }
 
+    private var profileBadge: some View {
+        HStack(spacing: 7) {
+            Circle()
+                .fill(.purple.gradient)
+                .frame(width: 24, height: 24)
+                .overlay {
+                    Text(String(environment.profile.name.prefix(1)))
+                        .font(.caption2.bold())
+                }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(environment.profile.name)
+                    .font(.caption.bold())
+                Text("Rockies")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 8)
+        .glassEffect(.clear, in: Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(environment.profile.name), \(environment.profile.favoriteTeam) fan"
+        )
+    }
+
     @ViewBuilder
     private var stateContent: some View {
         switch environment.state {
@@ -235,19 +218,12 @@ struct BaseballSearchHomeView: View {
 
     private var discoverySection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Already worth knowing")
-                        .font(.title2.bold())
-                    Text("Picked from your teams, habits, and baseball history.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text("PROTOTYPE DATA")
-                    .font(.caption2.weight(.black))
-                    .tracking(0.8)
-                    .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("For You")
+                    .font(.title2.bold())
+                Text("Personalized for you")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             if environment.discoveryCards.isEmpty {
@@ -527,12 +503,6 @@ private struct FeaturedResultCard: View {
                     .font(.caption2.weight(.black))
                     .tracking(1)
                     .foregroundStyle(content.accent)
-                Spacer()
-                if module.facts.contains(where: \.provenance.isMock) {
-                    Text("PROTOTYPE DATA")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.orange)
-                }
             }
 
             Text(content.title)
@@ -575,11 +545,6 @@ private struct ModulePreviewCard: View {
                         .font(.caption2.weight(.black))
                         .tracking(0.8)
                         .foregroundStyle(preview.accent)
-                    if module.facts.contains(where: \.provenance.isMock) {
-                        Text("PROTOTYPE")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.orange)
-                    }
                 }
                 Text(preview.title)
                     .font(.headline)

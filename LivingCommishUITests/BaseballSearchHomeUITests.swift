@@ -9,10 +9,15 @@ final class BaseballSearchHomeUITests: XCTestCase {
     func testHomeIsSearchFirstAndPersonalized() {
         let app = launchApp()
 
-        XCTAssertTrue(app.staticTexts["BASEBALL LIVING HOST"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["baseball-search-title"].waitForExistence(timeout: 8))
+        XCTAssertEqual(app.staticTexts["baseball-search-title"].label, "Search")
+        XCTAssertFalse(app.staticTexts["BASEBALL LIVING HOST"].exists)
         XCTAssertTrue(app.textFields["baseball-search-field"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["baseball-search-button"].exists)
         XCTAssertTrue(app.otherElements["baseball-discovery-section"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["For You"].exists)
+        XCTAssertTrue(app.staticTexts["Personalized for you"].exists)
+        XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
         XCTAssertTrue(
             app.descendants(matching: .any)
                 .matching(
@@ -45,6 +50,8 @@ final class BaseballSearchHomeUITests: XCTestCase {
             ].exists
         )
         XCTAssertTrue(app.staticTexts["HOST OPINION"].exists)
+        XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
+        XCTAssertFalse(app.staticTexts["PROTOTYPE"].exists)
         XCTAssertTrue(app.buttons["baseball-results-close"].exists)
         XCTAssertFalse(app.staticTexts["LIVING COMMISH"].exists)
 
