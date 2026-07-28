@@ -199,8 +199,9 @@ struct BaseballSearchHomeView: View {
                     height: 630,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
                     hostHeight: 490,
-                    hostScale: 1.40,
-                    hostYOffset: -48,
+                    hostScale: 1.70,
+                    hostXOffsetFraction: 0.15,
+                    hostYOffset: 20,
                     hostAlignment: .topTrailing,
                     contentAlignment: .bottomLeading,
                     badgeAlignment: .topLeading
@@ -297,6 +298,7 @@ private struct HostPresentationStage<Content: View>: View {
     let accent: Color
     let hostHeight: CGFloat?
     let hostScale: CGFloat
+    let hostXOffsetFraction: CGFloat
     let hostYOffset: CGFloat
     let hostAlignment: Alignment
     let contentAlignment: Alignment
@@ -309,6 +311,7 @@ private struct HostPresentationStage<Content: View>: View {
         accent: Color,
         hostHeight: CGFloat? = nil,
         hostScale: CGFloat = 1.2,
+        hostXOffsetFraction: CGFloat = 0.19,
         hostYOffset: CGFloat = 8,
         hostAlignment: Alignment = .bottomTrailing,
         contentAlignment: Alignment = .topLeading,
@@ -320,6 +323,7 @@ private struct HostPresentationStage<Content: View>: View {
         self.accent = accent
         self.hostHeight = hostHeight
         self.hostScale = hostScale
+        self.hostXOffsetFraction = hostXOffsetFraction
         self.hostYOffset = hostYOffset
         self.hostAlignment = hostAlignment
         self.contentAlignment = contentAlignment
@@ -360,7 +364,10 @@ private struct HostPresentationStage<Content: View>: View {
                     maxHeight: .infinity,
                     alignment: hostAlignment
                 )
-                .offset(x: proxy.size.width * 0.19, y: hostYOffset)
+                .offset(
+                    x: proxy.size.width * hostXOffsetFraction,
+                    y: hostYOffset
+                )
                 .zIndex(1)
 
                 content
