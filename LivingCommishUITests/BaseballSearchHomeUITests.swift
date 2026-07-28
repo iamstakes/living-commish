@@ -92,6 +92,51 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(screenshot)
     }
 
+    func testThirdCardExpandsHunterGoodmanStoryFullScreen() {
+        let app = launchApp()
+
+        let nextButton = app.buttons["host-presentation-next"]
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 8))
+        nextButton.tap()
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-standings"]
+                .waitForExistence(timeout: 3)
+        )
+        nextButton.tap()
+
+        let storyCard = app.buttons["discovery-card-discovery-goodman-story"]
+        XCTAssertTrue(storyCard.waitForExistence(timeout: 3))
+        XCTAssertTrue(storyCard.label.contains("Hunter Goodman"))
+        XCTAssertTrue(storyCard.label.contains("30th homer"))
+        storyCard.tap()
+
+        let fullScreenStory = app.descendants(matching: .any)[
+            "player-story-full-screen"
+        ]
+        XCTAssertTrue(
+            fullScreenStory.waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.staticTexts["player-story-title"].exists)
+        XCTAssertTrue(app.staticTexts["Best of the Last 10"].exists)
+        XCTAssertTrue(
+            app.staticTexts["His 30th homer was his third of the game"].exists
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["player-story-source-link"].exists
+        )
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Hunter Goodman full-screen player story"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
+        app.buttons["Close player story"].tap()
+        XCTAssertTrue(
+            app.otherElements["discovery-presentation-stage"]
+                .waitForExistence(timeout: 3)
+        )
+    }
+
     func testFavoriteTeamQuestionReturnsTheProfileFact() {
         let app = launchApp()
         let field = app.textFields["baseball-search-field"]

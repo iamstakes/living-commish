@@ -5,6 +5,7 @@ struct BaseballSearchHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isSearchFocused: Bool
+    @State private var presentedPlayerStory: BaseballPlayerStorySnapshot?
 
     var body: some View {
         @Bindable var environment = environment
@@ -36,6 +37,14 @@ struct BaseballSearchHomeView: View {
             reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.86),
             value: stateAnimationKey
         )
+        .fullScreenCover(item: $presentedPlayerStory) { story in
+            PlayerStoryFullScreenView(
+                story: story,
+                onDismiss: {
+                    presentedPlayerStory = nil
+                }
+            )
+        }
     }
 
     private var searchSection: some View {
@@ -236,7 +245,11 @@ struct BaseballSearchHomeView: View {
                             environment.moveDiscoveryCard(by: 1)
                         },
                         onOpen: {
-                            runSearch(activeDiscoveryCard.destinationQuery)
+                            if let playerStory = activeDiscoveryCard.playerStory {
+                                presentedPlayerStory = playerStory
+                            } else {
+                                runSearch(activeDiscoveryCard.destinationQuery)
+                            }
                         }
                     )
                     .padding(.top, 20)
@@ -468,6 +481,8 @@ private struct DiscoveryPresentationDeck: View {
                                 standings: standings,
                                 reduceMotion: reduceMotion
                             )
+                        } else if let playerStory = card.playerStory {
+                            PlayerStoryDiscoveryCardContent(story: playerStory)
                         } else {
                             VStack(alignment: .leading, spacing: 11) {
                                 HStack {
@@ -508,7 +523,7 @@ private struct DiscoveryPresentationDeck: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(accessibilityLabel)
-                .accessibilityHint("Search \(card.destinationQuery)")
+                .accessibilityHint(accessibilityHint)
                 .accessibilityValue("\(position) of \(count)")
                 .accessibilityIdentifier("discovery-card-\(card.id)")
             }
@@ -591,7 +606,21 @@ private struct DiscoveryPresentationDeck: View {
             """
         }
 
+        if let story = card.playerStory {
+            return """
+            \(story.kicker). \(story.playerName), \(story.teamName). \
+            \(story.headline) \(story.summary)
+            """
+        }
+
         return "\(card.title). \(card.whyItMatters)"
+    }
+
+    private var accessibilityHint: String {
+        if card.playerStory != nil {
+            return "Open the player story full screen"
+        }
+        return "Search \(card.destinationQuery)"
     }
 }
 
@@ -687,6 +716,332 @@ private struct FinalScoreDiscoveryCardContent: View {
                     .foregroundStyle(Color(white: 0.28))
                     .frame(width: 20)
             }
+        }
+    }
+}
+
+private struct PlayerStoryDiscoveryCardContent: View {
+    let story: BaseballPlayerStorySnapshot
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            PlayerStoryRemoteImage(url: story.imageURL)
+                .frame(width: 230, height: 215)
+                .clipped()
+
+            LinearGradient(
+                colors: [
+                    .clear,
+                    .black.opacity(0.24),
+                    .black.opacity(0.92),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(story.playerName.uppercased())
+                    .font(.system(size: 9, weight: .black))
+                    .tracking(1)
+                    .foregroundStyle(.white.opacity(0.82))
+
+                Text(story.headline)
+                    .font(.title3.weight(.black))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                Text("BEST OF LAST 10  •  \(story.sourceName.uppercased())")
+                    .font(.system(size: 7, weight: .bold))
+                    .tracking(0.45)
+                    .foregroundStyle(.white.opacity(0.72))
+                    .lineLimit(1)
+            }
+            .padding(15)
+
+            HStack {
+                Text(story.kicker)
+                    .font(.system(size: 8, weight: .black))
+                    .tracking(0.7)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 6)
+                    .background(.black.opacity(0.58), in: Capsule())
+
+                Spacer()
+
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(.black.opacity(0.58), in: Circle())
+            }
+            .padding(13)
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .frame(width: 230, height: 215)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(.white.opacity(0.14), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.24), radius: 12, y: 5)
+    }
+}
+
+private struct PlayerStoryFullScreenView: View {
+    let story: BaseballPlayerStorySnapshot
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.025, green: 0.045, blue: 0.08),
+                    Color(red: 0.12, green: 0.035, blue: 0.16),
+                    Color.black,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    storyHero
+
+                    VStack(alignment: .leading, spacing: 22) {
+                        HStack {
+                            Label(story.sourceName, systemImage: "checkmark.seal.fill")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.cyan)
+
+                            Spacer()
+
+                            Text("PLAYER 696100")
+                                .font(.caption2.monospaced().weight(.bold))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 7) {
+                            Text("Best of the Last 10")
+                                .font(.title.bold())
+                                .fontWidth(.expanded)
+                            Text("Four moments that explain why Goodman is worth following right now.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        VStack(spacing: 12) {
+                            ForEach(Array(story.highlights.enumerated()), id: \.element.id) {
+                                index,
+                                highlight in
+                                PlayerStoryHighlightCard(
+                                    number: index + 1,
+                                    highlight: highlight
+                                )
+                            }
+                        }
+
+                        Link(destination: story.sourceURL) {
+                            Label(
+                                "Watch the full story on MLB.com",
+                                systemImage: "play.fill"
+                            )
+                            .font(.headline.weight(.bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(.blue.gradient, in: Capsule())
+                            .foregroundStyle(.white)
+                        }
+                        .accessibilityIdentifier("player-story-source-link")
+
+                        Text("Highlights and metrics are sourced from MLB.com’s Hunter Goodman Player Story.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 22)
+                    .padding(.bottom, 42)
+                }
+            }
+            .scrollIndicators(.hidden)
+
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.headline.weight(.black))
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 12)
+            .padding(.trailing, 16)
+            .accessibilityLabel("Close player story")
+            .accessibilityIdentifier("player-story-close")
+        }
+        .preferredColorScheme(.dark)
+        .accessibilityIdentifier("player-story-full-screen")
+    }
+
+    private var storyHero: some View {
+        ZStack(alignment: .bottomLeading) {
+            PlayerStoryRemoteImage(url: story.imageURL)
+                .frame(maxWidth: .infinity)
+                .frame(height: 410)
+                .clipped()
+
+            LinearGradient(
+                colors: [
+                    .clear,
+                    .black.opacity(0.22),
+                    .black.opacity(0.94),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(story.kicker)
+                    .font(.caption.weight(.black))
+                    .tracking(1.4)
+                    .foregroundStyle(.cyan)
+                Text(story.playerName)
+                    .font(.largeTitle.weight(.black))
+                    .fontWidth(.expanded)
+                    .accessibilityIdentifier("player-story-title")
+                Text(story.headline)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(.white)
+                Text(story.summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.76))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .frame(height: 410)
+    }
+}
+
+private struct PlayerStoryHighlightCard: View {
+    let number: Int
+    let highlight: BaseballPlayerStoryHighlight
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 13) {
+            Text("\(number)")
+                .font(.headline.weight(.black).monospacedDigit())
+                .foregroundStyle(.cyan)
+                .frame(width: 34, height: 34)
+                .background(.cyan.opacity(0.14), in: Circle())
+
+            VStack(alignment: .leading, spacing: 7) {
+                HStack {
+                    Text(highlight.eyebrow)
+                        .font(.caption2.weight(.black))
+                        .tracking(0.8)
+                        .foregroundStyle(.pink)
+
+                    Spacer()
+
+                    Text(highlight.date)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(highlight.title)
+                    .font(.headline.weight(.bold))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 7) {
+                    ForEach(highlight.metrics, id: \.self) { metric in
+                        Text(metric)
+                            .font(.caption.monospacedDigit().weight(.bold))
+                            .foregroundStyle(.white.opacity(0.80))
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
+                            .background(.white.opacity(0.08), in: Capsule())
+                    }
+                }
+            }
+        }
+        .padding(15)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            .white.opacity(0.07),
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(.white.opacity(0.08), lineWidth: 1)
+        }
+    }
+}
+
+private struct PlayerStoryRemoteImage: View {
+    let url: URL
+
+    var body: some View {
+        GeometryReader { proxy in
+            AsyncImage(url: url, transaction: Transaction(animation: .easeOut)) { phase in
+                switch phase {
+                case .success(let image):
+                    ZStack {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(
+                                width: proxy.size.width,
+                                height: proxy.size.height
+                            )
+                            .scaleEffect(1.08)
+                            .blur(radius: 18)
+                            .opacity(0.58)
+
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: proxy.size.width,
+                                height: proxy.size.height
+                            )
+                    }
+                    .frame(
+                        width: proxy.size.width,
+                        height: proxy.size.height
+                    )
+                    .background(Color.black.opacity(0.30))
+                case .failure:
+                    playerStoryPlaceholder
+                case .empty:
+                    playerStoryPlaceholder
+                        .overlay {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                @unknown default:
+                    playerStoryPlaceholder
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+    }
+
+    private var playerStoryPlaceholder: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.23, green: 0.10, blue: 0.31),
+                    Color(red: 0.06, green: 0.19, blue: 0.32),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            Image(systemName: "figure.baseball")
+                .font(.system(size: 72, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.38))
         }
     }
 }

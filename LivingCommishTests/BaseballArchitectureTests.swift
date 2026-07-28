@@ -280,7 +280,12 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(cards.allSatisfy { !$0.whyItMatters.isEmpty })
         XCTAssertTrue(cards.allSatisfy { !$0.destinationQuery.isEmpty })
         XCTAssertTrue(cards.allSatisfy { !$0.facts.isEmpty })
-        XCTAssertTrue(cards.flatMap(\.facts).allSatisfy(\.provenance.isMock))
+        XCTAssertTrue(
+            cards
+                .filter { $0.playerStory == nil }
+                .flatMap(\.facts)
+                .allSatisfy(\.provenance.isMock)
+        )
         XCTAssertEqual(cards.first?.finalScore?.visitorTeam, "Rockies")
         XCTAssertEqual(cards.first?.finalScore?.homeTeam, "Brewers")
         XCTAssertEqual(cards.first?.finalScore?.visitorRuns, 2)
@@ -297,6 +302,17 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(
             cards.dropFirst().first?.standings?.nextOpponent,
             "San Diego Padres"
+        )
+        let storyCard = cards.dropFirst(2).first
+        XCTAssertEqual(storyCard?.id, "discovery-goodman-story")
+        XCTAssertEqual(storyCard?.playerStory?.playerName, "Hunter Goodman")
+        XCTAssertEqual(storyCard?.playerStory?.highlights.count, 4)
+        XCTAssertEqual(
+            storyCard?.playerStory?.sourceURL.absoluteString,
+            "https://www.mlb.com/stories/player/696100"
+        )
+        XCTAssertTrue(
+            storyCard?.facts.allSatisfy { !$0.provenance.isMock } == true
         )
     }
 
@@ -330,9 +346,12 @@ final class BaseballArchitectureTests: XCTestCase {
         )
         XCTAssertEqual(commish.currentAction, .sadShrug)
 
-        environment.presentDiscoveryCard("discovery-goodman")
-        XCTAssertEqual(environment.activeDiscoveryCardID, "discovery-goodman")
-        XCTAssertEqual(commish.currentAction, .pointRight)
+        environment.presentDiscoveryCard("discovery-goodman-story")
+        XCTAssertEqual(
+            environment.activeDiscoveryCardID,
+            "discovery-goodman-story"
+        )
+        XCTAssertEqual(commish.currentAction, .foamFinger)
 
         environment.moveDiscoveryCard(by: -1)
         XCTAssertEqual(

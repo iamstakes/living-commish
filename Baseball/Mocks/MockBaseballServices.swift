@@ -46,6 +46,11 @@ enum MockMichaelProfile {
 enum MockBaseballFixtures {
     static let fixtureDate = Date(timeIntervalSince1970: 1_785_100_000)
     static let provenance = BaseballProvenance.prototypeFixture(asOf: fixtureDate)
+    static let mlbStoryProvenance = BaseballProvenance(
+        sourceName: "MLB.com Player Stories snapshot",
+        asOf: fixtureDate,
+        isMock: false
+    )
 
     static func fact(_ id: String, _ statement: String) -> BaseballFact {
         BaseballFact(
@@ -53,6 +58,15 @@ enum MockBaseballFixtures {
             statement: statement,
             kind: .fact,
             provenance: provenance
+        )
+    }
+
+    static func mlbStoryFact(_ id: String, _ statement: String) -> BaseballFact {
+        BaseballFact(
+            id: id,
+            statement: statement,
+            kind: .fact,
+            provenance: mlbStoryProvenance
         )
     }
 
@@ -91,6 +105,25 @@ enum MockBaseballFixtures {
             fact("goodman-rockies", "Fixture: Goodman is connected to the profile’s favorite team."),
         ]
     )
+
+    static let goodmanPlayerStoryFacts = [
+        mlbStoryFact(
+            "goodman-three-homer-game",
+            "MLB.com: Hunter Goodman’s 30th homer was his third home run of the July 19, 2026 game; it traveled 442 feet at 105.1 mph."
+        ),
+        mlbStoryFact(
+            "goodman-go-ahead-31",
+            "MLB.com: Goodman hit a go-ahead solo homer, his 31st, on July 21, 2026."
+        ),
+        mlbStoryFact(
+            "goodman-two-run-single",
+            "MLB.com: Goodman delivered a two-run single on July 25, 2026."
+        ),
+        mlbStoryFact(
+            "goodman-latest-single",
+            "MLB.com: Goodman’s July 26, 2026 player story includes a single against Chad Patrick."
+        ),
+    ]
 
     static let rockies = BaseballTeamCard(
         id: "colorado-rockies",
@@ -361,7 +394,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                     losingPitcher: "Freeland, K",
                     losingPitcherLine: "2–10  |  7.34 ERA"
                 ),
-                standings: nil
+                standings: nil,
+                playerStory: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-standings",
@@ -395,19 +429,65 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                     nextGameTime: "9:40 PM EDT",
                     nextGameVenue: "Petco Park",
                     probablePitchers: "Lorenzen vs King"
-                )
+                ),
+                playerStory: nil
             ),
             BaseballDiscoveryCard(
-                id: "discovery-goodman",
-                eyebrow: "EMERGING PLAYER",
-                title: "Hunter Goodman is worth your next look",
-                whyItMatters: "\(profile.name) follows emerging players and has Goodman among his favorites.",
+                id: "discovery-goodman-story",
+                eyebrow: "PLAYER STORY",
+                title: "30th homer. Third of the game.",
+                whyItMatters: "Goodman is one of \(profile.name)’s favorite players, and this is the defining swing in his best-of-ten story.",
                 systemImage: "figure.baseball",
                 destinationQuery: "Hunter Goodman",
-                hostBehavior: .explain,
-                facts: MockBaseballFixtures.goodman.facts,
+                hostBehavior: .celebrate,
+                facts: MockBaseballFixtures.goodmanPlayerStoryFacts,
                 finalScore: nil,
-                standings: nil
+                standings: nil,
+                playerStory: BaseballPlayerStorySnapshot(
+                    id: "mlb-hunter-goodman-696100",
+                    kicker: "PLAYER STORY",
+                    playerName: "Hunter Goodman",
+                    teamName: "Colorado Rockies",
+                    headline: "30th homer. Third of the game.",
+                    summary: "Goodman’s best moments from his last ten games, led by a three-homer afternoon.",
+                    imageURL: URL(
+                        string: "https://img.mlbstatic.com/mlb-photos/image/upload/ar_3:4,g_auto,q_auto:good,w_768,c_fill,f_jpg/v1/people/696100/action/vertical/current"
+                    )!,
+                    sourceURL: URL(
+                        string: "https://www.mlb.com/stories/player/696100"
+                    )!,
+                    sourceName: "MLB.com Player Stories",
+                    highlights: [
+                        BaseballPlayerStoryHighlight(
+                            id: "third-homer",
+                            eyebrow: "THREE-HOMER GAME",
+                            title: "His 30th homer was his third of the game",
+                            date: "Jul 19, 2026",
+                            metrics: ["105.1 mph", "442 ft"]
+                        ),
+                        BaseballPlayerStoryHighlight(
+                            id: "go-ahead-31",
+                            eyebrow: "MOMENTUM SWING",
+                            title: "A go-ahead solo homer for No. 31",
+                            date: "Jul 21, 2026",
+                            metrics: ["95.4 mph", "398 ft"]
+                        ),
+                        BaseballPlayerStoryHighlight(
+                            id: "two-run-single",
+                            eyebrow: "RUN PRODUCER",
+                            title: "A two-run single against Milwaukee",
+                            date: "Jul 25, 2026",
+                            metrics: ["69.7 mph", "226 ft"]
+                        ),
+                        BaseballPlayerStoryHighlight(
+                            id: "latest-single",
+                            eyebrow: "MOST RECENT GAME",
+                            title: "A single against Chad Patrick",
+                            date: "Jul 26, 2026",
+                            metrics: ["71.5 mph", "235 ft"]
+                        ),
+                    ]
+                )
             ),
             BaseballDiscoveryCard(
                 id: "discovery-dodgers-lost",
@@ -419,7 +499,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 hostBehavior: .tease,
                 facts: MockBaseballFixtures.dodgers.facts,
                 finalScore: nil,
-                standings: nil
+                standings: nil,
+                playerStory: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-condensed",
@@ -431,7 +512,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 hostBehavior: .greet,
                 facts: MockBaseballFixtures.watchNext.facts,
                 finalScore: nil,
-                standings: nil
+                standings: nil,
+                playerStory: nil
             ),
         ]
     }

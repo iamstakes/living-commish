@@ -139,6 +139,7 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let facts: [BaseballFact]
     let finalScore: BaseballFinalScoreSnapshot?
     let standings: BaseballStandingsSnapshot?
+    let playerStory: BaseballPlayerStorySnapshot?
 }
 
 struct BaseballFinalScoreSnapshot: Equatable, Sendable {
@@ -182,4 +183,25 @@ struct BaseballStandingsSnapshot: Equatable, Sendable {
     let nextGameTime: String
     let nextGameVenue: String
     let probablePitchers: String
+}
+
+struct BaseballPlayerStorySnapshot: Equatable, Identifiable, Sendable {
+    let id: String
+    let kicker: String
+    let playerName: String
+    let teamName: String
+    let headline: String
+    let summary: String
+    let imageURL: URL
+    let sourceURL: URL
+    let sourceName: String
+    let highlights: [BaseballPlayerStoryHighlight]
+}
+
+struct BaseballPlayerStoryHighlight: Equatable, Identifiable, Sendable {
+    let id: String
+    let eyebrow: String
+    let title: String
+    let date: String
+    let metrics: [String]
 }
