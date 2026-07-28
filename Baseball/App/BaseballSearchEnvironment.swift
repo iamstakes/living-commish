@@ -35,6 +35,7 @@ final class BaseballSearchEnvironment {
     var searchText = ""
     private(set) var state: BaseballSearchExperienceState = .discovering
     private(set) var discoveryCards: [BaseballDiscoveryCard] = []
+    private(set) var activeDiscoveryCardID: String?
     private(set) var discoveryError: String?
 
     @ObservationIgnored private let queryInterpreter: any BaseballQueryInterpreting
@@ -70,11 +71,36 @@ final class BaseballSearchEnvironment {
         do {
             discoveryCards = try await discoveryProvider.cards(for: profile)
             discoveryError = nil
+            if let activeDiscoveryCardID,
+               discoveryCards.contains(where: { $0.id == activeDiscoveryCardID }) {
+                presentDiscoveryCard(activeDiscoveryCardID)
+            } else if let firstCard = discoveryCards.first {
+                presentDiscoveryCard(firstCard.id)
+            }
             if case .failed = state { state = .discovering }
         } catch {
             discoveryCards = []
+            activeDiscoveryCardID = nil
             discoveryError = error.localizedDescription
         }
+    }
+
+    func presentDiscoveryCard(_ id: String) {
+        guard let card = discoveryCards.first(where: { $0.id == id }) else { return }
+        activeDiscoveryCardID = card.id
+        host.perform(card.hostBehavior)
+    }
+
+    func moveDiscoveryCard(by offset: Int) {
+        guard !discoveryCards.isEmpty else { return }
+        let currentIndex = discoveryCards.firstIndex {
+            $0.id == activeDiscoveryCardID
+        } ?? 0
+        let proposedIndex = (currentIndex + offset) % discoveryCards.count
+        let nextIndex = proposedIndex >= 0
+            ? proposedIndex
+            : proposedIndex + discoveryCards.count
+        presentDiscoveryCard(discoveryCards[nextIndex].id)
     }
 
     func submitSearch() async {
@@ -142,6 +168,9 @@ final class BaseballSearchEnvironment {
         searchText = ""
         host.reset()
         state = .discovering
+        if let activeDiscoveryCardID {
+            presentDiscoveryCard(activeDiscoveryCardID)
+        }
     }
 
     func setApplicationActive(_ isActive: Bool) {

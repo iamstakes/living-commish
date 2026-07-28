@@ -15,9 +15,18 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(app.textFields["baseball-search-field"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["baseball-search-button"].exists)
         XCTAssertTrue(app.otherElements["baseball-discovery-section"].waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.otherElements["discovery-presentation-stage"].waitForExistence(timeout: 5)
+        )
         XCTAssertTrue(app.staticTexts["For You"].exists)
         XCTAssertTrue(app.staticTexts["Personalized for you"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-rockies-tonight"].exists
+        )
+        let host = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(host.exists)
+        XCTAssertGreaterThan(host.frame.height, 300)
         XCTAssertTrue(
             app.descendants(matching: .any)
                 .matching(
@@ -27,6 +36,16 @@ final class BaseballSearchHomeUITests: XCTestCase {
                 )
                 .firstMatch
                 .exists
+        )
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Layered discovery presentation"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+
+        app.buttons["host-presentation-next"].tap()
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-goodman"]
+                .waitForExistence(timeout: 3)
         )
         XCTAssertFalse(app.buttons["generate-reaction-button"].exists)
     }
@@ -40,9 +59,14 @@ final class BaseballSearchHomeUITests: XCTestCase {
         app.buttons["baseball-search-button"].tap()
 
         XCTAssertTrue(app.otherElements["baseball-results-overview"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.otherElements["result-presentation-stage"].exists)
         XCTAssertEqual(app.staticTexts["baseball-results-title"].label, "Aaron Judge")
         XCTAssertTrue(
             app.descendants(matching: .any)["baseball-featured-result"].exists
+        )
+        XCTAssertGreaterThan(
+            app.otherElements["baseball-animated-host"].frame.height,
+            300
         )
         XCTAssertTrue(
             app.staticTexts[

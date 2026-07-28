@@ -283,6 +283,41 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(cards.flatMap(\.facts).allSatisfy(\.provenance.isMock))
     }
 
+    func testDiscoveryCardSelectionDrivesHostChoreography() async {
+        let commish = TestCommishController()
+        let environment = BaseballSearchEnvironment(
+            dependencies: BaseballSearchDependencies(
+                profile: MockMichaelProfile.value,
+                queryInterpreter: DeterministicBaseballQueryInterpreter(),
+                planner: DefaultBaseballSearchPlanner(),
+                dataProvider: MockBaseballDataService(),
+                discoveryProvider: MockBaseballDiscoveryService(),
+                hostEditor: DeterministicBaseballHostEditor(),
+                resultComposer: DefaultBaseballResultComposer(),
+                host: LegacyCommishHostAdapter(controller: commish)
+            )
+        )
+
+        await environment.loadDiscovery()
+
+        XCTAssertEqual(
+            environment.activeDiscoveryCardID,
+            "discovery-rockies-tonight"
+        )
+        XCTAssertEqual(commish.currentAction, .foamFinger)
+
+        environment.presentDiscoveryCard("discovery-goodman")
+        XCTAssertEqual(environment.activeDiscoveryCardID, "discovery-goodman")
+        XCTAssertEqual(commish.currentAction, .pointRight)
+
+        environment.moveDiscoveryCard(by: -1)
+        XCTAssertEqual(
+            environment.activeDiscoveryCardID,
+            "discovery-rockies-tonight"
+        )
+        XCTAssertEqual(commish.currentAction, .foamFinger)
+    }
+
     func testLegacyHostAdapterMapsGenericBehaviorWithoutUIKnowledge() {
         let commish = TestCommishController()
         let host = LegacyCommishHostAdapter(controller: commish)

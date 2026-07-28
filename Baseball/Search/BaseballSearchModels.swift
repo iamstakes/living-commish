@@ -135,5 +135,6 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let whyItMatters: String
     let systemImage: String
     let destinationQuery: String
+    let hostBehavior: HostBehavior
     let facts: [BaseballFact]
 }

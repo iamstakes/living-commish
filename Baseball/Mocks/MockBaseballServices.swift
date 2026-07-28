@@ -335,15 +335,17 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 whyItMatters: "\(profile.favoriteTeam) is \(profile.name)’s favorite team, so this game leads the experience.",
                 systemImage: "baseball.diamond.bases",
                 destinationQuery: "Rockies game tonight",
+                hostBehavior: .celebrate,
                 facts: [MockBaseballFixtures.rockiesGame.facts[0]]
             ),
             BaseballDiscoveryCard(
                 id: "discovery-goodman",
                 eyebrow: "EMERGING PLAYER",
                 title: "Hunter Goodman is worth your next look",
-                whyItMatters: "\(profile.name) follows emerging players and has Goodman in the prototype favorites.",
+                whyItMatters: "\(profile.name) follows emerging players and has Goodman among his favorites.",
                 systemImage: "figure.baseball",
                 destinationQuery: "Hunter Goodman",
+                hostBehavior: .explain,
                 facts: MockBaseballFixtures.goodman.facts
             ),
             BaseballDiscoveryCard(
@@ -353,6 +355,7 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 whyItMatters: "\(profile.name) frequently searches playoff implications, so consequences come before the table.",
                 systemImage: "chart.line.uptrend.xyaxis",
                 destinationQuery: "How does tonight affect the Wild Card?",
+                hostBehavior: .explain,
                 facts: MockBaseballFixtures.standings.facts
             ),
             BaseballDiscoveryCard(
@@ -362,6 +365,7 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 whyItMatters: "Los Angeles is a configured rival for \(profile.name), making this more relevant than generic news.",
                 systemImage: "arrow.down.right.circle.fill",
                 destinationQuery: "What does the Dodgers loss mean for the Rockies?",
+                hostBehavior: .tease,
                 facts: MockBaseballFixtures.dodgers.facts
             ),
             BaseballDiscoveryCard(
@@ -371,6 +375,7 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 whyItMatters: "\(profile.name) prefers condensed games, so the shortest meaningful watch gets priority.",
                 systemImage: "play.rectangle.fill",
                 destinationQuery: MockBaseballFixtures.watchNext.query,
+                hostBehavior: .greet,
                 facts: MockBaseballFixtures.watchNext.facts
             ),
         ]

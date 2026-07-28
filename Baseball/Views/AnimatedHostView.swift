@@ -4,8 +4,12 @@ struct AnimatedHostView: View {
     let host: any AnimatedHostControlling
     let height: CGFloat
     var accent: Color = .purple
+    var contentScale: CGFloat = 1
+    var contentOffset: CGSize = .zero
 
     var body: some View {
+        let motifSize = min(max(height * 0.72, 230), 320)
+
         ZStack {
             RadialGradient(
                 colors: [
@@ -28,19 +32,21 @@ struct AnimatedHostView: View {
                     ),
                     style: StrokeStyle(lineWidth: 1, dash: [5, 9])
                 )
-                .frame(width: 230, height: 230)
+                .frame(width: motifSize, height: motifSize)
                 .rotationEffect(.degrees(45))
                 .offset(y: 22)
 
             Ellipse()
                 .fill(.black.opacity(0.46))
-                .frame(width: 230, height: 38)
+                .frame(width: motifSize, height: 38)
                 .blur(radius: 10)
                 .offset(y: height * 0.37)
 
             renderedHost
                 .padding(.horizontal, 28)
                 .padding(.vertical, 2)
+                .scaleEffect(contentScale, anchor: .bottom)
+                .offset(contentOffset)
         }
         .frame(maxWidth: .infinity)
         .frame(height: height)
