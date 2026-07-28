@@ -15,7 +15,9 @@ struct BaseballSearchHomeView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    searchSection
+                    if !isDiscovering {
+                        searchSection
+                    }
                     stateContent
                 }
                 .padding(.horizontal, 18)
@@ -48,98 +50,69 @@ struct BaseballSearchHomeView: View {
     }
 
     private var searchSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            profileBadge
-                .frame(maxWidth: .infinity, alignment: .trailing)
-
-            GlassEffectContainer(spacing: 10) {
+        GlassEffectContainer(spacing: 10) {
+            HStack(spacing: 10) {
                 HStack(spacing: 10) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        TextField(
-                            "Ask me anything about baseball",
-                            text: Bindable(environment).searchText
-                        )
-                        .font(.body.weight(.medium))
-                        .textInputAutocapitalization(.words)
-                        .autocorrectionDisabled()
-                        .submitLabel(.search)
-                        .focused($isSearchFocused)
-                        .onSubmit(submitSearch)
-                        .accessibilityLabel("Search")
-                        .accessibilityIdentifier("baseball-search-field")
-
-                        if !environment.searchText.isEmpty {
-                            Button {
-                                environment.searchText = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Clear search")
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 58)
-                    .glassEffect(
-                        .regular.interactive(),
-                        in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    Image(systemName: "magnifyingglass")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    TextField(
+                        "Ask me anything about baseball",
+                        text: Bindable(environment).searchText
                     )
+                    .font(.body.weight(.medium))
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
+                    .focused($isSearchFocused)
+                    .onSubmit(submitSearch)
+                    .accessibilityLabel("Search")
+                    .accessibilityIdentifier("baseball-search-field")
 
-                    Button(action: submitSearch) {
-                        Group {
-                            if environment.isSearching {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "arrow.up.right")
-                                    .font(.headline.bold())
-                            }
+                    if !environment.searchText.isEmpty {
+                        Button {
+                            environment.searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
                         }
-                        .frame(width: 25, height: 25)
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search")
                     }
-                    .buttonStyle(.glassProminent)
-                    .tint(RockiesTheme.brightPurple)
-                    .disabled(
-                        environment.isSearching
-                            || environment.searchText
-                                .trimmingCharacters(in: .whitespacesAndNewlines)
-                                .isEmpty
-                    )
-                    .accessibilityLabel("Run baseball search")
-                    .accessibilityIdentifier("baseball-search-button")
                 }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 58)
+                .glassEffect(
+                    .regular.interactive(),
+                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                )
+
+                Button(action: submitSearch) {
+                    Group {
+                        if environment.isSearching {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "arrow.up.right")
+                                .font(.headline.bold())
+                        }
+                    }
+                    .frame(width: 25, height: 25)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(RockiesTheme.brightPurple)
+                .disabled(
+                    environment.isSearching
+                        || environment.searchText
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty
+                )
+                .accessibilityLabel("Run baseball search")
+                .accessibilityIdentifier("baseball-search-button")
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-search-section")
-    }
-
-    private var profileBadge: some View {
-        Circle()
-            .fill(RockiesTheme.brightPurple.gradient)
-            .frame(width: 44, height: 44)
-            .overlay {
-                Text(String(environment.profile.name.prefix(1)))
-                    .font(.headline.weight(.black))
-            }
-            .overlay {
-                Circle()
-                    .stroke(RockiesTheme.silver.opacity(0.58), lineWidth: 1.5)
-            }
-            .shadow(
-                color: RockiesTheme.brightPurple.opacity(0.38),
-                radius: 12,
-                y: 5
-            )
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                "\(environment.profile.name), \(environment.profile.favoriteTeam) fan"
-            )
-            .accessibilityIdentifier("baseball-profile-circle")
     }
 
     @ViewBuilder
@@ -196,15 +169,16 @@ struct BaseballSearchHomeView: View {
             if let activeDiscoveryCard {
                 HostPresentationStage(
                     host: environment.host,
-                    height: 630,
+                    height: 770,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
                     hostHeight: 490,
                     hostScale: 1.70,
                     hostXOffsetFraction: 0.15,
-                    hostYOffset: 20,
+                    hostYOffset: 160,
                     hostAlignment: .topTrailing,
                     contentAlignment: .bottomLeading,
-                    badgeAlignment: .topLeading
+                    badgeAlignment: .topLeading,
+                    badgeTopPadding: 88
                 ) {
                     DiscoveryPresentationDeck(
                         card: activeDiscoveryCard,
@@ -229,6 +203,11 @@ struct BaseballSearchHomeView: View {
                     .padding(.leading, 6)
                     .padding(.bottom, 6)
                 }
+                .overlay(alignment: .top) {
+                    searchSection
+                        .padding(.horizontal, 12)
+                        .padding(.top, 12)
+                }
                 .accessibilityIdentifier("discovery-presentation-stage")
             } else {
                 HStack(spacing: 12) {
@@ -252,6 +231,11 @@ struct BaseballSearchHomeView: View {
         environment.discoveryCards.first {
             $0.id == environment.activeDiscoveryCardID
         } ?? environment.discoveryCards.first
+    }
+
+    private var isDiscovering: Bool {
+        if case .discovering = environment.state { return true }
+        return false
     }
 
     private var activeDiscoveryCardIndex: Int {
@@ -303,6 +287,7 @@ private struct HostPresentationStage<Content: View>: View {
     let hostAlignment: Alignment
     let contentAlignment: Alignment
     let badgeAlignment: Alignment
+    let badgeTopPadding: CGFloat
     private let content: Content
 
     init(
@@ -316,6 +301,7 @@ private struct HostPresentationStage<Content: View>: View {
         hostAlignment: Alignment = .bottomTrailing,
         contentAlignment: Alignment = .topLeading,
         badgeAlignment: Alignment = .topTrailing,
+        badgeTopPadding: CGFloat = 12,
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
@@ -328,6 +314,7 @@ private struct HostPresentationStage<Content: View>: View {
         self.hostAlignment = hostAlignment
         self.contentAlignment = contentAlignment
         self.badgeAlignment = badgeAlignment
+        self.badgeTopPadding = badgeTopPadding
         self.content = content()
     }
 
@@ -379,7 +366,7 @@ private struct HostPresentationStage<Content: View>: View {
                     .zIndex(2)
 
                 HostReadyBadge(host: host)
-                    .padding(.top, 12)
+                    .padding(.top, badgeTopPadding)
                     .padding(.horizontal, 12)
                     .frame(
                         maxWidth: .infinity,

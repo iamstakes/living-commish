@@ -87,16 +87,17 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
         XCTAssertFalse(app.staticTexts["QUICK SEARCHES"].exists)
         XCTAssertFalse(app.buttons["quick-search-aaron-judge"].exists)
-        let profileCircle = app.descendants(matching: .any)[
-            "baseball-profile-circle"
-        ]
-        XCTAssertTrue(profileCircle.exists)
-        XCTAssertEqual(
-            profileCircle.frame.width,
-            profileCircle.frame.height,
-            accuracy: 1
+        XCTAssertFalse(
+            app.descendants(matching: .any)["baseball-profile-circle"].exists
         )
-        XCTAssertLessThan(profileCircle.frame.width, 60)
+        XCTAssertGreaterThanOrEqual(
+            searchField.frame.minY,
+            presentationStage.frame.minY
+        )
+        XCTAssertLessThanOrEqual(
+            searchField.frame.maxY,
+            presentationStage.frame.maxY
+        )
         let firstCard = app.buttons["discovery-card-discovery-rockies-tonight"]
         XCTAssertTrue(firstCard.exists)
         XCTAssertTrue(firstCard.label.contains("Final. Rockies 2, Brewers 11"))
@@ -116,7 +117,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         let host = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(host.exists)
         XCTAssertGreaterThan(host.frame.height, 450)
-        XCTAssertTrue(
+        XCTAssertFalse(
             app.descendants(matching: .any)
                 .matching(
                     NSPredicate(
