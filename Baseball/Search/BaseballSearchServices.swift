@@ -109,7 +109,7 @@ struct DeterministicBaseballQueryInterpreter: BaseballQueryInterpreting {
 
         let ambiguity: String?
         if intent == .unknown {
-            ambiguity = "Try a player, team, tonight’s games, a comparison, or a playoff question."
+            ambiguity = "I couldn’t identify a grounded baseball result for “\(cleaned)”."
         } else if intent == .playerComparison, entities.filter({ $0.kind == .player }).count < 2 {
             ambiguity = "Choose two players to compare."
         } else {
@@ -163,6 +163,9 @@ struct DeterministicBaseballQueryInterpreter: BaseballQueryInterpreting {
         }
         if containsAny(text, ["hunter goodman", "goodman"]) {
             append(.init(id: "player-hunter-goodman", kind: .player, canonicalName: "Hunter Goodman"))
+        }
+        if containsAny(text, ["mike schmidt", "michael jack schmidt", "schmidt"]) {
+            append(.init(id: "player-mike-schmidt", kind: .player, canonicalName: "Mike Schmidt"))
         }
         if containsAny(text, ["colorado rockies", "rockies"]) {
             append(.init(id: "team-colorado-rockies", kind: .team, canonicalName: "Colorado Rockies"))

@@ -15,9 +15,6 @@ struct BaseballSearchHomeView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    if !isDiscovering {
-                        searchSection
-                    }
                     stateContent
                 }
                 .padding(.horizontal, 18)
@@ -39,6 +36,18 @@ struct BaseballSearchHomeView: View {
             reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.86),
             value: stateAnimationKey
         )
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    isSearchFocused = false
+                } label: {
+                    Label("Done", systemImage: "keyboard.chevron.compact.down")
+                }
+                .accessibilityLabel("Dismiss search keyboard")
+                .accessibilityIdentifier("dismiss-search-keyboard")
+            }
+        }
         .fullScreenCover(item: $presentedPlayerStory) { story in
             PlayerStoryFullScreenView(
                 story: story,
@@ -121,64 +130,43 @@ struct BaseballSearchHomeView: View {
         case .discovering:
             discoverySection
         case .interpreting(let query):
-            HostPresentationStage(
-                host: environment.host,
-                height: 350,
-                accent: .purple
-            ) {
+            integratedSearchStage(accent: .purple) {
                 SearchLoadingCard(
-                    title: "Reading your question",
+                    title: "Looking it up",
                     detail: query
                 )
-                .frame(width: 238)
-                .padding(.top, 42)
+                .frame(width: 276)
+                .padding(.leading, 6)
+                .padding(.bottom, 64)
             }
         case .loading(let plan):
-            HostPresentationStage(
-                host: environment.host,
-                height: 350,
-                accent: .cyan
-            ) {
+            integratedSearchStage(accent: .cyan) {
                 SearchLoadingCard(
-                    title: "Building your result",
-                    detail: "\(plan.requestedModules.count) modules for \(environment.profile.name)"
+                    title: "Building the card",
+                    detail: plan.query.entities.first?.canonicalName
+                        ?? plan.query.rawText
                 )
-                .frame(width: 238)
-                .padding(.top, 42)
+                .frame(width: 276)
+                .padding(.leading, 6)
+                .padding(.bottom, 64)
             }
         case .presenting(let experience):
-            SearchExperienceOverview(
-                experience: experience,
-                host: environment.host,
-                onReset: {
-                    environment.resetToDiscovery()
-                    Task { await environment.loadDiscovery() }
-                },
-                onSearch: runSearch
-            )
+            resultsSection(experience)
         case .failed(let failure):
-            SearchFailureCard(
-                failure: failure,
-                onSuggestion: runSearch
-            )
+            integratedSearchStage(accent: .orange) {
+                SearchFailureCard(failure: failure)
+                    .frame(width: 276)
+                    .padding(.leading, 6)
+                    .padding(.bottom, 64)
+            }
         }
     }
 
     private var discoverySection: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let activeDiscoveryCard {
-                HostPresentationStage(
-                    host: environment.host,
-                    height: 770,
-                    accent: discoveryAccent(for: activeDiscoveryCardIndex),
-                    hostHeight: 490,
-                    hostScale: 1.70,
-                    hostXOffsetFraction: 0.15,
-                    hostYOffset: 160,
-                    hostAlignment: .topTrailing,
-                    contentAlignment: .bottomLeading,
-                    badgeAlignment: .topLeading,
-                    badgeTopPadding: 88
+                integratedSearchStage(
+                    accent: discoveryAccent(for: activeDiscoveryCardIndex)
                 ) {
                     DiscoveryPresentationDeck(
                         card: activeDiscoveryCard,
@@ -202,11 +190,6 @@ struct BaseballSearchHomeView: View {
                     )
                     .padding(.leading, 6)
                     .padding(.bottom, 6)
-                }
-                .overlay(alignment: .top) {
-                    searchSection
-                        .padding(.horizontal, 12)
-                        .padding(.top, 12)
                 }
                 .accessibilityIdentifier("discovery-presentation-stage")
             } else {
@@ -233,9 +216,50 @@ struct BaseballSearchHomeView: View {
         } ?? environment.discoveryCards.first
     }
 
-    private var isDiscovering: Bool {
-        if case .discovering = environment.state { return true }
-        return false
+    private func integratedSearchStage<Content: View>(
+        accent: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        HostPresentationStage(
+            host: environment.host,
+            height: 770,
+            accent: accent,
+            hostHeight: 490,
+            hostScale: 1.70,
+            hostXOffsetFraction: 0.15,
+            hostYOffset: 160,
+            hostAlignment: .topTrailing,
+            contentAlignment: .bottomLeading,
+            badgeAlignment: .topLeading,
+            badgeTopPadding: 88,
+            content: content
+        )
+        .overlay(alignment: .top) {
+            searchSection
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+        }
+        .accessibilityIdentifier("search-presentation-stage")
+    }
+
+    private func resultsSection(
+        _ experience: BaseballSearchExperience
+    ) -> some View {
+        let accent = experience.modules
+            .first(where: \.isPreviewModule)?
+            .featuredContent.accent
+            ?? RockiesTheme.brightPurple
+
+        return integratedSearchStage(accent: accent) {
+            SearchResultPresentationDeck(
+                experience: experience,
+                reduceMotion: reduceMotion
+            )
+            .id(experience.query.rawText)
+            .padding(.leading, 6)
+            .padding(.bottom, 6)
+        }
+        .accessibilityIdentifier("baseball-results-stage")
     }
 
     private var activeDiscoveryCardIndex: Int {
@@ -577,6 +601,99 @@ private struct DiscoveryPresentationDeck: View {
             return "Open the player story full screen"
         }
         return "Search \(card.destinationQuery)"
+    }
+}
+
+private struct SearchResultPresentationDeck: View {
+    private let cardScale: CGFloat = 1.14
+
+    let experience: BaseballSearchExperience
+    let reduceMotion: Bool
+    @State private var activeIndex = 0
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 10) {
+            if let activeModule {
+                let content = activeModule.featuredContent
+
+                ZStack(alignment: .topTrailing) {
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .fill(content.accent.opacity(0.08))
+                        .frame(width: 249, height: 234)
+                        .offset(x: -14, y: 14)
+                        .rotationEffect(.degrees(-2))
+
+                    FeaturedResultCard(module: activeModule, compact: true)
+                        .frame(width: 230, height: 215, alignment: .topLeading)
+                        .scaleEffect(cardScale)
+                        .frame(width: 264, height: 247)
+                        .accessibilityIdentifier("search-result-card")
+                }
+
+                HStack(spacing: 10) {
+                    Button {
+                        move(by: -1)
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                    .buttonStyle(.glass)
+                    .accessibilityLabel("Previous search result")
+                    .accessibilityIdentifier("search-results-previous")
+
+                    Text("\(boundedIndex + 1) / \(resultModules.count)")
+                        .font(.caption2.monospacedDigit().weight(.bold))
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 38)
+
+                    Button {
+                        move(by: 1)
+                    } label: {
+                        Image(systemName: "chevron.right")
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(content.accent)
+                    .accessibilityLabel("Next search result")
+                    .accessibilityIdentifier("search-results-next")
+                }
+            }
+        }
+        .frame(width: 276)
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.82),
+            value: activeIndex
+        )
+        .contentShape(Rectangle())
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 28)
+                .onEnded { value in
+                    guard abs(value.translation.width) > abs(value.translation.height) else {
+                        return
+                    }
+                    move(by: value.translation.width < 0 ? 1 : -1)
+                }
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("baseball-results-deck")
+    }
+
+    private var resultModules: [BaseballResultModule] {
+        experience.modules.filter(\.isPreviewModule)
+    }
+
+    private var boundedIndex: Int {
+        guard !resultModules.isEmpty else { return 0 }
+        return min(activeIndex, resultModules.count - 1)
+    }
+
+    private var activeModule: BaseballResultModule? {
+        guard !resultModules.isEmpty else { return nil }
+        return resultModules[boundedIndex]
+    }
+
+    private func move(by offset: Int) {
+        guard !resultModules.isEmpty else { return }
+        let proposed = (boundedIndex + offset) % resultModules.count
+        activeIndex = proposed >= 0 ? proposed : proposed + resultModules.count
     }
 }
 
@@ -1424,88 +1541,6 @@ private struct SearchLoadingCard: View {
     }
 }
 
-private struct SearchExperienceOverview: View {
-    let experience: BaseballSearchExperience
-    let host: any AnimatedHostControlling
-    let onReset: () -> Void
-    let onSearch: (String) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("SEARCH EXPERIENCE")
-                        .font(.caption2.weight(.black))
-                        .tracking(1.1)
-                        .foregroundStyle(.purple)
-                    Text(experience.displayTitle)
-                        .font(.title2.bold())
-                        .accessibilityIdentifier("baseball-results-title")
-                }
-                Spacer()
-                Button(action: onReset) {
-                    Image(systemName: "xmark")
-                }
-                .buttonStyle(.glass)
-                .accessibilityLabel("Back to discovery")
-                .accessibilityIdentifier("baseball-results-close")
-            }
-
-            if let presentationModule {
-                ResultPresentationStage(
-                    host: host,
-                    module: presentationModule,
-                    reaction: reaction
-                )
-            }
-
-            if !remainingPreviewModules.isEmpty {
-                Text("Go deeper")
-                    .font(.headline)
-
-                LazyVStack(spacing: 11) {
-                    ForEach(remainingPreviewModules.prefix(5)) { module in
-                        ModulePreviewCard(module: module, onSearch: onSearch)
-                    }
-                }
-            }
-
-            if let why = experience.modules.compactMap(\.whyThisMatters).first {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(why.title)
-                        .font(.headline)
-                    Text(why.explanation)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .glassEffect(
-                    .clear.tint(.cyan.opacity(0.1)),
-                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-                )
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("baseball-results-overview")
-    }
-
-    private var presentationModule: BaseballResultModule? {
-        experience.modules.first(where: \.isPreviewModule)
-    }
-
-    private var reaction: BaseballHostReaction? {
-        experience.modules.compactMap(\.hostReaction).first
-    }
-
-    private var remainingPreviewModules: [BaseballResultModule] {
-        experience.modules.filter { module in
-            module.isPreviewModule && module.id != presentationModule?.id
-        }
-    }
-}
-
 private struct FeaturedResultCard: View {
     let module: BaseballResultModule
     var compact = false
@@ -1546,136 +1581,27 @@ private struct FeaturedResultCard: View {
     }
 }
 
-private struct ResultPresentationStage: View {
-    let host: any AnimatedHostControlling
-    let module: BaseballResultModule
-    let reaction: BaseballHostReaction?
-
-    var body: some View {
-        let content = module.featuredContent
-
-        HostPresentationStage(
-            host: host,
-            height: 430,
-            accent: content.accent,
-            hostScale: 1.28
-        ) {
-            ZStack(alignment: .topLeading) {
-                FeaturedResultCard(module: module, compact: true)
-                    .frame(width: 230)
-                    .padding(.top, 18)
-
-                if let reaction {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Label(
-                            reaction.kind.displayName.uppercased(),
-                            systemImage: "sparkles"
-                        )
-                        .font(.caption2.weight(.black))
-                        .tracking(0.8)
-                        .foregroundStyle(.purple)
-                        Text(reaction.line)
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(4)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(14)
-                    .frame(width: 286, alignment: .leading)
-                    .glassEffect(
-                        .regular.tint(.purple.opacity(0.18)),
-                        in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    )
-                    .frame(
-                        maxWidth: .infinity,
-                        maxHeight: .infinity,
-                        alignment: .bottomLeading
-                    )
-                    .padding(.bottom, 10)
-                }
-            }
-        }
-        .accessibilityIdentifier("result-presentation-stage")
-    }
-}
-
-private struct ModulePreviewCard: View {
-    let module: BaseballResultModule
-    let onSearch: (String) -> Void
-
-    var body: some View {
-        let preview = module.preview
-
-        HStack(spacing: 14) {
-            Image(systemName: preview.systemImage)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(preview.accent)
-                .frame(width: 42, height: 42)
-                .background(preview.accent.opacity(0.12), in: Circle())
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 7) {
-                    Text(preview.eyebrow)
-                        .font(.caption2.weight(.black))
-                        .tracking(0.8)
-                        .foregroundStyle(preview.accent)
-                }
-                Text(preview.title)
-                    .font(.headline)
-                    .lineLimit(2)
-                Text(preview.subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-
-            Spacer(minLength: 0)
-
-            if let query = preview.destinationQuery {
-                Button {
-                    onSearch(query)
-                } label: {
-                    Image(systemName: "arrow.up.right")
-                }
-                .buttonStyle(.glass)
-                .accessibilityLabel("Search \(query)")
-            }
-        }
-        .padding(15)
-        .glassEffect(
-            .clear.tint(preview.accent.opacity(0.07)),
-            in: RoundedRectangle(cornerRadius: 21, style: .continuous)
-        )
-    }
-}
-
 private struct SearchFailureCard: View {
     let failure: BaseballSearchFailurePresentation
-    let onSuggestion: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             Image(systemName: "baseball.diamond.bases")
-                .font(.largeTitle)
+                .font(.title2)
                 .foregroundStyle(.orange)
             Text(failure.title)
-                .font(.title2.bold())
+                .font(.title3.bold())
             Text(failure.message)
-                .font(.subheadline)
+                .font(.caption)
                 .foregroundStyle(.secondary)
-
-            Text("TRY ONE OF THESE")
-                .font(.caption2.weight(.black))
-                .tracking(1)
-                .foregroundStyle(.secondary)
-            ForEach(failure.recoverySuggestions, id: \.self) { suggestion in
-                Button(suggestion) {
-                    onSuggestion(suggestion)
-                }
-                .buttonStyle(.glass)
-            }
+                .lineLimit(4)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(17)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: 170,
+            alignment: .leading
+        )
         .glassEffect(
             .regular.tint(.orange.opacity(0.1)),
             in: RoundedRectangle(cornerRadius: 25, style: .continuous)
@@ -1702,28 +1628,7 @@ private struct FeaturedResultContent {
     let accent: Color
 }
 
-private extension BaseballSearchExperience {
-    var displayTitle: String {
-        switch query.intent {
-        case .favoriteTeam, .favoritePlayer, .entityLookup, .teamLookup:
-            query.entities.first?.canonicalName ?? query.rawText
-        default:
-            query.rawText
-        }
-    }
-}
-
 private extension BaseballResultModule {
-    var hostReaction: BaseballHostReaction? {
-        if case .hostReaction(let value) = self { return value }
-        return nil
-    }
-
-    var whyThisMatters: BaseballWhyThisMattersCard? {
-        if case .whyThisMatters(let value) = self { return value }
-        return nil
-    }
-
     var isPreviewModule: Bool {
         switch self {
         case .hostReaction, .whyThisMatters:

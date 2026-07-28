@@ -79,6 +79,7 @@ final class BaseballArchitectureTests: XCTestCase {
             ("Which team do I support?", .favoriteTeam),
             ("Who is my favorite player?", .favoritePlayer),
             ("Aaron Judge", .entityLookup),
+            ("Mike Schmidt", .entityLookup),
             ("Rockies", .teamLookup),
             ("Games tonight", .gamesTonight),
             ("Who should I watch?", .playerRecommendation),
@@ -188,8 +189,39 @@ final class BaseballArchitectureTests: XCTestCase {
         guard case .failed(let failure) = environment.state else {
             return XCTFail("Unknown queries must not become host opinions")
         }
-        XCTAssertTrue(failure.message.contains("Try a player"))
+        XCTAssertTrue(failure.message.contains("couldn’t identify"))
+        XCTAssertTrue(failure.recoverySuggestions.isEmpty)
         XCTAssertEqual(commish.currentAction, .idle)
+    }
+
+    func testMikeSchmidtLookupReturnsGroundedPlayerContent() async throws {
+        let profile = MockMichaelProfile.value
+        let query = try await DeterministicBaseballQueryInterpreter().interpret(
+            "mike schmidt",
+            profile: profile
+        )
+        let plan = DefaultBaseballSearchPlanner().plan(for: query)
+        let snapshot = try await MockBaseballDataService().fetch(
+            plan: plan,
+            profile: profile
+        )
+        let editorial = try await DeterministicBaseballHostEditor().editorial(
+            for: plan,
+            snapshot: snapshot,
+            profile: profile
+        )
+
+        XCTAssertEqual(query.intent, .entityLookup)
+        XCTAssertEqual(query.entities.first?.canonicalName, "Mike Schmidt")
+        XCTAssertTrue(snapshot.modules.contains { module in
+            if case .player(let player) = module {
+                return player.id == "mike-schmidt"
+                    && player.teamName == "Philadelphia Phillies"
+            }
+            return false
+        })
+        XCTAssertTrue(editorial.reaction.line.contains("Phillies icon"))
+        XCTAssertTrue(editorial.reaction.line.contains("Hall of Fame"))
     }
 
     func testPlannerProducesVisualModulePlansInsteadOfTextResponses() async throws {

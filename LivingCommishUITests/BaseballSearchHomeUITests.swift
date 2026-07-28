@@ -152,32 +152,82 @@ final class BaseballSearchHomeUITests: XCTestCase {
         let field = app.textFields["baseball-search-field"]
         XCTAssertTrue(field.waitForExistence(timeout: 8))
         field.tap()
-        field.typeText("aaron judge")
+        field.typeText("mike schmidt")
         app.buttons["baseball-search-button"].tap()
 
-        XCTAssertTrue(app.otherElements["baseball-results-overview"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.otherElements["result-presentation-stage"].exists)
-        XCTAssertEqual(app.staticTexts["baseball-results-title"].label, "Aaron Judge")
+        let resultsStage = app.descendants(matching: .any)[
+            "baseball-results-stage"
+        ]
+        XCTAssertTrue(resultsStage.waitForExistence(timeout: 8))
         XCTAssertTrue(
-            app.descendants(matching: .any)["baseball-featured-result"].exists
+            app.descendants(matching: .any)["baseball-results-deck"].exists
         )
+        let resultCard = app.descendants(matching: .any)["search-result-card"]
+        XCTAssertTrue(resultCard.exists)
+        XCTAssertTrue(resultCard.label.contains("Mike Schmidt"))
+        XCTAssertTrue(resultCard.label.contains("Philadelphia Phillies"))
         XCTAssertGreaterThan(
             app.otherElements["baseball-animated-host"].frame.height,
-            300
+            450
         )
-        XCTAssertTrue(
-            app.staticTexts[
-                "For Aaron Judge, power is the story. Contact quality is the first thing I’d inspect."
-            ].exists
-        )
-        XCTAssertTrue(app.staticTexts["HOST OPINION"].exists)
+        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
+        XCTAssertFalse(app.otherElements["baseball-results-overview"].exists)
+        XCTAssertFalse(app.otherElements["result-presentation-stage"].exists)
+        XCTAssertFalse(app.otherElements["baseball-search-error"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE"].exists)
-        XCTAssertTrue(app.buttons["baseball-results-close"].exists)
+        XCTAssertFalse(app.buttons["baseball-results-close"].exists)
         XCTAssertFalse(app.staticTexts["LIVING COMMISH"].exists)
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Aaron Judge grounded result"
+        screenshot.name = "Mike Schmidt result in Commish stage"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
+    func testSearchKeyboardCanBeDismissedWithoutSubmitting() {
+        let app = launchApp()
+        let field = app.textFields["baseball-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        field.tap()
+        field.typeText("mike")
+
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        let dismissButton = app.buttons["dismiss-search-keyboard"]
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: 3))
+        dismissButton.tap()
+
+        XCTAssertFalse(app.keyboards.firstMatch.waitForExistence(timeout: 2))
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-rockies-tonight"].exists
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)["baseball-results-stage"].exists
+        )
+    }
+
+    func testUnknownSearchStaysInsideTheCommishStage() {
+        let app = launchApp()
+        let field = app.textFields["baseball-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        field.tap()
+        field.typeText("tell me something")
+        app.buttons["baseball-search-button"].tap()
+
+        let failureCard = app.descendants(matching: .any)[
+            "baseball-search-error"
+        ]
+        XCTAssertTrue(failureCard.waitForExistence(timeout: 8))
+        XCTAssertTrue(
+            app.descendants(matching: .any)["search-presentation-stage"].exists
+        )
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
+        XCTAssertFalse(app.staticTexts["TRY ONE OF THESE"].exists)
+        XCTAssertFalse(app.otherElements["baseball-results-overview"].exists)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Unknown search remains in Commish stage"
         screenshot.lifetime = .keepAlways
         add(screenshot)
     }
@@ -235,12 +285,15 @@ final class BaseballSearchHomeUITests: XCTestCase {
         field.typeText("What is my favorite team?")
         app.buttons["baseball-search-button"].tap()
 
-        XCTAssertTrue(app.otherElements["baseball-results-overview"].waitForExistence(timeout: 8))
-        XCTAssertTrue(app.staticTexts["FACT"].exists)
         XCTAssertTrue(
-            app.staticTexts["Your favorite team is the Colorado Rockies."].exists
+            app.descendants(matching: .any)["baseball-results-stage"]
+                .waitForExistence(timeout: 8)
         )
-        XCTAssertFalse(app.staticTexts["HOST OPINION"].exists)
+        let resultCard = app.descendants(matching: .any)["search-result-card"]
+        XCTAssertTrue(resultCard.exists)
+        XCTAssertTrue(resultCard.label.contains("Colorado Rockies"))
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertFalse(app.otherElements["baseball-results-overview"].exists)
     }
 
     private func launchApp() -> XCUIApplication {

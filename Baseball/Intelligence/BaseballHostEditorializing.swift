@@ -134,6 +134,10 @@ struct DeterministicBaseballHostEditor: BaseballHostEditorializing {
             return "Hunter Goodman is the Rockies player to inspect here: an emerging catcher and first baseman matched to your profile."
         }
 
+        if player.id == "mike-schmidt" {
+            return "Mike Schmidt is a Phillies icon: a Hall of Fame third baseman whose power and defense defined his era."
+        }
+
         return "\(player.name) is a \(player.position.lowercased()) for the \(player.teamName). The result below stays on the evidence available for him."
     }
 }

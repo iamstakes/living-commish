@@ -106,6 +106,24 @@ enum MockBaseballFixtures {
         ]
     )
 
+    static let mikeSchmidt = BaseballPlayerCard(
+        id: "mike-schmidt",
+        name: "Mike Schmidt",
+        teamName: "Philadelphia Phillies",
+        position: "Hall of Fame third baseman",
+        summary: "A Phillies icon whose combination of power and defense defined the position for his era.",
+        facts: [
+            fact(
+                "schmidt-phillies",
+                "Fixture: Mike Schmidt spent his major-league career with the Philadelphia Phillies."
+            ),
+            fact(
+                "schmidt-hall-of-fame",
+                "Fixture: Mike Schmidt is a Hall of Fame third baseman known for elite power and defense."
+            ),
+        ]
+    )
+
     static let goodmanPlayerStoryFacts = [
         mlbStoryFact(
             "goodman-three-homer-game",
@@ -314,6 +332,7 @@ struct MockBaseballDataService: BaseballDataProviding {
             case "player-aaron-judge": MockBaseballFixtures.judge
             case "player-shohei-ohtani": MockBaseballFixtures.ohtani
             case "player-hunter-goodman": MockBaseballFixtures.goodman
+            case "player-mike-schmidt": MockBaseballFixtures.mikeSchmidt
             default: nil
             }
         }

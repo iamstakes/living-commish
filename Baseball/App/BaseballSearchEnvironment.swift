@@ -152,13 +152,9 @@ final class BaseballSearchEnvironment {
             host.reset()
             state = .failed(
                 BaseballSearchFailurePresentation(
-                    title: "That search needs a better angle",
+                    title: "No grounded result yet",
                     message: error.localizedDescription,
-                    recoverySuggestions: [
-                        "Rockies",
-                        "Compare Judge and Ohtani",
-                        "How does tonight affect the Wild Card?",
-                    ]
+                    recoverySuggestions: []
                 )
             )
         }
