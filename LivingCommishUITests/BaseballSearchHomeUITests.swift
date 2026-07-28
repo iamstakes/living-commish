@@ -47,7 +47,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
 
         app.buttons["onboarding-finish"].tap()
         XCTAssertTrue(
-            app.staticTexts["baseball-search-title"]
+            app.textFields["baseball-search-field"]
                 .waitForExistence(timeout: 8)
         )
         XCTAssertTrue(
@@ -66,24 +66,46 @@ final class BaseballSearchHomeUITests: XCTestCase {
     func testHomeIsSearchFirstAndPersonalized() {
         let app = launchApp()
 
-        XCTAssertTrue(app.staticTexts["baseball-search-title"].waitForExistence(timeout: 8))
-        XCTAssertEqual(app.staticTexts["baseball-search-title"].label, "Search")
+        XCTAssertFalse(app.staticTexts["baseball-search-title"].exists)
         XCTAssertFalse(app.staticTexts["BASEBALL LIVING HOST"].exists)
-        XCTAssertTrue(app.textFields["baseball-search-field"].waitForExistence(timeout: 5))
+        XCTAssertFalse(
+            app.staticTexts[
+                "Players, teams, games, history, and the moments that matter to you."
+            ].exists
+        )
+        let searchField = app.textFields["baseball-search-field"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        XCTAssertEqual(
+            searchField.placeholderValue,
+            "Ask me anything about baseball"
+        )
         XCTAssertTrue(app.buttons["baseball-search-button"].exists)
-        XCTAssertTrue(app.otherElements["baseball-discovery-section"].waitForExistence(timeout: 5))
-        let presentationStage = app.otherElements["discovery-presentation-stage"]
+        let presentationStage = app.otherElements["baseball-discovery-section"]
         XCTAssertTrue(presentationStage.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["For You"].exists)
-        XCTAssertTrue(app.staticTexts["Personalized for you"].exists)
+        XCTAssertFalse(app.staticTexts["For You"].exists)
+        XCTAssertFalse(app.staticTexts["Personalized for you"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
         XCTAssertFalse(app.staticTexts["QUICK SEARCHES"].exists)
         XCTAssertFalse(app.buttons["quick-search-aaron-judge"].exists)
+        let profileCircle = app.descendants(matching: .any)[
+            "baseball-profile-circle"
+        ]
+        XCTAssertTrue(profileCircle.exists)
+        XCTAssertEqual(
+            profileCircle.frame.width,
+            profileCircle.frame.height,
+            accuracy: 1
+        )
+        XCTAssertLessThan(profileCircle.frame.width, 60)
         let firstCard = app.buttons["discovery-card-discovery-rockies-tonight"]
         XCTAssertTrue(firstCard.exists)
         XCTAssertTrue(firstCard.label.contains("Final. Rockies 2, Brewers 11"))
         XCTAssertGreaterThan(firstCard.frame.width, 250)
         XCTAssertGreaterThan(firstCard.frame.midY, presentationStage.frame.midY)
+        XCTAssertGreaterThan(
+            firstCard.frame.minY,
+            presentationStage.frame.minY + 180
+        )
         XCTAssertTrue(firstCard.isHittable)
         let host = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(host.exists)
@@ -193,7 +215,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
 
         app.buttons["Close player story"].tap()
         XCTAssertTrue(
-            app.otherElements["discovery-presentation-stage"]
+            app.otherElements["baseball-discovery-section"]
                 .waitForExistence(timeout: 3)
         )
     }

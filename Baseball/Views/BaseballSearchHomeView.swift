@@ -48,31 +48,9 @@ struct BaseballSearchHomeView: View {
     }
 
     private var searchSection: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(isShowingResults ? "Search again" : "Search")
-                        .font(
-                            .system(
-                                isShowingResults ? .title : .largeTitle,
-                                design: .rounded,
-                                weight: .bold
-                            )
-                        )
-                        .fontWidth(.expanded)
-                        .accessibilityIdentifier("baseball-search-title")
-
-                    Spacer(minLength: 12)
-                    profileBadge
-                }
-
-                if !isShowingResults {
-                    Text("Players, teams, games, history, and the moments that matter to you.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            profileBadge
+                .frame(maxWidth: .infinity, alignment: .trailing)
 
             GlassEffectContainer(spacing: 10) {
                 HStack(spacing: 10) {
@@ -81,7 +59,7 @@ struct BaseballSearchHomeView: View {
                             .font(.headline)
                             .foregroundStyle(.secondary)
                         TextField(
-                            "Try “How does tonight affect the Wild Card?”",
+                            "Ask me anything about baseball",
                             text: Bindable(environment).searchText
                         )
                         .font(.body.weight(.medium))
@@ -141,29 +119,27 @@ struct BaseballSearchHomeView: View {
     }
 
     private var profileBadge: some View {
-        HStack(spacing: 7) {
-            Circle()
-                .fill(RockiesTheme.brightPurple.gradient)
-                .frame(width: 24, height: 24)
-                .overlay {
-                    Text(String(environment.profile.name.prefix(1)))
-                        .font(.caption2.bold())
-                }
-            VStack(alignment: .leading, spacing: 0) {
-                Text(environment.profile.name)
-                    .font(.caption.bold())
-                Text("Rockies")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+        Circle()
+            .fill(RockiesTheme.brightPurple.gradient)
+            .frame(width: 44, height: 44)
+            .overlay {
+                Text(String(environment.profile.name.prefix(1)))
+                    .font(.headline.weight(.black))
             }
-        }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 8)
-        .glassEffect(.clear, in: Capsule())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "\(environment.profile.name), \(environment.profile.favoriteTeam) fan"
-        )
+            .overlay {
+                Circle()
+                    .stroke(RockiesTheme.silver.opacity(0.58), lineWidth: 1.5)
+            }
+            .shadow(
+                color: RockiesTheme.brightPurple.opacity(0.38),
+                radius: 12,
+                y: 5
+            )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                "\(environment.profile.name), \(environment.profile.favoriteTeam) fan"
+            )
+            .accessibilityIdentifier("baseball-profile-circle")
     }
 
     @ViewBuilder
@@ -216,22 +192,14 @@ struct BaseballSearchHomeView: View {
     }
 
     private var discoverySection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("For You")
-                    .font(.title2.bold())
-                Text("Personalized for you")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
+        VStack(alignment: .leading, spacing: 0) {
             if let activeDiscoveryCard {
                 HostPresentationStage(
                     host: environment.host,
                     height: 500,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
                     hostScale: 1.40,
-                    hostYOffset: -30,
+                    hostYOffset: -58,
                     contentAlignment: .bottomLeading,
                     badgeAlignment: .topLeading
                 ) {
@@ -256,7 +224,7 @@ struct BaseballSearchHomeView: View {
                         }
                     )
                     .padding(.leading, 6)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, 6)
                 }
                 .accessibilityIdentifier("discovery-presentation-stage")
             } else {
@@ -275,11 +243,6 @@ struct BaseballSearchHomeView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-discovery-section")
-    }
-
-    private var isShowingResults: Bool {
-        if case .presenting = environment.state { return true }
-        return false
     }
 
     private var activeDiscoveryCard: BaseballDiscoveryCard? {
