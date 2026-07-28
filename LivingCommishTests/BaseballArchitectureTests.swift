@@ -285,6 +285,19 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(cards.first?.finalScore?.homeTeam, "Brewers")
         XCTAssertEqual(cards.first?.finalScore?.visitorRuns, 2)
         XCTAssertEqual(cards.first?.finalScore?.homeRuns, 11)
+        XCTAssertEqual(cards.dropFirst().first?.id, "discovery-standings")
+        XCTAssertEqual(cards.dropFirst().first?.standings?.divisionPosition, 5)
+        XCTAssertEqual(cards.dropFirst().first?.standings?.lastTen, "3–7")
+        XCTAssertEqual(cards.dropFirst().first?.standings?.streak, "L2")
+        XCTAssertEqual(cards.dropFirst().first?.standings?.runDifferential, -110)
+        XCTAssertEqual(
+            cards.dropFirst().first?.standings?.comparisonRunDifferential,
+            -127
+        )
+        XCTAssertEqual(
+            cards.dropFirst().first?.standings?.nextOpponent,
+            "San Diego Padres"
+        )
     }
 
     func testDiscoveryCardSelectionDrivesHostChoreography() async {
@@ -310,9 +323,23 @@ final class BaseballArchitectureTests: XCTestCase {
         )
         XCTAssertEqual(commish.currentAction, .sadShrug)
 
+        environment.moveDiscoveryCard(by: 1)
+        XCTAssertEqual(
+            environment.activeDiscoveryCardID,
+            "discovery-standings"
+        )
+        XCTAssertEqual(commish.currentAction, .sadShrug)
+
         environment.presentDiscoveryCard("discovery-goodman")
         XCTAssertEqual(environment.activeDiscoveryCardID, "discovery-goodman")
         XCTAssertEqual(commish.currentAction, .pointRight)
+
+        environment.moveDiscoveryCard(by: -1)
+        XCTAssertEqual(
+            environment.activeDiscoveryCardID,
+            "discovery-standings"
+        )
+        XCTAssertEqual(commish.currentAction, .sadShrug)
 
         environment.moveDiscoveryCard(by: -1)
         XCTAssertEqual(

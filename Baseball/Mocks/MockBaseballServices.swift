@@ -134,12 +134,13 @@ enum MockBaseballFixtures {
     )
 
     static let standings = BaseballStandingsCard(
-        id: "nl-wild-card-prototype",
-        title: "Wild Card pressure",
-        summary: "A prototype scenario showing how tonight’s result changes the next games worth watching.",
+        id: "rockies-nl-west-standings",
+        title: "Rockies are fifth in the NL West",
+        summary: "Colorado is 42–65, has gone 3–7 in its last ten with a two-game losing streak, and owns MLB’s second-worst run differential at −110.",
         facts: [
-            fact("standings-scenario", "Fixture: A Rockies win improves the demo Wild Card scenario."),
-            fact("standings-dodgers", "Fixture: The Dodgers’ previous loss increases the scenario’s profile relevance."),
+            fact("standings-form", "Fixture: Colorado is fifth in the NL West at 42–65, 25.5 games back, with a 3–7 last-ten record and an L2 streak."),
+            fact("standings-differential", "Fixture: Colorado’s −110 run differential is better only than the Athletics’ −127."),
+            fact("standings-next", "Fixture: Colorado next plays San Diego at Petco Park on July 28 at 9:40 PM EDT, with Lorenzen and King listed as probable pitchers."),
         ]
     )
 
@@ -359,6 +360,41 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                     winningPitcherLine: "11–4  |  1.58 ERA",
                     losingPitcher: "Freeland, K",
                     losingPitcherLine: "2–10  |  7.34 ERA"
+                ),
+                standings: nil
+            ),
+            BaseballDiscoveryCard(
+                id: "discovery-standings",
+                eyebrow: "NL WEST",
+                title: "Rockies are fifth in the NL West",
+                whyItMatters: "Recent form, run differential, and the next game explain where \(profile.name)’s team stands.",
+                systemImage: "chart.line.uptrend.xyaxis",
+                destinationQuery: "How does tonight affect the standings?",
+                hostBehavior: .concerned,
+                facts: MockBaseballFixtures.standings.facts,
+                finalScore: nil,
+                standings: BaseballStandingsSnapshot(
+                    teamName: "Colorado Rockies",
+                    teamAbbreviation: "COL",
+                    division: "NL West",
+                    divisionPosition: 5,
+                    divisionTeamCount: 5,
+                    record: "42–65",
+                    gamesBack: "25.5",
+                    lastTen: "3–7",
+                    streak: "L2",
+                    runDifferential: -110,
+                    comparisonTeam: "Athletics",
+                    comparisonTeamAbbreviation: "ATH",
+                    comparisonRunDifferential: -127,
+                    nextOpponent: "San Diego Padres",
+                    nextOpponentAbbreviation: "SD",
+                    nextOpponentRecord: "53–53",
+                    nextOpponentDivisionPosition: 3,
+                    nextGameDate: "Jul 28, 2026",
+                    nextGameTime: "9:40 PM EDT",
+                    nextGameVenue: "Petco Park",
+                    probablePitchers: "Lorenzen vs King"
                 )
             ),
             BaseballDiscoveryCard(
@@ -370,18 +406,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 destinationQuery: "Hunter Goodman",
                 hostBehavior: .explain,
                 facts: MockBaseballFixtures.goodman.facts,
-                finalScore: nil
-            ),
-            BaseballDiscoveryCard(
-                id: "discovery-wild-card",
-                eyebrow: "PLAYOFF RACE",
-                title: "Tonight changes the Wild Card picture",
-                whyItMatters: "\(profile.name) frequently searches playoff implications, so consequences come before the table.",
-                systemImage: "chart.line.uptrend.xyaxis",
-                destinationQuery: "How does tonight affect the Wild Card?",
-                hostBehavior: .explain,
-                facts: MockBaseballFixtures.standings.facts,
-                finalScore: nil
+                finalScore: nil,
+                standings: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-dodgers-lost",
@@ -392,7 +418,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 destinationQuery: "What does the Dodgers loss mean for the Rockies?",
                 hostBehavior: .tease,
                 facts: MockBaseballFixtures.dodgers.facts,
-                finalScore: nil
+                finalScore: nil,
+                standings: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-condensed",
@@ -403,7 +430,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 destinationQuery: MockBaseballFixtures.watchNext.query,
                 hostBehavior: .greet,
                 facts: MockBaseballFixtures.watchNext.facts,
-                finalScore: nil
+                finalScore: nil,
+                standings: nil
             ),
         ]
     }

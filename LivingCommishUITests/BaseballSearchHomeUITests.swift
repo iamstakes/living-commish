@@ -43,10 +43,17 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(screenshot)
 
         app.buttons["host-presentation-next"].tap()
-        XCTAssertTrue(
-            app.buttons["discovery-card-discovery-goodman"]
-                .waitForExistence(timeout: 3)
-        )
+        let standingsCard = app.buttons["discovery-card-discovery-standings"]
+        XCTAssertTrue(standingsCard.waitForExistence(timeout: 3))
+        XCTAssertTrue(standingsCard.label.contains("3–7"))
+        XCTAssertTrue(standingsCard.label.contains("Athletics"))
+        XCTAssertTrue(standingsCard.label.contains("San Diego Padres"))
+
+        let standingsScreenshot = XCTAttachment(screenshot: app.screenshot())
+        standingsScreenshot.name = "Dynamic standings presentation"
+        standingsScreenshot.lifetime = .keepAlways
+        add(standingsScreenshot)
+
         XCTAssertFalse(app.buttons["generate-reaction-button"].exists)
     }
 

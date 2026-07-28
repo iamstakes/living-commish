@@ -138,6 +138,7 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let hostBehavior: HostBehavior
     let facts: [BaseballFact]
     let finalScore: BaseballFinalScoreSnapshot?
+    let standings: BaseballStandingsSnapshot?
 }
 
 struct BaseballFinalScoreSnapshot: Equatable, Sendable {
@@ -157,4 +158,28 @@ struct BaseballFinalScoreSnapshot: Equatable, Sendable {
     let winningPitcherLine: String
     let losingPitcher: String
     let losingPitcherLine: String
+}
+
+struct BaseballStandingsSnapshot: Equatable, Sendable {
+    let teamName: String
+    let teamAbbreviation: String
+    let division: String
+    let divisionPosition: Int
+    let divisionTeamCount: Int
+    let record: String
+    let gamesBack: String
+    let lastTen: String
+    let streak: String
+    let runDifferential: Int
+    let comparisonTeam: String
+    let comparisonTeamAbbreviation: String
+    let comparisonRunDifferential: Int
+    let nextOpponent: String
+    let nextOpponentAbbreviation: String
+    let nextOpponentRecord: String
+    let nextOpponentDivisionPosition: Int
+    let nextGameDate: String
+    let nextGameTime: String
+    let nextGameVenue: String
+    let probablePitchers: String
 }

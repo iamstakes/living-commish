@@ -463,6 +463,11 @@ private struct DiscoveryPresentationDeck: View {
                     Group {
                         if let finalScore = card.finalScore {
                             FinalScoreDiscoveryCardContent(score: finalScore)
+                        } else if let standings = card.standings {
+                            DynamicStandingsDiscoveryCardContent(
+                                standings: standings,
+                                reduceMotion: reduceMotion
+                            )
                         } else {
                             VStack(alignment: .leading, spacing: 11) {
                                 HStack {
@@ -561,16 +566,32 @@ private struct DiscoveryPresentationDeck: View {
     }
 
     private var accessibilityLabel: String {
-        guard let score = card.finalScore else {
-            return "\(card.title). \(card.whyItMatters)"
+        if let score = card.finalScore {
+            return """
+            Final. \(score.visitorTeam) \(score.visitorRuns), \
+            \(score.homeTeam) \(score.homeRuns). \
+            Winning pitcher \(score.winningPitcher), \(score.winningPitcherLine). \
+            Losing pitcher \(score.losingPitcher), \(score.losingPitcherLine).
+            """
         }
 
-        return """
-        Final. \(score.visitorTeam) \(score.visitorRuns), \
-        \(score.homeTeam) \(score.homeRuns). \
-        Winning pitcher \(score.winningPitcher), \(score.winningPitcherLine). \
-        Losing pitcher \(score.losingPitcher), \(score.losingPitcherLine).
-        """
+        if let standings = card.standings {
+            return """
+            \(standings.teamName) are \
+            \(standingsOrdinal(standings.divisionPosition)) of \
+            \(standings.divisionTeamCount) in the \(standings.division) at \
+            \(standings.record), \(standings.gamesBack) games back. \
+            They are \(standings.lastTen) in their last ten with a \
+            \(standings.streak) streak. Their run differential is \
+            \(standings.runDifferential); only the \
+            \(standings.comparisonTeam) are worse at \
+            \(standings.comparisonRunDifferential). Next: \
+            \(standings.nextOpponent), \(standings.nextGameDate), \
+            \(standings.nextGameTime) at \(standings.nextGameVenue).
+            """
+        }
+
+        return "\(card.title). \(card.whyItMatters)"
     }
 }
 
@@ -668,6 +689,317 @@ private struct FinalScoreDiscoveryCardContent: View {
             }
         }
     }
+}
+
+private struct DynamicStandingsDiscoveryCardContent: View {
+    let standings: BaseballStandingsSnapshot
+    let reduceMotion: Bool
+
+    @State private var spotlight = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            standingsHeader
+
+            Divider()
+                .padding(.vertical, 8)
+
+            ZStack {
+                spotlightContent
+                    .id(spotlight)
+                    .transition(
+                        reduceMotion
+                            ? .opacity
+                            : .asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            )
+                    )
+            }
+            .frame(maxWidth: .infinity, minHeight: 88, maxHeight: 88)
+            .clipped()
+
+            HStack(spacing: 5) {
+                ForEach(0..<3, id: \.self) { index in
+                    Capsule()
+                        .fill(
+                            index == spotlight
+                                ? Color(red: 0.40, green: 0.16, blue: 0.54)
+                                : Color.black.opacity(0.13)
+                        )
+                        .frame(width: index == spotlight ? 16 : 5, height: 5)
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding(13)
+        .frame(width: 230, height: 215)
+        .background(
+            Color.white,
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.16), radius: 12, y: 5)
+        .task {
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(3.4))
+                } catch {
+                    return
+                }
+
+                withAnimation(
+                    reduceMotion
+                        ? nil
+                        : .spring(response: 0.42, dampingFraction: 0.86)
+                ) {
+                    spotlight = (spotlight + 1) % 3
+                }
+            }
+        }
+    }
+
+    private var standingsHeader: some View {
+        HStack(spacing: 8) {
+            Text(standings.teamAbbreviation)
+                .font(.system(size: 8, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(width: 29, height: 29)
+                .background(Color(red: 0.23, green: 0.20, blue: 0.30), in: Circle())
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(standings.division.uppercased())
+                    .font(.system(size: 8, weight: .black))
+                    .tracking(0.7)
+                    .foregroundStyle(Color(white: 0.38))
+                Text(standings.teamName)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color(white: 0.12))
+                    .lineLimit(1)
+                Text("\(standings.record)  •  \(standings.gamesBack) GB")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundStyle(Color(white: 0.43))
+            }
+
+            Spacer(minLength: 2)
+
+            VStack(alignment: .trailing, spacing: 0) {
+                Text(standingsOrdinal(standings.divisionPosition).uppercased())
+                    .font(.title3.weight(.black))
+                    .foregroundStyle(Color(red: 0.40, green: 0.16, blue: 0.54))
+                Text("OF \(standings.divisionTeamCount)")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(Color(white: 0.43))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var spotlightContent: some View {
+        switch spotlight {
+        case 0:
+            recentFormSpotlight
+        case 1:
+            runDifferentialSpotlight
+        default:
+            nextGameSpotlight
+        }
+    }
+
+    private var recentFormSpotlight: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text("RECENT FORM")
+                .font(.system(size: 8, weight: .black))
+                .tracking(0.7)
+                .foregroundStyle(Color(white: 0.42))
+
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(standings.lastTen)
+                        .font(.system(size: 29, weight: .black, design: .rounded))
+                        .foregroundStyle(Color(red: 0.76, green: 0.12, blue: 0.16))
+                    Text("LAST 10")
+                        .font(.system(size: 7, weight: .bold))
+                        .foregroundStyle(Color(white: 0.43))
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 5) {
+                    Text(standings.streak)
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            Color(red: 0.76, green: 0.12, blue: 0.16),
+                            in: Capsule()
+                        )
+                    Text("2-GAME SKID")
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundStyle(Color(red: 0.76, green: 0.12, blue: 0.16))
+                }
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background(
+            Color(red: 0.76, green: 0.12, blue: 0.16).opacity(0.07),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+
+    private var runDifferentialSpotlight: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("RUN DIFFERENTIAL")
+                .font(.system(size: 8, weight: .black))
+                .tracking(0.7)
+                .foregroundStyle(Color(white: 0.42))
+
+            HStack(spacing: 10) {
+                RunDifferentialMetric(
+                    abbreviation: standings.teamAbbreviation,
+                    value: standings.runDifferential,
+                    emphasized: true
+                )
+
+                Divider()
+                    .frame(height: 36)
+
+                RunDifferentialMetric(
+                    abbreviation: standings.comparisonTeamAbbreviation,
+                    value: standings.comparisonRunDifferential,
+                    emphasized: false
+                )
+            }
+
+            Text("Only the \(standings.comparisonTeam) are worse in MLB.")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundStyle(Color(white: 0.32))
+                .lineLimit(1)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background(
+            Color(red: 0.95, green: 0.56, blue: 0.12).opacity(0.09),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+
+    private var nextGameSpotlight: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("NEXT GAME  •  \(standings.nextGameDate.uppercased())")
+                    .font(.system(size: 8, weight: .black))
+                    .tracking(0.5)
+                    .foregroundStyle(Color(white: 0.42))
+
+                Spacer()
+
+                Text(standings.nextGameTime)
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(Color(white: 0.32))
+            }
+
+            HStack(spacing: 7) {
+                TeamMatchupMark(
+                    abbreviation: standings.teamAbbreviation,
+                    record: standings.record,
+                    color: Color(red: 0.23, green: 0.20, blue: 0.30)
+                )
+
+                Text("@")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(Color(white: 0.45))
+
+                TeamMatchupMark(
+                    abbreviation: standings.nextOpponentAbbreviation,
+                    record: standings.nextOpponentRecord,
+                    color: Color(red: 0.24, green: 0.11, blue: 0.04)
+                )
+
+                Spacer()
+
+                Text("\(standingsOrdinal(standings.nextOpponentDivisionPosition)) \(standings.division)")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(Color(white: 0.38))
+            }
+
+            Text("\(standings.nextGameVenue)  •  \(standings.probablePitchers)")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundStyle(Color(white: 0.32))
+                .lineLimit(1)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background(
+            Color(red: 0.02, green: 0.28, blue: 0.78).opacity(0.07),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+    }
+}
+
+private struct RunDifferentialMetric: View {
+    let abbreviation: String
+    let value: Int
+    let emphasized: Bool
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            Text(abbreviation)
+                .font(.system(size: 8, weight: .black))
+                .foregroundStyle(Color(white: 0.40))
+            Text("\(value)")
+                .font(.system(size: 22, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    emphasized
+                        ? Color(red: 0.76, green: 0.12, blue: 0.16)
+                        : Color(white: 0.28)
+                )
+                .monospacedDigit()
+        }
+    }
+}
+
+private struct TeamMatchupMark: View {
+    let abbreviation: String
+    let record: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Text(abbreviation)
+                .font(.system(size: 8, weight: .black))
+                .foregroundStyle(.white)
+                .frame(width: 25, height: 25)
+                .background(color, in: Circle())
+
+            Text(record)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(Color(white: 0.30))
+        }
+    }
+}
+
+private func standingsOrdinal(_ value: Int) -> String {
+    let remainder100 = value % 100
+    let suffix: String
+
+    if 11...13 ~= remainder100 {
+        suffix = "th"
+    } else {
+        switch value % 10 {
+        case 1: suffix = "st"
+        case 2: suffix = "nd"
+        case 3: suffix = "rd"
+        default: suffix = "th"
+        }
+    }
+
+    return "\(value)\(suffix)"
 }
 
 private struct FinalScoreTeamRow: View {
