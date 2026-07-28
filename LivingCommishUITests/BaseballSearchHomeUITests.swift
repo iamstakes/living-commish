@@ -21,12 +21,15 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["For You"].exists)
         XCTAssertTrue(app.staticTexts["Personalized for you"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
+        XCTAssertFalse(app.staticTexts["QUICK SEARCHES"].exists)
+        XCTAssertFalse(app.buttons["quick-search-aaron-judge"].exists)
         let firstCard = app.buttons["discovery-card-discovery-rockies-tonight"]
         XCTAssertTrue(firstCard.exists)
         XCTAssertTrue(firstCard.label.contains("Final. Rockies 2, Brewers 11"))
+        XCTAssertGreaterThan(firstCard.frame.width, 250)
         let host = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(host.exists)
-        XCTAssertGreaterThan(host.frame.height, 300)
+        XCTAssertGreaterThan(host.frame.height, 450)
         XCTAssertTrue(
             app.descendants(matching: .any)
                 .matching(

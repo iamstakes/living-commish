@@ -228,9 +228,9 @@ struct BaseballSearchHomeView: View {
             if let activeDiscoveryCard {
                 HostPresentationStage(
                     host: environment.host,
-                    height: 440,
+                    height: 500,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
-                    hostScale: 1.28
+                    hostScale: 1.40
                 ) {
                     DiscoveryPresentationDeck(
                         card: activeDiscoveryCard,
@@ -252,7 +252,7 @@ struct BaseballSearchHomeView: View {
                             }
                         }
                     )
-                    .padding(.top, 20)
+                    .padding(.top, 18)
                 }
                 .accessibilityIdentifier("discovery-presentation-stage")
             } else {
@@ -268,41 +268,9 @@ struct BaseballSearchHomeView: View {
                     in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                 )
             }
-
-            quickSearches
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-discovery-section")
-    }
-
-    private var quickSearches: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Text("QUICK SEARCHES")
-                .font(.caption2.weight(.black))
-                .tracking(1.1)
-                .foregroundStyle(.secondary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach([
-                        "Aaron Judge",
-                        "Games tonight",
-                        "Compare Judge and Ohtani",
-                        "My last Rockies game",
-                    ], id: \.self) { query in
-                        Button(query) {
-                            runSearch(query)
-                        }
-                        .buttonStyle(.glass)
-                        .font(.caption.weight(.semibold))
-                        .accessibilityIdentifier(
-                            "quick-search-\(query.lowercased().replacingOccurrences(of: " ", with: "-"))"
-                        )
-                    }
-                }
-                .padding(.vertical, 2)
-            }
-        }
     }
 
     private var isShowingResults: Bool {
@@ -396,13 +364,13 @@ private struct HostPresentationStage<Content: View>: View {
                     contentScale: hostScale,
                     contentOffset: CGSize(width: -8, height: 2)
                 )
-                .frame(width: proxy.size.width * 0.86)
+                .frame(width: proxy.size.width * 0.90)
                 .frame(
                     maxWidth: .infinity,
                     maxHeight: .infinity,
                     alignment: .bottomTrailing
                 )
-                .offset(x: proxy.size.width * 0.21, y: 8)
+                .offset(x: proxy.size.width * 0.19, y: 8)
                 .zIndex(1)
 
                 content
@@ -454,6 +422,8 @@ private struct HostReadyBadge: View {
 }
 
 private struct DiscoveryPresentationDeck: View {
+    private let cardScale: CGFloat = 1.14
+
     let card: BaseballDiscoveryCard
     let accent: Color
     let position: Int
@@ -468,8 +438,8 @@ private struct DiscoveryPresentationDeck: View {
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
                     .fill(accent.opacity(0.08))
-                    .frame(width: 218, height: 205)
-                    .offset(x: -12, y: 12)
+                    .frame(width: 249, height: 234)
+                    .offset(x: -14, y: 14)
                     .rotationEffect(.degrees(-2))
 
                 Button(action: onOpen) {
@@ -520,6 +490,8 @@ private struct DiscoveryPresentationDeck: View {
                             )
                         }
                     }
+                    .scaleEffect(cardScale)
+                    .frame(width: 264, height: 247)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(accessibilityLabel)
@@ -550,7 +522,7 @@ private struct DiscoveryPresentationDeck: View {
                 .accessibilityIdentifier("host-presentation-next")
             }
         }
-        .frame(width: 240)
+        .frame(width: 276)
         .id(card.id)
         .transition(
             reduceMotion
