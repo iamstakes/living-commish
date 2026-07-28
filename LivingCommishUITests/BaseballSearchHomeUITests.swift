@@ -15,9 +15,8 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(app.textFields["baseball-search-field"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["baseball-search-button"].exists)
         XCTAssertTrue(app.otherElements["baseball-discovery-section"].waitForExistence(timeout: 5))
-        XCTAssertTrue(
-            app.otherElements["discovery-presentation-stage"].waitForExistence(timeout: 5)
-        )
+        let presentationStage = app.otherElements["discovery-presentation-stage"]
+        XCTAssertTrue(presentationStage.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["For You"].exists)
         XCTAssertTrue(app.staticTexts["Personalized for you"].exists)
         XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
@@ -27,6 +26,8 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(firstCard.exists)
         XCTAssertTrue(firstCard.label.contains("Final. Rockies 2, Brewers 11"))
         XCTAssertGreaterThan(firstCard.frame.width, 250)
+        XCTAssertGreaterThan(firstCard.frame.midY, presentationStage.frame.midY)
+        XCTAssertTrue(firstCard.isHittable)
         let host = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(host.exists)
         XCTAssertGreaterThan(host.frame.height, 450)

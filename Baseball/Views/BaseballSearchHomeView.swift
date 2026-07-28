@@ -230,7 +230,10 @@ struct BaseballSearchHomeView: View {
                     host: environment.host,
                     height: 500,
                     accent: discoveryAccent(for: activeDiscoveryCardIndex),
-                    hostScale: 1.40
+                    hostScale: 1.40,
+                    hostYOffset: -30,
+                    contentAlignment: .bottomLeading,
+                    badgeAlignment: .topLeading
                 ) {
                     DiscoveryPresentationDeck(
                         card: activeDiscoveryCard,
@@ -252,7 +255,8 @@ struct BaseballSearchHomeView: View {
                             }
                         }
                     )
-                    .padding(.top, 18)
+                    .padding(.leading, 6)
+                    .padding(.bottom, 18)
                 }
                 .accessibilityIdentifier("discovery-presentation-stage")
             } else {
@@ -321,6 +325,9 @@ private struct HostPresentationStage<Content: View>: View {
     let height: CGFloat
     let accent: Color
     let hostScale: CGFloat
+    let hostYOffset: CGFloat
+    let contentAlignment: Alignment
+    let badgeAlignment: Alignment
     private let content: Content
 
     init(
@@ -328,12 +335,18 @@ private struct HostPresentationStage<Content: View>: View {
         height: CGFloat,
         accent: Color,
         hostScale: CGFloat = 1.2,
+        hostYOffset: CGFloat = 8,
+        contentAlignment: Alignment = .topLeading,
+        badgeAlignment: Alignment = .topTrailing,
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
         self.height = height
         self.accent = accent
         self.hostScale = hostScale
+        self.hostYOffset = hostYOffset
+        self.contentAlignment = contentAlignment
+        self.badgeAlignment = badgeAlignment
         self.content = content()
     }
 
@@ -370,24 +383,24 @@ private struct HostPresentationStage<Content: View>: View {
                     maxHeight: .infinity,
                     alignment: .bottomTrailing
                 )
-                .offset(x: proxy.size.width * 0.19, y: 8)
+                .offset(x: proxy.size.width * 0.19, y: hostYOffset)
                 .zIndex(1)
 
                 content
                     .frame(
                         maxWidth: .infinity,
                         maxHeight: .infinity,
-                        alignment: .topLeading
+                        alignment: contentAlignment
                     )
                     .zIndex(2)
 
                 HostReadyBadge(host: host)
                     .padding(.top, 12)
-                    .padding(.trailing, 12)
+                    .padding(.horizontal, 12)
                     .frame(
                         maxWidth: .infinity,
                         maxHeight: .infinity,
-                        alignment: .topTrailing
+                        alignment: badgeAlignment
                     )
                     .zIndex(3)
             }
