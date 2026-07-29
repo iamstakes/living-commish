@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct BaseballSearchHomeView: View {
+    var onProfileTap: () -> Void = {}
+
     @Environment(BaseballSearchEnvironment.self) private var environment
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -232,6 +234,7 @@ struct BaseballSearchHomeView: View {
             contentAlignment: .bottomLeading,
             badgeAlignment: .topLeading,
             badgeTopPadding: 88,
+            onHostTap: onProfileTap,
             content: content
         )
         .overlay(alignment: .top) {
@@ -300,7 +303,7 @@ struct BaseballSearchHomeView: View {
     }
 }
 
-private struct HostPresentationStage<Content: View>: View {
+struct HostPresentationStage<Content: View>: View {
     let host: any AnimatedHostControlling
     let height: CGFloat
     let accent: Color
@@ -312,6 +315,7 @@ private struct HostPresentationStage<Content: View>: View {
     let contentAlignment: Alignment
     let badgeAlignment: Alignment
     let badgeTopPadding: CGFloat
+    let onHostTap: () -> Void
     private let content: Content
 
     init(
@@ -326,6 +330,7 @@ private struct HostPresentationStage<Content: View>: View {
         contentAlignment: Alignment = .topLeading,
         badgeAlignment: Alignment = .topTrailing,
         badgeTopPadding: CGFloat = 12,
+        onHostTap: @escaping () -> Void = {},
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
@@ -339,6 +344,7 @@ private struct HostPresentationStage<Content: View>: View {
         self.contentAlignment = contentAlignment
         self.badgeAlignment = badgeAlignment
         self.badgeTopPadding = badgeTopPadding
+        self.onHostTap = onHostTap
         self.content = content()
     }
 
@@ -379,6 +385,9 @@ private struct HostPresentationStage<Content: View>: View {
                     x: proxy.size.width * hostXOffsetFraction,
                     y: hostYOffset
                 )
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onHostTap)
+                .accessibilityHint("Open your baseball profile")
                 .zIndex(1)
 
                 content

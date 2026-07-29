@@ -35,7 +35,7 @@ struct BaseballSearchDependencies {
 @MainActor
 @Observable
 final class BaseballSearchEnvironment {
-    let profile: BaseballFanProfileSnapshot
+    private(set) var profile: BaseballFanProfileSnapshot
     let host: any AnimatedHostControlling
 
     var searchText = ""
@@ -71,6 +71,17 @@ final class BaseballSearchEnvironment {
         case .interpreting, .loading: true
         case .discovering, .presenting, .failed: false
         }
+    }
+
+    func updateProfile(_ updatedProfile: BaseballFanProfileSnapshot) {
+        guard profile != updatedProfile else { return }
+        profile = updatedProfile
+        searchText = ""
+        state = .discovering
+        discoveryCards = []
+        activeDiscoveryCardID = nil
+        discoveryError = nil
+        host.reset()
     }
 
     func loadDiscovery() async {

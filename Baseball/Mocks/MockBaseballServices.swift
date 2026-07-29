@@ -385,7 +385,11 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
     func cards(
         for profile: BaseballFanProfileSnapshot
     ) async throws -> [BaseballDiscoveryCard] {
-        [
+        guard profile.favoriteTeam == "Colorado Rockies" else {
+            return genericCards(for: profile)
+        }
+
+        return [
             BaseballDiscoveryCard(
                 id: "discovery-rockies-tonight",
                 eyebrow: "FINAL",
@@ -455,7 +459,9 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 id: "discovery-goodman-story",
                 eyebrow: "PLAYER STORY",
                 title: "30th homer. Third of the game.",
-                whyItMatters: "Goodman is one of \(profile.name)’s favorite players, and this is the defining swing in his best-of-ten story.",
+                whyItMatters: profile.favoritePlayers.contains("Hunter Goodman")
+                    ? "Goodman is one of \(profile.name)’s favorite players, and this is the defining swing in his best-of-ten story."
+                    : "Goodman is an emerging Rockies player, and this is the defining swing in his best-of-ten story.",
                 systemImage: "figure.baseball",
                 destinationQuery: "Hunter Goodman",
                 hostBehavior: .celebrate,
@@ -530,6 +536,41 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 destinationQuery: MockBaseballFixtures.watchNext.query,
                 hostBehavior: .greet,
                 facts: MockBaseballFixtures.watchNext.facts,
+                finalScore: nil,
+                standings: nil,
+                playerStory: nil
+            ),
+        ]
+    }
+
+    private func genericCards(
+        for profile: BaseballFanProfileSnapshot
+    ) -> [BaseballDiscoveryCard] {
+        let favoritePlayer = profile.favoritePlayers.first
+            ?? "Favorite player not selected"
+        return [
+            BaseballDiscoveryCard(
+                id: "discovery-profile-team",
+                eyebrow: "YOUR CLUB",
+                title: profile.favoriteTeam,
+                whyItMatters: "\(profile.name)’s team now leads the experience. Live club-specific cards are the next data-provider integration.",
+                systemImage: "shield.lefthalf.filled",
+                destinationQuery: profile.favoriteTeam,
+                hostBehavior: .greet,
+                facts: [],
+                finalScore: nil,
+                standings: nil,
+                playerStory: nil
+            ),
+            BaseballDiscoveryCard(
+                id: "discovery-profile-player",
+                eyebrow: "YOUR PLAYER",
+                title: favoritePlayer,
+                whyItMatters: "Player stories and roster context will be ranked around this profile choice.",
+                systemImage: "figure.baseball",
+                destinationQuery: favoritePlayer,
+                hostBehavior: .celebrate,
+                facts: [],
                 finalScore: nil,
                 standings: nil,
                 playerStory: nil

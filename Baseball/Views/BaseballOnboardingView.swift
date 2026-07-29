@@ -1,81 +1,4 @@
-import Foundation
-import Observation
 import SwiftUI
-
-struct BaseballTeamChoice: Equatable, Identifiable, Sendable {
-    let id: String
-    let city: String
-    let name: String
-    let abbreviation: String
-    let division: String
-
-    static let coloradoRockies = BaseballTeamChoice(
-        id: "colorado-rockies",
-        city: "Colorado",
-        name: "Rockies",
-        abbreviation: "CR",
-        division: "NL West"
-    )
-}
-
-@MainActor
-@Observable
-final class BaseballOnboardingState {
-    static let selectedTeamKey = "baseball.selectedTeam"
-    static let completionVersionKey = "baseball.onboardingVersion"
-    static let currentVersion = 1
-
-    private(set) var selectedTeamID: String?
-    private(set) var hasCompletedOnboarding: Bool
-
-    @ObservationIgnored private let defaults: UserDefaults
-
-    init(
-        defaults: UserDefaults = .standard,
-        arguments: [String] = ProcessInfo.processInfo.arguments
-    ) {
-        self.defaults = defaults
-
-        if arguments.contains("--baseball-onboarding-ui-testing") {
-            defaults.removeObject(forKey: Self.selectedTeamKey)
-            defaults.removeObject(forKey: Self.completionVersionKey)
-            selectedTeamID = nil
-            hasCompletedOnboarding = false
-        } else if arguments.contains("--baseball-ui-testing") {
-            selectedTeamID = BaseballTeamChoice.coloradoRockies.id
-            hasCompletedOnboarding = true
-        } else {
-            let storedTeamID = defaults.string(forKey: Self.selectedTeamKey)
-            let storedVersion = defaults.integer(
-                forKey: Self.completionVersionKey
-            )
-            selectedTeamID = storedTeamID
-            hasCompletedOnboarding =
-                storedTeamID != nil
-                && storedVersion >= Self.currentVersion
-        }
-    }
-
-    var selectedTeam: BaseballTeamChoice? {
-        guard selectedTeamID == BaseballTeamChoice.coloradoRockies.id else {
-            return nil
-        }
-        return .coloradoRockies
-    }
-
-    func selectTeam(_ team: BaseballTeamChoice) {
-        selectedTeamID = team.id
-    }
-
-    @discardableResult
-    func complete() -> Bool {
-        guard let selectedTeamID else { return false }
-        defaults.set(selectedTeamID, forKey: Self.selectedTeamKey)
-        defaults.set(Self.currentVersion, forKey: Self.completionVersionKey)
-        hasCompletedOnboarding = true
-        return true
-    }
-}
 
 enum RockiesTheme {
     static var purple: Color {
@@ -95,375 +18,776 @@ enum RockiesTheme {
     }
 }
 
+private enum BaseballPersonalizationSheet: String, Identifiable {
+    case teams
+    case players
+    case profile
+
+    var id: String { rawValue }
+}
+
 struct BaseballExperienceRootView: View {
     @Environment(BaseballSearchEnvironment.self) private var environment
     @Environment(BaseballOnboardingState.self) private var onboarding
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var activeSheet: BaseballPersonalizationSheet?
 
     var body: some View {
         Group {
-            if onboarding.hasCompletedOnboarding {
-                BaseballSearchHomeView()
-                    .transition(.opacity.combined(with: .scale(scale: 0.985)))
+            if !onboarding.isSignedIn {
+                SignedOutBaseballStage()
+                    .transition(.opacity)
+            } else if onboarding.hasCompletedOnboarding {
+                BaseballSearchHomeView(
+                    onProfileTap: {
+                        activeSheet = .profile
+                    }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.985)))
             } else {
-                BaseballOnboardingView(
+                BaseballOnboardingStage(
                     host: environment.host,
-                    onboarding: onboarding
+                    onboarding: onboarding,
+                    onChooseTeam: {
+                        activeSheet = .teams
+                    },
+                    onChoosePlayer: {
+                        activeSheet = .players
+                    },
+                    onProfileTap: {
+                        activeSheet = .profile
+                    },
+                    onComplete: completePersonalization
                 )
                 .transition(.opacity)
             }
         }
+        .overlay(alignment: .topTrailing) {
+            DemoAuthenticationToggle(
+                isSignedIn: Binding(
+                    get: { onboarding.isSignedIn },
+                    set: { signedIn in
+                        setSignedIn(signedIn)
+                    }
+                )
+            )
+            .padding(.top, 82)
+            .padding(.trailing, 28)
+        }
         .animation(
-            .spring(response: 0.55, dampingFraction: 0.88),
+            reduceMotion
+                ? nil
+                : .spring(response: 0.5, dampingFraction: 0.88),
+            value: onboarding.isSignedIn
+        )
+        .animation(
+            reduceMotion
+                ? nil
+                : .spring(response: 0.5, dampingFraction: 0.88),
             value: onboarding.hasCompletedOnboarding
         )
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .teams:
+                BaseballTeamPickerSheet(
+                    onboarding: onboarding,
+                    host: environment.host
+                )
+            case .players:
+                BaseballPlayerPickerSheet(
+                    onboarding: onboarding,
+                    host: environment.host
+                )
+            case .profile:
+                BaseballProfileSheet(
+                    onboarding: onboarding,
+                    onRestart: {
+                        activeSheet = nil
+                        onboarding.restartPersonalization()
+                        environment.resetToDiscovery()
+                    }
+                )
+            }
+        }
+        .task {
+            synchronizeProfile()
+            if onboarding.isSignedIn,
+               onboarding.hasCompletedOnboarding,
+               environment.discoveryCards.isEmpty {
+                await environment.loadDiscovery()
+            }
+        }
+        .onChange(of: onboarding.profileSnapshot) { _, _ in
+            synchronizeProfile()
+        }
+    }
+
+    private func setSignedIn(_ signedIn: Bool) {
+        onboarding.setSignedIn(signedIn)
+        activeSheet = nil
+        environment.resetToDiscovery()
+        if signedIn, onboarding.hasCompletedOnboarding {
+            synchronizeProfile()
+            Task { await environment.loadDiscovery() }
+        }
+    }
+
+    private func completePersonalization() {
+        guard onboarding.complete() else { return }
+        synchronizeProfile()
+        environment.host.perform(.greet)
+        Task { await environment.loadDiscovery() }
+    }
+
+    private func synchronizeProfile() {
+        environment.updateProfile(onboarding.profileSnapshot)
     }
 }
 
-private struct BaseballOnboardingView: View {
-    enum Step {
-        case team
-        case confirmation
-    }
+private struct DemoAuthenticationToggle: View {
+    @Binding var isSignedIn: Bool
 
+    var body: some View {
+        Toggle(isOn: $isSignedIn) {
+            Label(
+                isSignedIn ? "Signed in" : "Signed out",
+                systemImage: isSignedIn
+                    ? "person.crop.circle.fill.badge.checkmark"
+                    : "person.crop.circle.badge.xmark"
+            )
+            .font(.caption2.weight(.bold))
+        }
+        .toggleStyle(.switch)
+        .controlSize(.mini)
+        .tint(RockiesTheme.brightPurple)
+        .padding(.leading, 11)
+        .padding(.trailing, 7)
+        .frame(minHeight: 36)
+        .glassEffect(.regular, in: Capsule())
+        .fixedSize(horizontal: true, vertical: true)
+        .accessibilityLabel("Demo signed-in state")
+        .accessibilityValue(isSignedIn ? "Signed in" : "Signed out")
+        .accessibilityIdentifier("demo-authentication-toggle")
+    }
+}
+
+private struct SignedOutBaseballStage: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.018, green: 0.02, blue: 0.032),
+                    Color(red: 0.035, green: 0.032, blue: 0.052),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .fill(.black.opacity(0.10))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 34, style: .continuous)
+                        .stroke(.white.opacity(0.045), lineWidth: 1)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 10)
+                .padding(.bottom, 36)
+        }
+        .preferredColorScheme(.dark)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Signed-out blank baseball stage")
+        .accessibilityIdentifier("baseball-signed-out-stage")
+    }
+}
+
+private struct BaseballOnboardingStage: View {
     let host: any AnimatedHostControlling
     let onboarding: BaseballOnboardingState
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var step: Step = .team
+    let onChooseTeam: () -> Void
+    let onChoosePlayer: () -> Void
+    let onProfileTap: () -> Void
+    let onComplete: () -> Void
 
     var body: some View {
         ZStack {
             RockiesChromeBackground()
 
-            Group {
-                switch step {
-                case .team:
-                    teamPicker
-                        .transition(stepTransition)
-                case .confirmation:
-                    confirmation
-                        .transition(stepTransition)
+            ScrollView {
+                HostPresentationStage(
+                    host: host,
+                    height: 770,
+                    accent: accent,
+                    hostHeight: 490,
+                    hostScale: 1.70,
+                    hostXOffsetFraction: 0.15,
+                    hostYOffset: 130,
+                    hostAlignment: .topTrailing,
+                    contentAlignment: .bottomLeading,
+                    badgeAlignment: .topLeading,
+                    badgeTopPadding: 88,
+                    onHostTap: onProfileTap
+                ) {
+                    BaseballOnboardingCard(
+                        onboarding: onboarding,
+                        onChooseTeam: onChooseTeam,
+                        onChoosePlayer: onChoosePlayer,
+                        onComplete: onComplete
+                    )
+                    .padding(.leading, 6)
+                    .padding(.bottom, 6)
                 }
+                .accessibilityIdentifier("baseball-onboarding-stage")
+                .padding(.horizontal, 18)
+                .padding(.top, 10)
+                .padding(.bottom, 36)
             }
-            .padding(.horizontal, 22)
-            .padding(.top, 12)
-            .padding(.bottom, 16)
         }
         .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-onboarding")
         .onAppear {
-            host.perform(.greet)
-        }
-    }
-
-    private var teamPicker: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            onboardingBrand(step: "1 OF 2")
-
-            Spacer(minLength: 18)
-
-            Text("Who do you\nride with?")
-                .font(.system(size: 46, weight: .black, design: .rounded))
-                .fontWidth(.expanded)
-                .tracking(-1.6)
-                .accessibilityIdentifier("onboarding-team-title")
-
-            Text("Your team changes what leads, what matters, and how the Commish reacts.")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.68))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 10)
-
-            Spacer(minLength: 22)
-
-            RockiesTeamSelectionCard(
-                team: .coloradoRockies,
-                host: host,
-                isSelected: onboarding.selectedTeamID
-                    == BaseballTeamChoice.coloradoRockies.id,
-                onSelect: {
-                    onboarding.selectTeam(.coloradoRockies)
-                    host.perform(.celebrate)
-                }
+            host.perform(
+                onboarding.selectedTeam == nil ? .greet : .explain
             )
-
-            Text("MORE CLUBS COMING SOON")
-                .font(.system(size: 9, weight: .black))
-                .tracking(1.1)
-                .foregroundStyle(.white.opacity(0.42))
-                .frame(maxWidth: .infinity)
-                .padding(.top, 14)
-
-            Spacer(minLength: 18)
-
-            Button {
-                guard onboarding.selectedTeam != nil else { return }
-                host.perform(.celebrate)
-                withAnimation(
-                    reduceMotion
-                        ? nil
-                        : .spring(response: 0.48, dampingFraction: 0.86)
-                ) {
-                    step = .confirmation
-                }
-            } label: {
-                HStack {
-                    Text("Make it mine")
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                }
-                .font(.headline.weight(.black))
-                .padding(.horizontal, 20)
-                .frame(maxWidth: .infinity, minHeight: 58)
-            }
-            .buttonStyle(.glassProminent)
-            .tint(RockiesTheme.brightPurple)
-            .disabled(onboarding.selectedTeam == nil)
-            .accessibilityIdentifier("onboarding-continue")
         }
     }
 
-    private var confirmation: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Spacer()
-                onboardingStepPill("2 OF 2")
-            }
-            .zIndex(2)
-
-            AnimatedHostView(
-                host: host,
-                height: 330,
-                accent: RockiesTheme.brightPurple,
-                contentScale: 1.38,
-                contentOffset: CGSize(width: 18, height: 0)
-            )
-            .frame(maxWidth: .infinity)
-            .accessibilityIdentifier("onboarding-rockies-host")
-
-            Text("Welcome to\naltitude.")
-                .font(.system(size: 45, weight: .black, design: .rounded))
-                .fontWidth(.expanded)
-                .tracking(-1.5)
-                .accessibilityIdentifier("onboarding-confirmation-title")
-
-            Text("The Rockies now lead your scores, standings, stories, and rivalry watch.")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.70))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 9)
-
-            HStack(spacing: 8) {
-                onboardingPill("ROCKIES FIRST", systemImage: "mountain.2.fill")
-                onboardingPill("COORS CONTEXT", systemImage: "mappin.and.ellipse")
-            }
-            .padding(.top, 16)
-
-            Spacer(minLength: 18)
-
-            Button {
-                host.perform(.greet)
-                onboarding.complete()
-            } label: {
-                HStack {
-                    Text("Meet my Commish")
-                    Spacer()
-                    Image(systemName: "sparkles")
-                }
-                .font(.headline.weight(.black))
-                .padding(.horizontal, 20)
-                .frame(maxWidth: .infinity, minHeight: 58)
-            }
-            .buttonStyle(.glassProminent)
-            .tint(RockiesTheme.brightPurple)
-            .accessibilityIdentifier("onboarding-finish")
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("onboarding-confirmation")
-    }
-
-    private func onboardingBrand(step: String) -> some View {
-        HStack {
-            HStack(spacing: 9) {
-                Text("CR")
-                    .font(.caption.weight(.black))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-                    .background(RockiesTheme.purple.gradient, in: Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(RockiesTheme.silver.opacity(0.55), lineWidth: 1)
-                    }
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("LIVING COMMISH")
-                        .font(.caption2.weight(.black))
-                        .tracking(1.1)
-                    Text("Built around your club")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            onboardingStepPill(step)
-        }
-    }
-
-    private func onboardingStepPill(_ step: String) -> some View {
-        Text(step)
-            .font(.caption2.monospacedDigit().weight(.black))
-            .foregroundStyle(RockiesTheme.silver)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .glassEffect(.clear, in: Capsule())
-    }
-
-    private func onboardingPill(
-        _ title: String,
-        systemImage: String
-    ) -> some View {
-        Label(title, systemImage: systemImage)
-            .font(.system(size: 9, weight: .black))
-            .tracking(0.55)
-            .foregroundStyle(.white.opacity(0.78))
-            .padding(.horizontal, 11)
-            .padding(.vertical, 9)
-            .background(.white.opacity(0.07), in: Capsule())
-            .overlay {
-                Capsule()
-                    .stroke(.white.opacity(0.09), lineWidth: 1)
-            }
-    }
-
-    private var stepTransition: AnyTransition {
-        reduceMotion
-            ? .opacity
-            : .asymmetric(
-                insertion: .move(edge: .trailing).combined(with: .opacity),
-                removal: .move(edge: .leading).combined(with: .opacity)
-            )
+    private var accent: Color {
+        onboarding.selectedTeamID == BaseballTeamChoice.coloradoRockies.id
+            ? RockiesTheme.brightPurple
+            : .cyan
     }
 }
 
-private struct RockiesTeamSelectionCard: View {
-    let team: BaseballTeamChoice
-    let host: any AnimatedHostControlling
-    let isSelected: Bool
-    let onSelect: () -> Void
+private struct BaseballOnboardingCard: View {
+    let onboarding: BaseballOnboardingState
+    let onChooseTeam: () -> Void
+    let onChoosePlayer: () -> Void
+    let onComplete: () -> Void
 
     var body: some View {
-        Button(action: onSelect) {
-            ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                RockiesTheme.brightPurple.opacity(0.98),
-                                RockiesTheme.purple,
-                                Color.black.opacity(0.92),
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-
-                RockiesPinstripes(opacity: 0.16, spacing: 18)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 30, style: .continuous)
-                    )
-
-                RockiesMountainRange()
-                    .fill(.black.opacity(0.36))
-                    .frame(height: 118)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-
-                AnimatedHostView(
-                    host: host,
-                    height: 228,
-                    accent: RockiesTheme.silver,
-                    contentScale: 1.13,
-                    contentOffset: CGSize(width: 24, height: 7)
-                )
-                .frame(width: 206)
-                .frame(
-                    maxWidth: .infinity,
-                    maxHeight: .infinity,
-                    alignment: .bottomTrailing
-                )
-                .offset(x: 38, y: 10)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(team.city.uppercased())
-                        .font(.caption.weight(.black))
-                        .tracking(1.5)
-                        .foregroundStyle(RockiesTheme.silver)
-                    Text(team.name)
-                        .font(.system(size: 34, weight: .black, design: .rounded))
-                        .fontWidth(.expanded)
-                    Text("\(team.division.uppercased())  •  DENVER")
-                        .font(.system(size: 9, weight: .black))
-                        .tracking(0.8)
-                        .foregroundStyle(.white.opacity(0.62))
-
-                    Spacer()
-
-                    Text(team.abbreviation)
-                        .font(.title2.weight(.black))
-                        .foregroundStyle(.white)
-                        .frame(width: 54, height: 54)
-                        .background(.black.opacity(0.48), in: Circle())
-                        .overlay {
-                            Circle()
-                                .stroke(
-                                    RockiesTheme.silver.opacity(0.70),
-                                    lineWidth: 1.5
-                                )
-                        }
-                }
-                .padding(22)
-
-                Image(
-                    systemName: isSelected
-                        ? "checkmark.circle.fill"
-                        : "circle"
-                )
-                .font(.title2.weight(.bold))
-                .foregroundStyle(isSelected ? .white : .white.opacity(0.68))
-                .padding(18)
-                .frame(
-                    maxWidth: .infinity,
-                    maxHeight: .infinity,
-                    alignment: .topTrailing
-                )
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text(eyebrow)
+                    .font(.caption2.weight(.black))
+                    .tracking(1)
+                    .foregroundStyle(accent)
+                Spacer()
+                Text(stepLabel)
+                    .font(.caption2.monospacedDigit().weight(.bold))
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, minHeight: 250, maxHeight: 250)
-            .contentShape(
-                RoundedRectangle(cornerRadius: 30, style: .continuous)
-            )
+
+            Text(title)
+                .font(.title2.weight(.black))
+                .fontWidth(.expanded)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(detail)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button(action: primaryAction) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(actionTitle)
+                            .font(.headline.weight(.bold))
+                        Text(actionDetail)
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.72))
+                    }
+                    Spacer()
+                    Image(systemName: actionSymbol)
+                        .font(.headline.bold())
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 15)
+                .frame(maxWidth: .infinity, minHeight: 58)
+                .background(accent.gradient, in: RoundedRectangle(cornerRadius: 18))
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(actionIdentifier)
         }
-        .buttonStyle(.plain)
+        .padding(18)
+        .frame(width: 276, alignment: .leading)
+        .glassEffect(
+            .regular.tint(accent.opacity(0.14)),
+            in: RoundedRectangle(cornerRadius: 26, style: .continuous)
+        )
         .overlay {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .stroke(accent.opacity(0.32), lineWidth: 1)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding-profile-card")
+    }
+
+    private var needsTeam: Bool {
+        onboarding.selectedTeam == nil
+    }
+
+    private var needsPlayer: Bool {
+        !needsTeam && onboarding.selectedPlayer == nil
+    }
+
+    private var accent: Color {
+        needsTeam ? .cyan : RockiesTheme.brightPurple
+    }
+
+    private var eyebrow: String {
+        if needsTeam { return "BUILD YOUR PROFILE" }
+        if needsPlayer { return onboarding.selectedTeam?.abbreviation ?? "PLAYER" }
+        return "PERSONALIZED FOR YOU"
+    }
+
+    private var stepLabel: String {
+        if needsTeam { return "1 / 2" }
+        if needsPlayer { return "2 / 2" }
+        return "READY"
+    }
+
+    private var title: String {
+        if needsTeam { return "Choose your club" }
+        if needsPlayer { return "Who do you follow?" }
+        return "Meet your Commish"
+    }
+
+    private var detail: String {
+        if needsTeam {
+            return "Start with the same card language as the rest of the experience, then expand to all 30 MLB teams."
+        }
+        if needsPlayer {
+            return "Pick a favorite from the \(onboarding.selectedTeam?.fullName ?? "team") active roster."
+        }
+        return "\(onboarding.selectedTeam?.fullName ?? "Your club") and \(onboarding.selectedPlayer?.fullName ?? "your player") will now shape every card."
+    }
+
+    private var actionTitle: String {
+        if needsTeam { return "See all 30 teams" }
+        if needsPlayer { return "Open the roster" }
+        return "Start my experience"
+    }
+
+    private var actionDetail: String {
+        if needsTeam { return "American and National League" }
+        if needsPlayer {
+            return onboarding.selectedTeam?.fullName ?? "Choose a player"
+        }
+        return "\(onboarding.selectedTeam?.abbreviation ?? "")  •  \(onboarding.selectedPlayer?.fullName ?? "")"
+    }
+
+    private var actionSymbol: String {
+        needsTeam || needsPlayer ? "arrow.up.right" : "sparkles"
+    }
+
+    private var actionIdentifier: String {
+        if needsTeam { return "onboarding-team-card" }
+        if needsPlayer { return "onboarding-player-card" }
+        return "onboarding-finish"
+    }
+
+    private func primaryAction() {
+        if needsTeam {
+            onChooseTeam()
+        } else if needsPlayer {
+            onChoosePlayer()
+        } else {
+            onComplete()
+        }
+    }
+}
+
+private struct BaseballTeamPickerSheet: View {
+    let onboarding: BaseballOnboardingState
+    let host: any AnimatedHostControlling
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 10),
+                        GridItem(.flexible(), spacing: 10),
+                    ],
+                    spacing: 10
+                ) {
+                    ForEach(filteredTeams) { team in
+                        Button {
+                            onboarding.selectTeam(team)
+                            host.perform(
+                                team.id == BaseballTeamChoice.coloradoRockies.id
+                                    ? .celebrate
+                                    : .explain
+                            )
+                            dismiss()
+                        } label: {
+                            TeamChoiceTile(
+                                team: team,
+                                isSelected: onboarding.selectedTeamID == team.id
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityValue(
+                            onboarding.selectedTeamID == team.id
+                                ? "Selected"
+                                : "Not selected"
+                        )
+                        .accessibilityIdentifier("team-choice-\(team.id)")
+                    }
+                }
+                .padding(16)
+            }
+            .background(RockiesChromeBackground())
+            .navigationTitle("Choose your club")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(
+                text: $searchText,
+                prompt: "Find an MLB team"
+            )
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("30 MLB TEAMS")
+                        .font(.caption2.weight(.black))
+                        .tracking(0.8)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("team-picker-count")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .accessibilityIdentifier("baseball-team-picker")
+    }
+
+    private var filteredTeams: [BaseballTeamChoice] {
+        let cleaned = searchText.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+        guard !cleaned.isEmpty else { return BaseballTeamChoice.all }
+        return BaseballTeamChoice.all.filter {
+            $0.fullName.localizedCaseInsensitiveContains(cleaned)
+                || $0.abbreviation.localizedCaseInsensitiveContains(cleaned)
+                || $0.division.localizedCaseInsensitiveContains(cleaned)
+        }
+    }
+}
+
+private struct TeamChoiceTile: View {
+    let team: BaseballTeamChoice
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack {
+                Text(team.abbreviation)
+                    .font(.headline.weight(.black))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 42)
+                    .background(
+                        team.id == BaseballTeamChoice.coloradoRockies.id
+                            ? RockiesTheme.brightPurple.gradient
+                            : Color.white.opacity(0.12).gradient,
+                        in: Circle()
+                    )
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                }
+            }
+
+            Text(team.fullName)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+
+            Text(team.division.uppercased())
+                .font(.system(size: 9, weight: .black))
+                .tracking(0.7)
+                .foregroundStyle(.secondary)
+        }
+        .padding(13)
+        .frame(maxWidth: .infinity, minHeight: 126, alignment: .leading)
+        .background(
+            .white.opacity(isSelected ? 0.13 : 0.065),
+            in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(
                     isSelected
-                        ? Color.white.opacity(0.88)
-                        : RockiesTheme.silver.opacity(0.28),
-                    lineWidth: isSelected ? 2 : 1
+                        ? RockiesTheme.silver.opacity(0.72)
+                        : .white.opacity(0.08),
+                    lineWidth: isSelected ? 1.5 : 1
                 )
         }
-        .shadow(
-            color: RockiesTheme.brightPurple.opacity(isSelected ? 0.42 : 0.24),
-            radius: isSelected ? 24 : 16,
-            y: 10
+    }
+}
+
+private struct BaseballPlayerPickerSheet: View {
+    let onboarding: BaseballOnboardingState
+    let host: any AnimatedHostControlling
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if onboarding.isLoadingRoster && onboarding.roster.isEmpty {
+                    VStack(spacing: 14) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text("Loading the active roster…")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } else if let rosterError = onboarding.rosterError,
+                          onboarding.roster.isEmpty {
+                    ContentUnavailableView {
+                        Label("Roster unavailable", systemImage: "wifi.exclamationmark")
+                    } description: {
+                        Text(rosterError)
+                    } actions: {
+                        Button("Try again") {
+                            Task { await onboarding.loadRoster(force: true) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else {
+                    List(filteredRoster) { player in
+                        Button {
+                            onboarding.selectPlayer(player)
+                            host.perform(.celebrate)
+                            dismiss()
+                        } label: {
+                            HStack(spacing: 13) {
+                                Text(playerInitials(player.fullName))
+                                    .font(.caption.weight(.black))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 42, height: 42)
+                                    .background(
+                                        RockiesTheme.brightPurple.gradient,
+                                        in: Circle()
+                                    )
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(player.fullName)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    HStack(spacing: 5) {
+                                        Text(player.position)
+                                        if let number = player.jerseyNumber {
+                                            Text("• #\(number)")
+                                        }
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                if onboarding.selectedPlayer?.id == player.id {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityValue(
+                            onboarding.selectedPlayer?.id == player.id
+                                ? "Selected"
+                                : "Not selected"
+                        )
+                        .accessibilityIdentifier("player-choice-\(player.id)")
+                    }
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .background(RockiesChromeBackground())
+            .navigationTitle(onboarding.selectedTeam?.name ?? "Roster")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Find a player")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("ACTIVE ROSTER")
+                        .font(.caption2.weight(.black))
+                        .tracking(0.8)
+                        .foregroundStyle(.secondary)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .accessibilityIdentifier("baseball-player-picker")
+        .task(id: onboarding.selectedTeamID) {
+            await onboarding.loadRoster()
+        }
+    }
+
+    private var filteredRoster: [BaseballPlayerChoice] {
+        let cleaned = searchText.trimmingCharacters(
+            in: .whitespacesAndNewlines
         )
-        .accessibilityLabel(
-            "\(team.city) \(team.name), \(team.division)"
+        guard !cleaned.isEmpty else { return onboarding.roster }
+        return onboarding.roster.filter {
+            $0.fullName.localizedCaseInsensitiveContains(cleaned)
+                || $0.position.localizedCaseInsensitiveContains(cleaned)
+        }
+    }
+
+    private func playerInitials(_ name: String) -> String {
+        name.split(separator: " ")
+            .prefix(2)
+            .compactMap(\.first)
+            .map(String.init)
+            .joined()
+    }
+}
+
+private struct BaseballProfileSheet: View {
+    let onboarding: BaseballOnboardingState
+    let onRestart: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                RockiesChromeBackground()
+
+                VStack(spacing: 18) {
+                    Text("M")
+                        .font(.title.weight(.black))
+                        .foregroundStyle(.white)
+                        .frame(width: 76, height: 76)
+                        .background(RockiesTheme.brightPurple.gradient, in: Circle())
+                        .overlay {
+                            Circle()
+                                .stroke(RockiesTheme.silver.opacity(0.64), lineWidth: 1.5)
+                        }
+
+                    VStack(spacing: 3) {
+                        Text(onboarding.profileSnapshot.name)
+                            .font(.title2.weight(.black))
+                            .accessibilityIdentifier("profile-name")
+                        Text("Baseball profile")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    VStack(spacing: 10) {
+                        ProfileFactRow(
+                            eyebrow: "FAVORITE TEAM",
+                            title: onboarding.selectedTeam?.fullName
+                                ?? "Not selected",
+                            symbol: "shield.lefthalf.filled",
+                            identifier: "profile-favorite-team"
+                        )
+                        ProfileFactRow(
+                            eyebrow: "FAVORITE PLAYER",
+                            title: onboarding.selectedPlayer?.fullName
+                                ?? "Not selected",
+                            symbol: "figure.baseball",
+                            identifier: "profile-favorite-player"
+                        )
+                    }
+
+                    Text("Scores, standings, stories, rival watch, and the Commish’s presentation are shaped by these choices.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+
+                    Button {
+                        dismiss()
+                        onRestart()
+                    } label: {
+                        Label("Personalize again", systemImage: "slider.horizontal.3")
+                            .font(.headline.weight(.bold))
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(RockiesTheme.brightPurple)
+                    .accessibilityIdentifier("profile-restart-personalization")
+
+                    Spacer()
+                }
+                .padding(22)
+                .padding(.top, 20)
+            }
+            .navigationTitle("Your profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .accessibilityIdentifier("baseball-profile-sheet")
+    }
+}
+
+private struct ProfileFactRow: View {
+    let eyebrow: String
+    let title: String
+    let symbol: String
+    let identifier: String
+
+    var body: some View {
+        HStack(spacing: 13) {
+            Image(systemName: symbol)
+                .font(.headline)
+                .foregroundStyle(RockiesTheme.silver)
+                .frame(width: 42, height: 42)
+                .background(.white.opacity(0.08), in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(eyebrow)
+                    .font(.system(size: 9, weight: .black))
+                    .tracking(0.8)
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.headline)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            .white.opacity(0.07),
+            in: RoundedRectangle(cornerRadius: 20, style: .continuous)
         )
-        .accessibilityValue(isSelected ? "Selected" : "Not selected")
-        .accessibilityIdentifier("onboarding-team-\(team.id)")
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(identifier)
     }
 }
 

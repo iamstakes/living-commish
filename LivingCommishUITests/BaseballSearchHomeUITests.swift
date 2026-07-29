@@ -6,7 +6,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testFirstLaunchSelectsRockiesAndEntersThemedHome() {
+    func testFirstLaunchBuildsProfileInsideTheCommishStage() {
         let app = XCUIApplication()
         app.launchArguments = ["--baseball-onboarding-ui-testing"]
         app.launch()
@@ -15,33 +15,46 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["baseball-onboarding"]
                 .waitForExistence(timeout: 8)
         )
-        XCTAssertTrue(app.staticTexts["onboarding-team-title"].exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-onboarding-stage"].exists
+        )
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
 
-        let rockies = app.buttons["onboarding-team-colorado-rockies"]
+        let teamCard = app.buttons["onboarding-team-card"]
+        XCTAssertTrue(teamCard.waitForExistence(timeout: 5))
+        teamCard.tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-team-picker"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.staticTexts["team-picker-count"].exists)
+        let rockies = app.buttons["team-choice-colorado-rockies"]
         XCTAssertTrue(rockies.waitForExistence(timeout: 5))
-        XCTAssertEqual(rockies.value as? String, "Not selected")
         rockies.tap()
-        XCTAssertEqual(rockies.value as? String, "Selected")
 
         let pickerScreenshot = XCTAttachment(screenshot: app.screenshot())
-        pickerScreenshot.name = "Rockies out-of-box team selection"
+        pickerScreenshot.name = "Commish card after Rockies selection"
         pickerScreenshot.lifetime = .keepAlways
         add(pickerScreenshot)
 
-        let continueButton = app.buttons["onboarding-continue"]
-        XCTAssertTrue(continueButton.isEnabled)
-        continueButton.tap()
+        let playerCard = app.buttons["onboarding-player-card"]
+        XCTAssertTrue(playerCard.waitForExistence(timeout: 5))
+        playerCard.tap()
 
         XCTAssertTrue(
-            app.descendants(matching: .any)["onboarding-confirmation"]
-                .waitForExistence(timeout: 4)
+            app.descendants(matching: .any)["baseball-player-picker"]
+                .waitForExistence(timeout: 5)
         )
+        let hunterGoodman = app.buttons["player-choice-696100"]
         XCTAssertTrue(
-            app.staticTexts["onboarding-confirmation-title"].exists
+            hunterGoodman.waitForExistence(timeout: 5)
         )
+        XCTAssertTrue(hunterGoodman.label.contains("Hunter Goodman"))
+        hunterGoodman.tap()
 
         let confirmationScreenshot = XCTAttachment(screenshot: app.screenshot())
-        confirmationScreenshot.name = "Rockies onboarding confirmation"
+        confirmationScreenshot.name = "Personalized Commish confirmation card"
         confirmationScreenshot.lifetime = .keepAlways
         add(confirmationScreenshot)
 
@@ -57,10 +70,70 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["baseball-onboarding"].exists
         )
 
+        let host = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(host.exists)
+        host.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-profile-sheet"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["profile-favorite-team"]
+                .label.contains("Colorado Rockies")
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["profile-favorite-player"]
+                .label.contains("Hunter Goodman")
+        )
+
         let homeScreenshot = XCTAttachment(screenshot: app.screenshot())
-        homeScreenshot.name = "Rockies themed personalized home"
+        homeScreenshot.name = "Commish-tap baseball profile"
         homeScreenshot.lifetime = .keepAlways
         add(homeScreenshot)
+    }
+
+    func testSignedOutStageIsBlankAndToggleRestoresPersonalization() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--baseball-signed-out-ui-testing"]
+        app.launch()
+
+        let signedOutStage = app.descendants(matching: .any)[
+            "baseball-signed-out-stage"
+        ]
+        XCTAssertTrue(signedOutStage.waitForExistence(timeout: 8))
+        XCTAssertFalse(app.textFields["baseball-search-field"].exists)
+        XCTAssertFalse(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
+        XCTAssertFalse(
+            app.buttons[
+                "discovery-card-discovery-rockies-tonight"
+            ].exists
+        )
+
+        let authenticationToggle = app.switches[
+            "demo-authentication-toggle"
+        ]
+        XCTAssertTrue(authenticationToggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(authenticationToggle.value as? String, "Signed out")
+        XCTAssertTrue(authenticationToggle.isHittable)
+        authenticationToggle.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
+        ).tap()
+        expectation(
+            for: NSPredicate(format: "value == %@", "Signed in"),
+            evaluatedWith: authenticationToggle
+        )
+        waitForExpectations(timeout: 3)
+
+        XCTAssertTrue(
+            app.textFields["baseball-search-field"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-rockies-tonight"]
+                .waitForExistence(timeout: 5)
+        )
     }
 
     func testHomeIsSearchFirstAndPersonalized() {

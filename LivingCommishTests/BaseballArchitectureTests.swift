@@ -31,7 +31,7 @@ final class BaseballArchitectureTests: XCTestCase {
         )
     }
 
-    func testBaseballOnboardingPersistsTheRockiesSelection() {
+    func testBaseballOnboardingPersistsTeamPlayerAndAuthentication() async {
         let suiteName = "BaseballOnboardingStateTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer {
@@ -40,23 +40,80 @@ final class BaseballArchitectureTests: XCTestCase {
 
         let firstLaunch = BaseballOnboardingState(
             defaults: defaults,
-            arguments: []
+            arguments: [],
+            rosterProvider: PrototypeBaseballRosterProvider()
         )
+        XCTAssertFalse(firstLaunch.isSignedIn)
         XCTAssertFalse(firstLaunch.hasCompletedOnboarding)
         XCTAssertNil(firstLaunch.selectedTeam)
 
+        firstLaunch.setSignedIn(true)
         firstLaunch.selectTeam(.coloradoRockies)
         XCTAssertEqual(firstLaunch.selectedTeam?.name, "Rockies")
+        await firstLaunch.loadRoster()
+        let hunterGoodman = firstLaunch.roster.first {
+            $0.fullName == "Hunter Goodman"
+        }
+        XCTAssertNotNil(hunterGoodman)
+        firstLaunch.selectPlayer(hunterGoodman!)
         XCTAssertTrue(firstLaunch.complete())
 
         let returningLaunch = BaseballOnboardingState(
             defaults: defaults,
-            arguments: []
+            arguments: [],
+            rosterProvider: PrototypeBaseballRosterProvider()
         )
+        XCTAssertTrue(returningLaunch.isSignedIn)
         XCTAssertTrue(returningLaunch.hasCompletedOnboarding)
         XCTAssertEqual(
             returningLaunch.selectedTeamID,
             BaseballTeamChoice.coloradoRockies.id
+        )
+        XCTAssertEqual(
+            returningLaunch.selectedPlayer?.fullName,
+            "Hunter Goodman"
+        )
+        XCTAssertEqual(
+            returningLaunch.profileSnapshot.favoriteTeam,
+            "Colorado Rockies"
+        )
+        XCTAssertEqual(
+            returningLaunch.profileSnapshot.favoritePlayers,
+            ["Hunter Goodman"]
+        )
+    }
+
+    func testDemoSignOutPreservesPersonalizationForSignBackIn() {
+        let suiteName = "BaseballAuthStateTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let state = BaseballOnboardingState(
+            defaults: defaults,
+            arguments: ["--baseball-ui-testing"],
+            rosterProvider: PrototypeBaseballRosterProvider()
+        )
+
+        XCTAssertTrue(state.isSignedIn)
+        XCTAssertTrue(state.hasCompletedOnboarding)
+        state.setSignedIn(false)
+        XCTAssertFalse(state.isSignedIn)
+        XCTAssertEqual(state.selectedTeam?.fullName, "Colorado Rockies")
+        XCTAssertEqual(state.selectedPlayer?.fullName, "Hunter Goodman")
+
+        state.setSignedIn(true)
+        XCTAssertTrue(state.isSignedIn)
+        XCTAssertTrue(state.hasCompletedOnboarding)
+    }
+
+    func testTeamCatalogContainsAllThirtyMLBClubs() {
+        XCTAssertEqual(BaseballTeamChoice.all.count, 30)
+        XCTAssertEqual(Set(BaseballTeamChoice.all.map(\.id)).count, 30)
+        XCTAssertTrue(
+            BaseballTeamChoice.all.contains {
+                $0.fullName == "Colorado Rockies" && $0.mlbID == 115
+            }
         )
     }
 
