@@ -19,6 +19,16 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["baseball-onboarding-stage"].exists
         )
         XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        let onboardingThought = app.descendants(matching: .any)[
+            "commish-live-thought"
+        ]
+        XCTAssertTrue(onboardingThought.waitForExistence(timeout: 5))
+        XCTAssertTrue(onboardingThought.label.contains("Welcome!"))
+        XCTAssertTrue(
+            onboardingThought.label.contains(
+                "your sports companion"
+            )
+        )
         let authenticationToggle = app.switches[
             "demo-authentication-toggle"
         ]
@@ -143,6 +153,11 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.buttons["discovery-card-discovery-rockies-tonight"]
                 .waitForExistence(timeout: 5)
         )
+        let personalizedThought = app.descendants(matching: .any)[
+            "commish-live-thought"
+        ]
+        XCTAssertTrue(personalizedThought.waitForExistence(timeout: 5))
+        XCTAssertTrue(personalizedThought.label.contains("Brew crew"))
         let personalizedCommish = app.otherElements["baseball-animated-host"]
         XCTAssertEqual(
             personalizedCommish.frame.midX,
@@ -233,6 +248,11 @@ final class BaseballSearchHomeUITests: XCTestCase {
         let firstCard = app.buttons["discovery-card-discovery-rockies-tonight"]
         XCTAssertTrue(firstCard.exists)
         XCTAssertTrue(firstCard.label.contains("Final. Rockies 2, Brewers 11"))
+        let liveThought = app.descendants(matching: .any)[
+            "commish-live-thought"
+        ]
+        XCTAssertTrue(liveThought.waitForExistence(timeout: 5))
+        XCTAssertTrue(liveThought.label.contains("Brew crew"))
         XCTAssertGreaterThan(firstCard.frame.width, 250)
         XCTAssertGreaterThan(firstCard.frame.midY, presentationStage.frame.midY)
         XCTAssertGreaterThan(
@@ -270,11 +290,33 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(standingsCard.label.contains("3–7"))
         XCTAssertTrue(standingsCard.label.contains("Athletics"))
         XCTAssertTrue(standingsCard.label.contains("San Diego Padres"))
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "run differential is better than the A's"
+            ),
+            evaluatedWith: liveThought
+        )
+        waitForExpectations(timeout: 3)
 
         let standingsScreenshot = XCTAttachment(screenshot: app.screenshot())
         standingsScreenshot.name = "Dynamic standings presentation"
         standingsScreenshot.lifetime = .keepAlways
         add(standingsScreenshot)
+
+        app.buttons["host-presentation-next"].tap()
+        XCTAssertTrue(
+            app.buttons["discovery-card-discovery-goodman-story"]
+                .waitForExistence(timeout: 3)
+        )
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "Good news? Goodman!"
+            ),
+            evaluatedWith: liveThought
+        )
+        waitForExpectations(timeout: 3)
 
         XCTAssertFalse(app.buttons["generate-reaction-button"].exists)
     }

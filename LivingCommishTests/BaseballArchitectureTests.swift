@@ -5,6 +5,16 @@ import XCTest
 
 @MainActor
 final class BaseballArchitectureTests: XCTestCase {
+    func testOnboardingCommishThoughtIntroducesTheExperience() {
+        XCTAssertEqual(
+            BaseballCommishThoughts.onboarding,
+            "Welcome! I'm the commish - your sports companion. "
+                + "I can answer any question you have about baseball past or "
+                + "present. Select your favorite teams and players and I will "
+                + "make sure that your experience is new and fun on every visit!"
+        )
+    }
+
     func testBaseballOnboardingPersistsTeamPlayerAndAuthentication() async {
         let suiteName = "BaseballOnboardingStateTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -490,7 +500,15 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(cards.first?.finalScore?.homeTeam, "Brewers")
         XCTAssertEqual(cards.first?.finalScore?.visitorRuns, 2)
         XCTAssertEqual(cards.first?.finalScore?.homeRuns, 11)
+        XCTAssertEqual(
+            cards.first?.hostThought,
+            BaseballCommishThoughts.rockiesBrewersFinal
+        )
         XCTAssertEqual(cards.dropFirst().first?.id, "discovery-standings")
+        XCTAssertEqual(
+            cards.dropFirst().first?.hostThought,
+            BaseballCommishThoughts.rockiesStandings
+        )
         XCTAssertEqual(cards.dropFirst().first?.standings?.divisionPosition, 5)
         XCTAssertEqual(cards.dropFirst().first?.standings?.lastTen, "3–7")
         XCTAssertEqual(cards.dropFirst().first?.standings?.streak, "L2")
@@ -505,6 +523,10 @@ final class BaseballArchitectureTests: XCTestCase {
         )
         let storyCard = cards.dropFirst(2).first
         XCTAssertEqual(storyCard?.id, "discovery-goodman-story")
+        XCTAssertEqual(
+            storyCard?.hostThought,
+            BaseballCommishThoughts.hunterGoodmanStory
+        )
         XCTAssertEqual(storyCard?.playerStory?.playerName, "Hunter Goodman")
         XCTAssertEqual(storyCard?.playerStory?.highlights.count, 4)
         XCTAssertEqual(

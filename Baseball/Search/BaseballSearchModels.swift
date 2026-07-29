@@ -128,6 +128,23 @@ enum BaseballSearchExperienceState: Equatable, Sendable {
     case failed(BaseballSearchFailurePresentation)
 }
 
+enum BaseballCommishThoughts {
+    static let onboarding =
+        "Welcome! I'm the commish - your sports companion. "
+        + "I can answer any question you have about baseball past or present. "
+        + "Select your favorite teams and players and I will make sure that "
+        + "your experience is new and fun on every visit!"
+
+    static let rockiesBrewersFinal =
+        "Dude, what can I say? The Brew crew was the better team last night."
+
+    static let rockiesStandings =
+        "Well, at least our run differential is better than the A's!"
+
+    static let hunterGoodmanStory =
+        "Good news? Goodman! He's a keeper. Check out his latest."
+}
+
 struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let id: String
     let eyebrow: String
@@ -136,6 +153,7 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let systemImage: String
     let destinationQuery: String
     let hostBehavior: HostBehavior
+    let hostThought: String?
     let facts: [BaseballFact]
     let finalScore: BaseballFinalScoreSnapshot?
     let standings: BaseballStandingsSnapshot?

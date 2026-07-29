@@ -132,7 +132,7 @@ struct BaseballSearchHomeView: View {
         case .discovering:
             discoverySection
         case .interpreting(let query):
-            integratedSearchStage(accent: .purple) {
+            integratedSearchStage(accent: .purple, thought: nil) {
                 SearchLoadingCard(
                     title: "Looking it up",
                     detail: query
@@ -142,7 +142,7 @@ struct BaseballSearchHomeView: View {
                 .padding(.bottom, 64)
             }
         case .loading(let plan):
-            integratedSearchStage(accent: .cyan) {
+            integratedSearchStage(accent: .cyan, thought: nil) {
                 SearchLoadingCard(
                     title: "Building the card",
                     detail: plan.query.entities.first?.canonicalName
@@ -155,7 +155,7 @@ struct BaseballSearchHomeView: View {
         case .presenting(let experience):
             resultsSection(experience)
         case .failed(let failure):
-            integratedSearchStage(accent: .orange) {
+            integratedSearchStage(accent: .orange, thought: nil) {
                 SearchFailureCard(failure: failure)
                     .frame(width: 276)
                     .padding(.leading, 6)
@@ -168,7 +168,8 @@ struct BaseballSearchHomeView: View {
         VStack(alignment: .leading, spacing: 0) {
             if let activeDiscoveryCard {
                 integratedSearchStage(
-                    accent: discoveryAccent(for: activeDiscoveryCardIndex)
+                    accent: discoveryAccent(for: activeDiscoveryCardIndex),
+                    thought: activeDiscoveryCard.hostThought
                 ) {
                     DiscoveryPresentationDeck(
                         card: activeDiscoveryCard,
@@ -220,11 +221,13 @@ struct BaseballSearchHomeView: View {
 
     private func integratedSearchStage<Content: View>(
         accent: Color,
+        thought: String?,
         @ViewBuilder content: () -> Content
     ) -> some View {
         HostPresentationStage(
             host: environment.host,
             accent: accent,
+            thought: thought,
             onHostTap: onProfileTap,
             content: content
         )
@@ -244,7 +247,7 @@ struct BaseballSearchHomeView: View {
             .featuredContent.accent
             ?? RockiesTheme.brightPurple
 
-        return integratedSearchStage(accent: accent) {
+        return integratedSearchStage(accent: accent, thought: nil) {
             SearchResultPresentationDeck(
                 experience: experience,
                 reduceMotion: reduceMotion
@@ -304,11 +307,17 @@ private enum BaseballHostStageLayout {
     static let contentAlignment: Alignment = .bottomLeading
     static let badgeAlignment: Alignment = .topLeading
     static let badgeTopPadding: CGFloat = 88
+    static let thoughtTopPadding: CGFloat = 160
+    static let thoughtLeadingPadding: CGFloat = 14
+    static let thoughtHeight: CGFloat = 300
+    static let thoughtWidthFraction: CGFloat = 0.43
+    static let thoughtMaximumWidth: CGFloat = 150
 }
 
 struct HostPresentationStage<Content: View>: View {
     let host: any AnimatedHostControlling
     let accent: Color
+    let thought: String?
     let onHostTap: () -> Void
     let hostAccessibilityHint: String
     private let content: Content
@@ -316,12 +325,14 @@ struct HostPresentationStage<Content: View>: View {
     init(
         host: any AnimatedHostControlling,
         accent: Color,
+        thought: String? = nil,
         onHostTap: @escaping () -> Void = {},
         hostAccessibilityHint: String = "Open your baseball profile",
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
         self.accent = accent
+        self.thought = thought
         self.onHostTap = onHostTap
         self.hostAccessibilityHint = hostAccessibilityHint
         self.content = content()
@@ -370,6 +381,40 @@ struct HostPresentationStage<Content: View>: View {
                 .accessibilityHint(hostAccessibilityHint)
                 .zIndex(1)
 
+                if let thought,
+                   !thought.trimmingCharacters(
+                       in: .whitespacesAndNewlines
+                   ).isEmpty {
+                    CommishLiveThoughtView(
+                        message: thought,
+                        accent: accent
+                    )
+                    .frame(
+                        width: min(
+                            proxy.size.width
+                                * BaseballHostStageLayout.thoughtWidthFraction,
+                            BaseballHostStageLayout.thoughtMaximumWidth
+                        ),
+                        height: BaseballHostStageLayout.thoughtHeight,
+                        alignment: .bottomLeading
+                    )
+                    .padding(
+                        .leading,
+                        BaseballHostStageLayout.thoughtLeadingPadding
+                    )
+                    .padding(
+                        .top,
+                        BaseballHostStageLayout.thoughtTopPadding
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .topLeading
+                    )
+                    .allowsHitTesting(false)
+                    .zIndex(2)
+                }
+
                 content
                     .frame(
                         maxWidth: .infinity,
@@ -392,6 +437,75 @@ struct HostPresentationStage<Content: View>: View {
         .frame(height: BaseballHostStageLayout.height)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("host-presentation-stage")
+    }
+}
+
+private struct CommishLiveThoughtView: View {
+    let message: String
+    let accent: Color
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var visibleText = ""
+    @State private var isTyping = false
+
+    var body: some View {
+        Text(displayText)
+            .font(
+                .system(
+                    size: 16,
+                    weight: .semibold,
+                    design: .rounded
+                )
+            )
+            .lineSpacing(3)
+            .multilineTextAlignment(.leading)
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [.white, accent.opacity(0.92)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .shadow(color: .black.opacity(0.65), radius: 4, y: 2)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .bottomLeading
+            )
+            .task(id: "\(reduceMotion)-\(message)") {
+                await animateThought()
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Commish says: \(message)")
+            .accessibilityIdentifier("commish-live-thought")
+    }
+
+    private var displayText: String {
+        if reduceMotion {
+            return message
+        }
+        return visibleText + (isTyping ? "▌" : "")
+    }
+
+    private func animateThought() async {
+        visibleText = ""
+        isTyping = false
+
+        guard !reduceMotion else { return }
+
+        do {
+            isTyping = true
+            for character in message {
+                try Task.checkCancellation()
+                visibleText.append(character)
+                try await Task.sleep(for: .milliseconds(22))
+            }
+            isTyping = false
+        } catch is CancellationError {
+            isTyping = false
+        } catch {
+            isTyping = false
+        }
     }
 }
 

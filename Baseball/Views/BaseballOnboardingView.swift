@@ -191,6 +191,7 @@ private struct BaseballOnboardingStage: View {
                 HostPresentationStage(
                     host: host,
                     accent: accent,
+                    thought: BaseballCommishThoughts.onboarding,
                     onHostTap: onProfileTap,
                     hostAccessibilityHint: hostAccessibilityHint
                 ) {
