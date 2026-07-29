@@ -19,6 +19,11 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["baseball-onboarding-stage"].exists
         )
         XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        let authenticationToggle = app.switches[
+            "demo-authentication-toggle"
+        ]
+        XCTAssertTrue(authenticationToggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(authenticationToggle.value as? String, "Signed out")
 
         let teamCard = app.buttons["onboarding-team-card"]
         XCTAssertTrue(teamCard.waitForExistence(timeout: 5))
@@ -92,20 +97,21 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(homeScreenshot)
     }
 
-    func testSignedOutStageKeepsGenericCommishAndToggleRestoresPersonalization() {
+    func testSignedOutStageShowsOOBEAndToggleRestoresPersonalization() {
         let app = XCUIApplication()
         app.launchArguments = ["--baseball-signed-out-ui-testing"]
         app.launch()
 
-        let signedOutStage = app.descendants(matching: .any)[
-            "baseball-signed-out-stage"
+        let onboardingStage = app.descendants(matching: .any)[
+            "baseball-onboarding-stage"
         ]
-        XCTAssertTrue(signedOutStage.waitForExistence(timeout: 8))
+        XCTAssertTrue(onboardingStage.waitForExistence(timeout: 8))
         XCTAssertFalse(app.textFields["baseball-search-field"].exists)
         let genericCommish = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
         XCTAssertTrue(genericCommish.isHittable)
-        XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
+        XCTAssertTrue(app.buttons["onboarding-team-card"].exists)
+        XCTAssertFalse(app.buttons["onboarding-finish"].exists)
         XCTAssertFalse(
             app.buttons[
                 "discovery-card-discovery-rockies-tonight"
@@ -140,45 +146,14 @@ final class BaseballSearchHomeUITests: XCTestCase {
         authenticationToggle.coordinate(
             withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
         ).tap()
-        XCTAssertTrue(signedOutStage.waitForExistence(timeout: 5))
+        XCTAssertTrue(onboardingStage.waitForExistence(timeout: 5))
         XCTAssertTrue(
             app.otherElements["baseball-animated-host"]
                 .waitForExistence(timeout: 5)
         )
-        app.otherElements["baseball-animated-host"].tap()
-        XCTAssertTrue(
-            app.textFields["baseball-search-field"]
-                .waitForExistence(timeout: 8)
-        )
-    }
-
-    func testSignedOutCommishStartsFirstTimePersonalization() {
-        let app = XCUIApplication()
-        app.launchArguments = [
-            "--baseball-fresh-signed-out-ui-testing"
-        ]
-        app.launch()
-
-        XCTAssertTrue(
-            app.descendants(matching: .any)["baseball-signed-out-stage"]
-                .waitForExistence(timeout: 8)
-        )
         XCTAssertFalse(app.textFields["baseball-search-field"].exists)
-        XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
-
-        let genericCommish = app.otherElements["baseball-animated-host"]
-        XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
-        genericCommish.tap()
-
-        XCTAssertTrue(
-            app.descendants(matching: .any)["baseball-onboarding-stage"]
-                .waitForExistence(timeout: 8)
-        )
-        XCTAssertTrue(
-            app.buttons["onboarding-team-card"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertTrue(app.buttons["onboarding-team-card"].exists)
+        XCTAssertFalse(app.buttons["onboarding-finish"].exists)
     }
 
     func testHomeIsSearchFirstAndPersonalized() {

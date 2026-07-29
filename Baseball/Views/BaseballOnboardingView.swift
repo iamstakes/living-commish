@@ -34,15 +34,8 @@ struct BaseballExperienceRootView: View {
 
     var body: some View {
         Group {
-            if !onboarding.isSignedIn {
-                SignedOutBaseballStage(
-                    host: environment.host,
-                    onCommishTap: {
-                        setSignedIn(true)
-                    }
-                )
-                    .transition(.opacity)
-            } else if onboarding.hasCompletedOnboarding {
+            if onboarding.isSignedIn,
+               onboarding.hasCompletedOnboarding {
                 BaseballSearchHomeView(
                     onProfileTap: {
                         activeSheet = .profile
@@ -60,8 +53,14 @@ struct BaseballExperienceRootView: View {
                         activeSheet = .players
                     },
                     onProfileTap: {
-                        activeSheet = .profile
+                        if onboarding.isSignedIn,
+                           onboarding.hasCompletedOnboarding {
+                            activeSheet = .profile
+                        }
                     },
+                    hostAccessibilityHint: onboarding.isSignedIn
+                        ? "Open your baseball profile"
+                        : "Choose your team and favorite player below",
                     onComplete: completePersonalization
                 )
                 .transition(.opacity)
@@ -176,62 +175,13 @@ private struct DemoAuthenticationToggle: View {
     }
 }
 
-private struct SignedOutBaseballStage: View {
-    let host: any AnimatedHostControlling
-    let onCommishTap: () -> Void
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.018, green: 0.02, blue: 0.032),
-                    Color(red: 0.035, green: 0.032, blue: 0.052),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            ScrollView {
-                HostPresentationStage(
-                    host: host,
-                    height: 770,
-                    accent: .cyan,
-                    hostHeight: 560,
-                    hostScale: 1.72,
-                    hostXOffsetFraction: 0.05,
-                    hostYOffset: 118,
-                    hostAlignment: .top,
-                    contentAlignment: .bottomLeading,
-                    badgeAlignment: .topLeading,
-                    badgeTopPadding: 88,
-                    onHostTap: onCommishTap,
-                    hostAccessibilityHint:
-                        "Start your baseball personalization"
-                ) {
-                    EmptyView()
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 10)
-                .padding(.bottom, 36)
-            }
-        }
-        .preferredColorScheme(.dark)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Signed-out generic Commish stage")
-        .accessibilityIdentifier("baseball-signed-out-stage")
-        .onAppear {
-            host.perform(.greet)
-        }
-    }
-}
-
 private struct BaseballOnboardingStage: View {
     let host: any AnimatedHostControlling
     let onboarding: BaseballOnboardingState
     let onChooseTeam: () -> Void
     let onChoosePlayer: () -> Void
     let onProfileTap: () -> Void
+    let hostAccessibilityHint: String
     let onComplete: () -> Void
 
     var body: some View {
@@ -251,7 +201,8 @@ private struct BaseballOnboardingStage: View {
                     contentAlignment: .bottomLeading,
                     badgeAlignment: .topLeading,
                     badgeTopPadding: 88,
-                    onHostTap: onProfileTap
+                    onHostTap: onProfileTap,
+                    hostAccessibilityHint: hostAccessibilityHint
                 ) {
                     BaseballOnboardingCard(
                         onboarding: onboarding,
@@ -279,7 +230,8 @@ private struct BaseballOnboardingStage: View {
     }
 
     private var accent: Color {
-        onboarding.selectedTeamID == BaseballTeamChoice.coloradoRockies.id
+        onboarding.step != .team
+            && onboarding.selectedTeamID == BaseballTeamChoice.coloradoRockies.id
             ? RockiesTheme.brightPurple
             : .cyan
     }
@@ -351,11 +303,11 @@ private struct BaseballOnboardingCard: View {
     }
 
     private var needsTeam: Bool {
-        onboarding.selectedTeam == nil
+        onboarding.step == .team
     }
 
     private var needsPlayer: Bool {
-        !needsTeam && onboarding.selectedPlayer == nil
+        onboarding.step == .player
     }
 
     private var accent: Color {
@@ -382,7 +334,7 @@ private struct BaseballOnboardingCard: View {
 
     private var detail: String {
         if needsTeam {
-            return "Start with the same card language as the rest of the experience, then expand to all 30 MLB teams."
+            return "Pick the team you live and die with. Your Commish will build the experience around it."
         }
         if needsPlayer {
             return "Pick a favorite from the \(onboarding.selectedTeam?.fullName ?? "team") active roster."

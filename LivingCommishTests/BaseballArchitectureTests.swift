@@ -46,17 +46,20 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertFalse(firstLaunch.isSignedIn)
         XCTAssertFalse(firstLaunch.hasCompletedOnboarding)
         XCTAssertNil(firstLaunch.selectedTeam)
+        XCTAssertEqual(firstLaunch.step, .team)
 
-        firstLaunch.setSignedIn(true)
         firstLaunch.selectTeam(.coloradoRockies)
         XCTAssertEqual(firstLaunch.selectedTeam?.name, "Rockies")
+        XCTAssertEqual(firstLaunch.step, .player)
         await firstLaunch.loadRoster()
         let hunterGoodman = firstLaunch.roster.first {
             $0.fullName == "Hunter Goodman"
         }
         XCTAssertNotNil(hunterGoodman)
         firstLaunch.selectPlayer(hunterGoodman!)
+        XCTAssertEqual(firstLaunch.step, .ready)
         XCTAssertTrue(firstLaunch.complete())
+        XCTAssertTrue(firstLaunch.isSignedIn)
 
         let returningLaunch = BaseballOnboardingState(
             defaults: defaults,
@@ -99,12 +102,14 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(state.hasCompletedOnboarding)
         state.setSignedIn(false)
         XCTAssertFalse(state.isSignedIn)
+        XCTAssertEqual(state.step, .team)
         XCTAssertEqual(state.selectedTeam?.fullName, "Colorado Rockies")
         XCTAssertEqual(state.selectedPlayer?.fullName, "Hunter Goodman")
 
         state.setSignedIn(true)
         XCTAssertTrue(state.isSignedIn)
         XCTAssertTrue(state.hasCompletedOnboarding)
+        XCTAssertEqual(state.step, .ready)
     }
 
     func testTeamCatalogContainsAllThirtyMLBClubs() {

@@ -200,6 +200,12 @@ private struct MLBRosterPayload: Decodable {
 @MainActor
 @Observable
 final class BaseballOnboardingState {
+    enum Step: Equatable {
+        case team
+        case player
+        case ready
+    }
+
     static let signedInKey = "baseball.demoSignedIn"
     static let selectedTeamKey = "baseball.selectedTeam"
     static let selectedPlayerIDKey = "baseball.selectedPlayerID"
@@ -213,6 +219,7 @@ final class BaseballOnboardingState {
     private(set) var selectedTeamID: String?
     private(set) var selectedPlayer: BaseballPlayerChoice?
     private(set) var hasCompletedOnboarding: Bool
+    private(set) var step: Step = .team
     private(set) var roster: [BaseballPlayerChoice] = []
     private(set) var isLoadingRoster = false
     private(set) var rosterError: String?
@@ -229,23 +236,14 @@ final class BaseballOnboardingState {
         self.defaults = defaults
         let usesFixtureRoster = arguments.contains("--baseball-ui-testing")
             || arguments.contains("--baseball-onboarding-ui-testing")
-            || arguments.contains(
-                "--baseball-fresh-signed-out-ui-testing"
-            )
         self.rosterProvider = rosterProvider
             ?? (usesFixtureRoster
                 ? PrototypeBaseballRosterProvider()
                 : AdaptiveBaseballRosterProvider())
 
-        if arguments.contains("--baseball-fresh-signed-out-ui-testing") {
+        if arguments.contains("--baseball-onboarding-ui-testing") {
             Self.clearPersonalization(in: defaults)
             isSignedIn = false
-            selectedTeamID = nil
-            selectedPlayer = nil
-            hasCompletedOnboarding = false
-        } else if arguments.contains("--baseball-onboarding-ui-testing") {
-            Self.clearPersonalization(in: defaults)
-            isSignedIn = true
             selectedTeamID = nil
             selectedPlayer = nil
             hasCompletedOnboarding = false
@@ -276,6 +274,13 @@ final class BaseballOnboardingState {
                 && storedPlayer != nil
                 && storedVersion >= Self.currentVersion
         }
+
+        step = isSignedIn
+            ? Self.resolvedStep(
+                teamID: selectedTeamID,
+                player: selectedPlayer
+            )
+            : .team
     }
 
     var selectedTeam: BaseballTeamChoice? {
@@ -302,6 +307,12 @@ final class BaseballOnboardingState {
 
     func setSignedIn(_ signedIn: Bool) {
         isSignedIn = signedIn
+        step = signedIn
+            ? Self.resolvedStep(
+                teamID: selectedTeamID,
+                player: selectedPlayer
+            )
+            : .team
         defaults.set(signedIn, forKey: Self.signedInKey)
     }
 
@@ -314,6 +325,7 @@ final class BaseballOnboardingState {
             Self.clearStoredPlayer(in: defaults)
         }
         selectedTeamID = team.id
+        step = .player
         defaults.set(team.id, forKey: Self.selectedTeamKey)
         hasCompletedOnboarding = false
         defaults.removeObject(forKey: Self.completionVersionKey)
@@ -321,6 +333,7 @@ final class BaseballOnboardingState {
 
     func selectPlayer(_ player: BaseballPlayerChoice) {
         selectedPlayer = player
+        step = .ready
         defaults.set(player.id, forKey: Self.selectedPlayerIDKey)
         defaults.set(player.fullName, forKey: Self.selectedPlayerNameKey)
         defaults.set(player.position, forKey: Self.selectedPlayerPositionKey)
@@ -375,6 +388,7 @@ final class BaseballOnboardingState {
         selectedTeamID = nil
         selectedPlayer = nil
         hasCompletedOnboarding = false
+        step = .team
         roster = []
         loadedRosterTeamID = nil
         rosterError = nil
@@ -382,6 +396,16 @@ final class BaseballOnboardingState {
 
     private static var hunterGoodman: BaseballPlayerChoice {
         PrototypeBaseballRosterProvider.rockies[0]
+    }
+
+    private static func resolvedStep(
+        teamID: String?,
+        player: BaseballPlayerChoice?
+    ) -> Step {
+        guard BaseballTeamChoice.choice(id: teamID) != nil else {
+            return .team
+        }
+        return player == nil ? .player : .ready
     }
 
     private static func storedPlayer(
