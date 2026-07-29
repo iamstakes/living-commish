@@ -27,7 +27,7 @@ struct BaseballSearchDependencies {
             discoveryProvider: MockBaseballDiscoveryService(),
             hostEditor: DeterministicBaseballHostEditor(),
             resultComposer: DefaultBaseballResultComposer(),
-            host: LegacyCommishHostAdapter(bundle: bundle)
+            host: CommishHostAdapter(bundle: bundle)
         )
     }
 }

@@ -13,11 +13,11 @@ This file is the manual Rive Editor work plan. These steps cannot be genuinely a
 
 Use the copied source frames from the local app project, or the original Desktop folders if you prefer:
 
-- Idle: `public/animations/idle/seq_0_0.png` through `seq_0_89.png`
-- PointRight: `public/animations/point-right/seq_0_0.png` through `seq_0_89.png`
-- SadShrug: `public/animations/sad-shrug/seq_0_0.png` through `seq_0_89.png`
-- Wave: `public/animations/wave/seq_0_0.png` through `seq_0_59.png`
-- FoamFinger: `public/animations/foam-finger/seq_0_0.png` through `seq_0_89.png`
+- Idle: `Resources/Animations/idle/seq_0_0.png` through `seq_0_89.png`
+- PointRight: `Resources/Animations/point-right/seq_0_0.png` through `seq_0_89.png`
+- SadShrug: `Resources/Animations/sad-shrug/seq_0_0.png` through `seq_0_89.png`
+- Wave: `Resources/Animations/wave/seq_0_0.png` through `seq_0_59.png`
+- FoamFinger: `Resources/Animations/foam-finger/seq_0_0.png` through `seq_0_89.png`
 
 For each sequence:
 
@@ -70,15 +70,6 @@ Preferred current approach:
 3. Bind those trigger properties to the matching state machine transitions.
 4. Make that View Model the default for the `Commish` artboard.
 
-Fallback approach if Data Binding is not available or feels blocked:
-
-1. Create classic state-machine Trigger inputs named exactly:
-   - `pointRight`
-   - `sadShrug`
-   - `wave`
-   - `foamFinger`
-2. The app also attempts these legacy trigger inputs.
-
 ## 6. Create Transitions
 
 Create these transitions:
@@ -104,16 +95,21 @@ Use nearly instantaneous transitions first. If a transition pops visually, try a
 6. Save it into this project as:
 
 ```text
-public/commish.riv
+Resources/commish.riv
 ```
 
 ## 8. Test In The Local App
 
-From the project folder:
+Add `Resources/commish.riv` to the application target's Copy Bundle Resources,
+then build the native app:
 
 ```bash
-npm run dev
+xcodebuild \
+  -project LivingCommish.xcodeproj \
+  -scheme LivingCommish \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  build
 ```
 
-Open the local URL Vite prints. The app should show `Renderer: Rive` if `public/commish.riv` loads successfully. If the Rive file is absent or invalid, it should show `Renderer: PNG fallback` and the demo will still work.
-
+The app uses Rive only after validating the asset contract. If the file is
+absent or invalid, the tested PNG renderer keeps the demo functional.

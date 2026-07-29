@@ -5,32 +5,6 @@ import XCTest
 
 @MainActor
 final class BaseballArchitectureTests: XCTestCase {
-    func testBaseballSearchIsDefaultAndLegacyLaunchModesRemainExplicit() {
-        XCTAssertEqual(AppExperienceMode.resolve(arguments: []), .baseballSearch)
-        XCTAssertEqual(
-            AppExperienceMode.resolve(arguments: ["--baseball-ui-testing"]),
-            .baseballSearch
-        )
-        XCTAssertEqual(
-            AppExperienceMode.resolve(
-                arguments: ["--baseball-onboarding-ui-testing"]
-            ),
-            .baseballSearch
-        )
-        XCTAssertEqual(
-            AppExperienceMode.resolve(arguments: ["--legacy-commish"]),
-            .livingCommish
-        )
-        XCTAssertEqual(
-            AppExperienceMode.resolve(arguments: ["--ui-testing"]),
-            .livingCommish
-        )
-        XCTAssertEqual(
-            AppExperienceMode.resolve(arguments: ["--ui-testing", "--baseball-ui-testing"]),
-            .baseballSearch
-        )
-    }
-
     func testBaseballOnboardingPersistsTeamPlayerAndAuthentication() async {
         let suiteName = "BaseballOnboardingStateTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -309,7 +283,7 @@ final class BaseballArchitectureTests: XCTestCase {
                 discoveryProvider: MockBaseballDiscoveryService(),
                 hostEditor: DeterministicBaseballHostEditor(),
                 resultComposer: DefaultBaseballResultComposer(),
-                host: LegacyCommishHostAdapter(controller: commish)
+                host: CommishHostAdapter(controller: commish)
             )
         )
 
@@ -523,7 +497,7 @@ final class BaseballArchitectureTests: XCTestCase {
                 discoveryProvider: MockBaseballDiscoveryService(),
                 hostEditor: DeterministicBaseballHostEditor(),
                 resultComposer: DefaultBaseballResultComposer(),
-                host: LegacyCommishHostAdapter(controller: commish)
+                host: CommishHostAdapter(controller: commish)
             )
         )
 
@@ -564,9 +538,9 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(commish.currentAction, .sadShrug)
     }
 
-    func testLegacyHostAdapterMapsGenericBehaviorWithoutUIKnowledge() {
+    func testCommishHostAdapterMapsGenericBehaviorWithoutUIKnowledge() {
         let commish = TestCommishController()
-        let host = LegacyCommishHostAdapter(controller: commish)
+        let host = CommishHostAdapter(controller: commish)
 
         host.perform(.celebrate)
         XCTAssertEqual(commish.currentAction, .foamFinger)
@@ -600,7 +574,7 @@ final class BaseballArchitectureTests: XCTestCase {
             discoveryProvider: MockBaseballDiscoveryService(),
             hostEditor: DeterministicBaseballHostEditor(),
             resultComposer: DefaultBaseballResultComposer(),
-            host: LegacyCommishHostAdapter(controller: commish)
+            host: CommishHostAdapter(controller: commish)
         )
         let environment = BaseballSearchEnvironment(dependencies: dependencies)
 

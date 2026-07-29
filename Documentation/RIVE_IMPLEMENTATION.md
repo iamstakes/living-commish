@@ -24,7 +24,7 @@ Current Rive guidance favors Data Binding for indirect state-machine control. Th
 
 Idle is the default state and has no repeatedly fired input.
 
-`RiveCommishController` owns all Rive types. `AdaptiveCommishController` selects it only after file parsing and complete schema validation. Missing file, parse error, artboard mismatch, state-machine mismatch, view-model mismatch, or missing trigger leaves the tested PNG renderer active and exposes the reason in the event log.
+`RiveCommishController` owns all Rive types. `AdaptiveCommishController` selects it only after file parsing and complete schema validation. Missing file, parse error, artboard mismatch, state-machine mismatch, view-model mismatch, or missing trigger leaves the tested PNG renderer active and keeps a diagnostic reason for development inspection.
 
 ## Asset specification
 
@@ -76,7 +76,7 @@ The Rive web editor's canvas code field did not accept automated or in-app-brows
 
 The authenticated account is on Rive's **Free** plan. As of July 22, 2026, Rive's official pricing documentation includes State Machines, Data Binding, and Scripting on Free, but reserves runtime `.riv` export for Cadet and higher. No paid upgrade was authorized or attempted. This is now the hard boundary for the Rive path.
 
-Editor script installation, the named placeholder timelines, `CommishSM`, export, and native visual validation therefore remain pending. No `commish.riv` is claimed to exist, so the app correctly displays `Renderer: PNG fallback`. The compiled native adapter is ready for a future exported asset and cannot accidentally accept an incomplete file.
+Editor script installation, the named placeholder timelines, `CommishSM`, export, and native visual validation therefore remain pending. No `commish.riv` is claimed to exist, so the app correctly uses its PNG fallback. The compiled native adapter is ready for a future exported asset and cannot accidentally accept an incomplete file.
 
 The intended export location is:
 
@@ -87,11 +87,10 @@ The intended export location is:
 ## Validation checklist after export
 
 - Confirm `commish.riv` is in Copy Bundle Resources.
-- Launch and confirm `Renderer: Rive` appears only after async validation.
+- Inspect the host controller and confirm it reports Rive only after async validation.
 - Visually inspect idle for a complete loop and stable 512×512 alignment.
-- Trigger each manual action and confirm correct animation, no crop, and automatic idle return.
-- Replace or corrupt a development copy and confirm `Renderer: PNG fallback` plus a useful log reason.
-- Run the scripted animation sequence and story demo.
+- Exercise onboarding, discovery, and search and confirm each requested behavior animates, remains uncropped, and returns to idle.
+- Replace or corrupt a development copy and confirm PNG playback plus a useful diagnostic reason.
 - Run the UI suite and a Release simulator build.
 
 ## Manual recovery

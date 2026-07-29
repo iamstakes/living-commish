@@ -49,7 +49,7 @@ struct AnimatedHostDescriptor: Equatable, Identifiable, Sendable {
         return supportedBehaviors.contains(.idle) ? .idle : supportedBehaviors.first ?? .idle
     }
 
-    static let legacyCommish = AnimatedHostDescriptor(
+    static let commish = AnimatedHostDescriptor(
         id: "living-commish",
         displayName: "Living Commish",
         accessibilityName: "Living Commish animated baseball guide",
@@ -89,8 +89,8 @@ protocol AnimatedHostControlling: AnyObject {
 
 @MainActor
 @Observable
-final class LegacyCommishHostAdapter: AnimatedHostControlling {
-    let descriptor = AnimatedHostDescriptor.legacyCommish
+final class CommishHostAdapter: AnimatedHostControlling {
+    let descriptor = AnimatedHostDescriptor.commish
     @ObservationIgnored private let controller: any CommishControlling
 
     init(controller: any CommishControlling) {

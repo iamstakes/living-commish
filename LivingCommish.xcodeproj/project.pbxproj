@@ -16,7 +16,6 @@
 		B10000000000000000000006 /* MockBaseballServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* MockBaseballServices.swift */; };
 		B10000000000000000000007 /* BaseballSearchEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* BaseballSearchEnvironment.swift */; };
 		B10000000000000000000008 /* BaseballArchitectureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* BaseballArchitectureTests.swift */; };
-		B10000000000000000000009 /* AppExperienceMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* AppExperienceMode.swift */; };
 		B10000000000000000000010 /* AnimatedHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* AnimatedHostView.swift */; };
 		B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* BaseballSearchHomeView.swift */; };
 		B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* BaseballSearchHomeUITests.swift */; };
@@ -24,34 +23,19 @@
 		B10000000000000000000014 /* BaseballPersonalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* BaseballPersonalization.swift */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
-		1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */; };
-		276243E54FF8A20A882E5340 /* AppleFoundationModelsCommishProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */; };
 		291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */; };
-		311F2AE4B23074277A437894 /* DeterministicCommishProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */; };
 		3CC7A45A49ADCEF33572B7E0 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = 7BE16418C9820B460476CC54 /* Animations */; };
-		3D53D1C0774F555B23F7E686 /* LivingCommishTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */; };
-		4B4DE15373F50A9D1CC3353A /* LivingCommishUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */; };
+		3D53D1C0774F555B23F7E686 /* AnimatedHostPlaybackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868E5B2A1807740AAAC188F2 /* AnimatedHostPlaybackTests.swift */; };
 		5CA139DACC9C0409AE228DE1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		66E93DB92E2728414CE9CDB6 /* CommishControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */; };
-		67BEAACBDABC09DCD2BAA59A /* AdaptiveCommishIntelligenceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */; };
 		6D2AD1D422969217F78B3497 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */; };
 		76EF0FB51CA8DB28ADEAD25A /* FramePreloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95660CDE28BCADF8572041AC /* FramePreloader.swift */; };
 		7F83C8B3A2FC7836428E6984 /* PngSequenceCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */; };
-		8816B6D6169BD608C63A5459 /* CommishIntelligenceProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */; };
-		974B6F1C6A328C9C9205C848 /* CommishInstructions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */; };
 		99476478ECA9A48348E199EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 01E471777D8B335930125AB5 /* Assets.xcassets */; };
-		A3AB1B6CC153E0A212B89C74 /* ReactWithCommishIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */; };
-		A75A800FDFBBCD7729DE5E00 /* ReactionBriefBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */; };
 		AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */; };
-		B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */; };
-		C3548076ACE499799FE21736 /* CommishStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4633392F54F4BFEFC82F59BA /* CommishStageView.swift */; };
-		D29C7628ADFC0551FFBEA7C3 /* FanMemoryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */; };
 		D7C66B4FAC9A08B1A614478F /* AnimationConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */; };
-		DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */; };
+		DA037F7E3771CD955FB97055 /* CommishAnimationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCA2C07FE285F44CF9844D8 /* CommishAnimationAction.swift */; };
 		DC997F1748BCBB8918E17E41 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
-		DE4346248EB4DAFC55C33430 /* CommishMemoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */; };
-		EDACFA8FF8536C0E64499490 /* MemoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */; };
-		EF055ACDDED7E12933B22606 /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +65,6 @@
 		A10000000000000000000006 /* MockBaseballServices.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockBaseballServices.swift; sourceTree = "<group>"; };
 		A10000000000000000000007 /* BaseballSearchEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchEnvironment.swift; sourceTree = "<group>"; };
 		A10000000000000000000008 /* BaseballArchitectureTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballArchitectureTests.swift; sourceTree = "<group>"; };
-		A10000000000000000000009 /* AppExperienceMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppExperienceMode.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* AnimatedHostView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedHostView.swift; sourceTree = "<group>"; };
 		A10000000000000000000011 /* BaseballSearchHomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeView.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* BaseballSearchHomeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeUITests.swift; sourceTree = "<group>"; };
@@ -89,34 +72,19 @@
 		A10000000000000000000014 /* BaseballPersonalization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballPersonalization.swift; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
-		158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactWithCommishIntent.swift; sourceTree = "<group>"; };
-		188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryView.swift; sourceTree = "<group>"; };
-		1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FanMemoryModels.swift; sourceTree = "<group>"; };
-		2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
 		420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4633392F54F4BFEFC82F59BA /* CommishStageView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishStageView.swift; sourceTree = "<group>"; };
-		481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishMemoryStore.swift; sourceTree = "<group>"; };
-		540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelsCommishProvider.swift; sourceTree = "<group>"; };
-		58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeterministicCommishProvider.swift; sourceTree = "<group>"; };
 		60A153C6A94238A0F245A6DB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReactionBriefBuilder.swift; sourceTree = "<group>"; };
 		7BE16418C9820B460476CC54 /* Animations */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
 		7F3A7281957F0F6EF7B785FD /* LivingCommishUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishTests.swift; sourceTree = "<group>"; };
-		8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdaptiveCommishIntelligenceProvider.swift; sourceTree = "<group>"; };
+		868E5B2A1807740AAAC188F2 /* AnimatedHostPlaybackTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedHostPlaybackTests.swift; sourceTree = "<group>"; };
 		95660CDE28BCADF8572041AC /* FramePreloader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FramePreloader.swift; sourceTree = "<group>"; };
-		9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishUITests.swift; sourceTree = "<group>"; };
 		9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AdaptiveCommishController.swift; sourceTree = "<group>"; };
 		9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishModels.swift; sourceTree = "<group>"; };
-		C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishIntelligenceProviding.swift; sourceTree = "<group>"; };
+		BDCA2C07FE285F44CF9844D8 /* CommishAnimationAction.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishAnimationAction.swift; sourceTree = "<group>"; };
 		C54836E744033EE117E5BCBA /* LivingCommish.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LivingCommish.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RiveCommishController.swift; sourceTree = "<group>"; };
 		CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PngSequenceCommishController.swift; sourceTree = "<group>"; };
 		D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LivingCommishApp.swift; sourceTree = "<group>"; };
-		DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MemoryPolicy.swift; sourceTree = "<group>"; };
-		EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishInstructions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -233,8 +201,6 @@
 		0B870C613E1505EE6F0C8E77 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				A10000000000000000000009 /* AppExperienceMode.swift */,
-				B82B63C8EF588F0BF4D983DD /* AppEnvironment.swift */,
 				D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */,
 			);
 			name = App;
@@ -245,7 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000008 /* BaseballArchitectureTests.swift */,
-				868E5B2A1807740AAAC188F2 /* LivingCommishTests.swift */,
+				868E5B2A1807740AAAC188F2 /* AnimatedHostPlaybackTests.swift */,
 			);
 			name = LivingCommishTests;
 			path = LivingCommishTests;
@@ -256,12 +222,7 @@
 			children = (
 				C10000000000000000000001 /* Baseball */,
 				0B870C613E1505EE6F0C8E77 /* App */,
-				DCA1AB85ADCF93466C280A25 /* Models */,
 				5B8DE46569D585A0418122B7 /* Animation */,
-				9E1B015EA9E1428B044DCB09 /* Intelligence */,
-				E691E9A0603BE49C97A6ED62 /* Memory */,
-				BB5DFF5BB0CEF5D443806A90 /* Intents */,
-				E304AA5F2B523E975E0343B9 /* Views */,
 				B0B0DDA06D618D342B318C80 /* Resources */,
 			);
 			name = LivingCommish;
@@ -273,6 +234,7 @@
 			children = (
 				9B534EC325123A0E63D67721 /* AdaptiveCommishController.swift */,
 				0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */,
+				BDCA2C07FE285F44CF9844D8 /* CommishAnimationAction.swift */,
 				07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */,
 				95660CDE28BCADF8572041AC /* FramePreloader.swift */,
 				CC3D29C5D119B10D2F10B58A /* PngSequenceCommishController.swift */,
@@ -293,20 +255,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		9E1B015EA9E1428B044DCB09 /* Intelligence */ = {
-			isa = PBXGroup;
-			children = (
-				8F7495C4C0D39D9E2664EAB9 /* AdaptiveCommishIntelligenceProvider.swift */,
-				540E4B01316E8A81B04D5688 /* AppleFoundationModelsCommishProvider.swift */,
-				EDDEDC3918AF7FCE66E622CA /* CommishInstructions.swift */,
-				C318D62A4D75E7245FF9F21C /* CommishIntelligenceProviding.swift */,
-				58B865D7494D644AA1F5AF96 /* DeterministicCommishProvider.swift */,
-				77A85D247466221A6DF82065 /* ReactionBriefBuilder.swift */,
-			);
-			name = Intelligence;
-			path = Intelligence;
-			sourceTree = "<group>";
-		};
 		A4BF32244E60F2AE9BC91EF9 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -319,7 +267,6 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000012 /* BaseballSearchHomeUITests.swift */,
-				9B4696A044031A8A3CF6CB4A /* LivingCommishUITests.swift */,
 			);
 			name = LivingCommishUITests;
 			path = LivingCommishUITests;
@@ -346,52 +293,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		BB5DFF5BB0CEF5D443806A90 /* Intents */ = {
-			isa = PBXGroup;
-			children = (
-				158FE8D07549744428E66013 /* ReactWithCommishIntent.swift */,
-			);
-			name = Intents;
-			path = Intents;
-			sourceTree = "<group>";
-		};
 		C5DBBE7012D70E5932A2CE40 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				A4BF32244E60F2AE9BC91EF9 /* iOS */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		DCA1AB85ADCF93466C280A25 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				BDCA2C07FE285F44CF9844D8 /* CommishModels.swift */,
-				1DBBA9CF5EF3C119BF02F6C6 /* FanMemoryModels.swift */,
-			);
-			name = Models;
-			path = Models;
-			sourceTree = "<group>";
-		};
-		E304AA5F2B523E975E0343B9 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				4633392F54F4BFEFC82F59BA /* CommishStageView.swift */,
-				188D719C3D35E6E52E8AFEA7 /* MemoryView.swift */,
-			);
-			name = Views;
-			path = Views;
-			sourceTree = "<group>";
-		};
-		E691E9A0603BE49C97A6ED62 /* Memory */ = {
-			isa = PBXGroup;
-			children = (
-				481415C187B3F7EAC266E5CC /* CommishMemoryStore.swift */,
-				2E0463EBC51539930CD5C368 /* DemoDataSeeder.swift */,
-				DE2AA60E072008B4A20DC4CA /* MemoryPolicy.swift */,
-			);
-			name = Memory;
-			path = Memory;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -520,7 +427,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */,
-				4B4DE15373F50A9D1CC3353A /* LivingCommishUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,33 +441,18 @@
 				B10000000000000000000005 /* BaseballHostEditorializing.swift in Sources */,
 				B10000000000000000000006 /* MockBaseballServices.swift in Sources */,
 				B10000000000000000000007 /* BaseballSearchEnvironment.swift in Sources */,
-				B10000000000000000000009 /* AppExperienceMode.swift in Sources */,
 				B10000000000000000000010 /* AnimatedHostView.swift in Sources */,
 				B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */,
 				B10000000000000000000013 /* BaseballOnboardingView.swift in Sources */,
 				B10000000000000000000014 /* BaseballPersonalization.swift in Sources */,
-				B21D9EEBE5D2A1A571118EAD /* AppEnvironment.swift in Sources */,
 				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
-				DA037F7E3771CD955FB97055 /* CommishModels.swift in Sources */,
-				D29C7628ADFC0551FFBEA7C3 /* FanMemoryModels.swift in Sources */,
+				DA037F7E3771CD955FB97055 /* CommishAnimationAction.swift in Sources */,
 				AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */,
 				D7C66B4FAC9A08B1A614478F /* AnimationConfiguration.swift in Sources */,
 				66E93DB92E2728414CE9CDB6 /* CommishControlling.swift in Sources */,
 				76EF0FB51CA8DB28ADEAD25A /* FramePreloader.swift in Sources */,
 				7F83C8B3A2FC7836428E6984 /* PngSequenceCommishController.swift in Sources */,
 				0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */,
-				67BEAACBDABC09DCD2BAA59A /* AdaptiveCommishIntelligenceProvider.swift in Sources */,
-				276243E54FF8A20A882E5340 /* AppleFoundationModelsCommishProvider.swift in Sources */,
-				974B6F1C6A328C9C9205C848 /* CommishInstructions.swift in Sources */,
-				8816B6D6169BD608C63A5459 /* CommishIntelligenceProviding.swift in Sources */,
-				311F2AE4B23074277A437894 /* DeterministicCommishProvider.swift in Sources */,
-				A75A800FDFBBCD7729DE5E00 /* ReactionBriefBuilder.swift in Sources */,
-				DE4346248EB4DAFC55C33430 /* CommishMemoryStore.swift in Sources */,
-				EF055ACDDED7E12933B22606 /* DemoDataSeeder.swift in Sources */,
-				1A4B77BA4B9686C408FDCE56 /* MemoryPolicy.swift in Sources */,
-				A3AB1B6CC153E0A212B89C74 /* ReactWithCommishIntent.swift in Sources */,
-				C3548076ACE499799FE21736 /* CommishStageView.swift in Sources */,
-				EDACFA8FF8536C0E64499490 /* MemoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -570,7 +461,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000008 /* BaseballArchitectureTests.swift in Sources */,
-				3D53D1C0774F555B23F7E686 /* LivingCommishTests.swift in Sources */,
+				3D53D1C0774F555B23F7E686 /* AnimatedHostPlaybackTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
