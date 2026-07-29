@@ -13,9 +13,15 @@ struct BaseballSearchDependencies {
     let host: any AnimatedHostControlling
 
     static func prototype(bundle: Bundle = .main) -> BaseballSearchDependencies {
-        BaseballSearchDependencies(
+        let arguments = ProcessInfo.processInfo.arguments
+        let forceDeterministicSearch = arguments.contains("--baseball-ui-testing")
+            || arguments.contains("--baseball-onboarding-ui-testing")
+
+        return BaseballSearchDependencies(
             profile: MockMichaelProfile.value,
-            queryInterpreter: DeterministicBaseballQueryInterpreter(),
+            queryInterpreter: AdaptiveBaseballQueryInterpreter(
+                forceDeterministicFallback: forceDeterministicSearch
+            ),
             planner: DefaultBaseballSearchPlanner(),
             dataProvider: MockBaseballDataService(),
             discoveryProvider: MockBaseballDiscoveryService(),

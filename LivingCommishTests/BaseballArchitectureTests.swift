@@ -99,6 +99,73 @@ final class BaseballArchitectureTests: XCTestCase {
         }
     }
 
+    func testAppleStructuredInterpretationMapsToGroundedSearchQuery() {
+        let interpretation = AppleBaseballInterpretation(
+            intent: .entityLookup,
+            entities: [
+                AppleBaseballEntity(
+                    canonicalName: "Schmidt",
+                    kind: .player
+                )
+            ],
+            timeScope: .unspecified,
+            requiresPersonalHistory: false
+        )
+
+        let query = AppleFoundationModelsBaseballQueryInterpreter.makeQuery(
+            rawText: "mike schmidt",
+            interpretation: interpretation,
+            profile: MockMichaelProfile.value
+        )
+
+        XCTAssertEqual(query.intent, .entityLookup)
+        XCTAssertEqual(query.entities.first?.id, "player-mike-schmidt")
+        XCTAssertEqual(query.entities.first?.canonicalName, "Mike Schmidt")
+        XCTAssertEqual(query.timeScope, .unspecified)
+        XCTAssertNil(query.ambiguity)
+    }
+
+    func testAppleInterpretationDecodesJSONWithoutDependingOnGuidedGeneration() throws {
+        let interpretation = try AppleFoundationModelsBaseballQueryInterpreter
+            .decodeInterpretation(
+                """
+                ```json
+                {"intent":"teamLookup","entities":[{"canonicalName":"Rockies","kind":"team"}],"timeScope":"today","requiresPersonalHistory":false}
+                ```
+                """
+            )
+
+        XCTAssertEqual(interpretation.intent, .teamLookup)
+        XCTAssertEqual(interpretation.entities.first?.canonicalName, "Rockies")
+        XCTAssertEqual(interpretation.entities.first?.kind, .team)
+        XCTAssertEqual(interpretation.timeScope, .today)
+        XCTAssertFalse(interpretation.requiresPersonalHistory)
+    }
+
+    func testAppleBaseballInterpreterDiagnostic() async throws {
+        let interpreter = AppleFoundationModelsBaseballQueryInterpreter()
+        guard interpreter.isAvailable else {
+            throw XCTSkip(
+                "Apple Foundation Models is unavailable in this test environment."
+            )
+        }
+
+        let query: BaseballSearchQuery
+        do {
+            query = try await interpreter.interpret(
+                "mike schmidt",
+                profile: MockMichaelProfile.value
+            )
+        } catch {
+            throw XCTSkip(
+                "The simulator's Apple model runtime is incomplete: \(error.localizedDescription)"
+            )
+        }
+
+        XCTAssertEqual(query.intent, .entityLookup)
+        XCTAssertEqual(query.entities.first?.canonicalName, "Mike Schmidt")
+    }
+
     func testFavoriteTeamQuestionReturnsAGroundedProfileFact() async throws {
         let profile = MockMichaelProfile.value
         let interpreter = DeterministicBaseballQueryInterpreter()

@@ -4,7 +4,7 @@ Living Commish is a hackathon prototype for a personalized sports commissioner c
 
 ## Baseball Living Host branch
 
-On `feature/baseball-search`, the native app launches into Baseball Living Host: a search-first, visual baseball experience with an animated guide. It uses isolated, clearly labeled prototype fixtures for Michael, a Colorado Rockies fan; it does not claim that the displayed MLB data is live.
+On `feature/baseball-search`, the native app launches into Baseball Living Host: a search-first, visual baseball experience with an animated guide. Apple Foundation Models interprets natural-language searches into an intent and named entities when the on-device model is available; the app then grounds those entities through its baseball data provider instead of treating generated text as baseball truth. A deterministic interpreter takes over when Apple Intelligence is unavailable or generation fails. The current data provider uses isolated prototype fixtures for Michael, a Colorado Rockies fan; it does not claim that the displayed MLB data is live.
 
 Run the app normally for the baseball experience. To inspect the original Living Commish experience, add `--legacy-commish` to the scheme's launch arguments. The implementation plan and phase status live in `BASEBALL_BRANCH_PLAN.md`.
 
