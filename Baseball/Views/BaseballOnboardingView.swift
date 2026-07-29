@@ -35,7 +35,12 @@ struct BaseballExperienceRootView: View {
     var body: some View {
         Group {
             if !onboarding.isSignedIn {
-                SignedOutBaseballStage()
+                SignedOutBaseballStage(
+                    host: environment.host,
+                    onCommishTap: {
+                        setSignedIn(true)
+                    }
+                )
                     .transition(.opacity)
             } else if onboarding.hasCompletedOnboarding {
                 BaseballSearchHomeView(
@@ -172,6 +177,9 @@ private struct DemoAuthenticationToggle: View {
 }
 
 private struct SignedOutBaseballStage: View {
+    let host: any AnimatedHostControlling
+    let onCommishTap: () -> Void
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -184,20 +192,37 @@ private struct SignedOutBaseballStage: View {
             )
             .ignoresSafeArea()
 
-            RoundedRectangle(cornerRadius: 34, style: .continuous)
-                .fill(.black.opacity(0.10))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .stroke(.white.opacity(0.045), lineWidth: 1)
+            ScrollView {
+                HostPresentationStage(
+                    host: host,
+                    height: 770,
+                    accent: .cyan,
+                    hostHeight: 560,
+                    hostScale: 1.72,
+                    hostXOffsetFraction: 0.05,
+                    hostYOffset: 118,
+                    hostAlignment: .top,
+                    contentAlignment: .bottomLeading,
+                    badgeAlignment: .topLeading,
+                    badgeTopPadding: 88,
+                    onHostTap: onCommishTap,
+                    hostAccessibilityHint:
+                        "Start your baseball personalization"
+                ) {
+                    EmptyView()
                 }
                 .padding(.horizontal, 18)
                 .padding(.top, 10)
                 .padding(.bottom, 36)
+            }
         }
         .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Signed-out blank baseball stage")
+        .accessibilityLabel("Signed-out generic Commish stage")
         .accessibilityIdentifier("baseball-signed-out-stage")
+        .onAppear {
+            host.perform(.greet)
+        }
     }
 }
 

@@ -316,6 +316,7 @@ struct HostPresentationStage<Content: View>: View {
     let badgeAlignment: Alignment
     let badgeTopPadding: CGFloat
     let onHostTap: () -> Void
+    let hostAccessibilityHint: String
     private let content: Content
 
     init(
@@ -331,6 +332,7 @@ struct HostPresentationStage<Content: View>: View {
         badgeAlignment: Alignment = .topTrailing,
         badgeTopPadding: CGFloat = 12,
         onHostTap: @escaping () -> Void = {},
+        hostAccessibilityHint: String = "Open your baseball profile",
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
@@ -345,6 +347,7 @@ struct HostPresentationStage<Content: View>: View {
         self.badgeAlignment = badgeAlignment
         self.badgeTopPadding = badgeTopPadding
         self.onHostTap = onHostTap
+        self.hostAccessibilityHint = hostAccessibilityHint
         self.content = content()
     }
 
@@ -387,7 +390,7 @@ struct HostPresentationStage<Content: View>: View {
                 )
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onHostTap)
-                .accessibilityHint("Open your baseball profile")
+                .accessibilityHint(hostAccessibilityHint)
                 .zIndex(1)
 
                 content

@@ -229,12 +229,21 @@ final class BaseballOnboardingState {
         self.defaults = defaults
         let usesFixtureRoster = arguments.contains("--baseball-ui-testing")
             || arguments.contains("--baseball-onboarding-ui-testing")
+            || arguments.contains(
+                "--baseball-fresh-signed-out-ui-testing"
+            )
         self.rosterProvider = rosterProvider
             ?? (usesFixtureRoster
                 ? PrototypeBaseballRosterProvider()
                 : AdaptiveBaseballRosterProvider())
 
-        if arguments.contains("--baseball-onboarding-ui-testing") {
+        if arguments.contains("--baseball-fresh-signed-out-ui-testing") {
+            Self.clearPersonalization(in: defaults)
+            isSignedIn = false
+            selectedTeamID = nil
+            selectedPlayer = nil
+            hasCompletedOnboarding = false
+        } else if arguments.contains("--baseball-onboarding-ui-testing") {
             Self.clearPersonalization(in: defaults)
             isSignedIn = true
             selectedTeamID = nil

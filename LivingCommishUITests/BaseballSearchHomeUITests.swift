@@ -92,7 +92,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(homeScreenshot)
     }
 
-    func testSignedOutStageIsBlankAndToggleRestoresPersonalization() {
+    func testSignedOutStageKeepsGenericCommishAndToggleRestoresPersonalization() {
         let app = XCUIApplication()
         app.launchArguments = ["--baseball-signed-out-ui-testing"]
         app.launch()
@@ -102,7 +102,9 @@ final class BaseballSearchHomeUITests: XCTestCase {
         ]
         XCTAssertTrue(signedOutStage.waitForExistence(timeout: 8))
         XCTAssertFalse(app.textFields["baseball-search-field"].exists)
-        XCTAssertFalse(app.otherElements["baseball-animated-host"].exists)
+        let genericCommish = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
+        XCTAssertTrue(genericCommish.isHittable)
         XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
         XCTAssertFalse(
             app.buttons[
@@ -134,6 +136,49 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.buttons["discovery-card-discovery-rockies-tonight"]
                 .waitForExistence(timeout: 5)
         )
+
+        authenticationToggle.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
+        ).tap()
+        XCTAssertTrue(signedOutStage.waitForExistence(timeout: 5))
+        XCTAssertTrue(
+            app.otherElements["baseball-animated-host"]
+                .waitForExistence(timeout: 5)
+        )
+        app.otherElements["baseball-animated-host"].tap()
+        XCTAssertTrue(
+            app.textFields["baseball-search-field"]
+                .waitForExistence(timeout: 8)
+        )
+    }
+
+    func testSignedOutCommishStartsFirstTimePersonalization() {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "--baseball-fresh-signed-out-ui-testing"
+        ]
+        app.launch()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-signed-out-stage"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertFalse(app.textFields["baseball-search-field"].exists)
+        XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
+
+        let genericCommish = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
+        genericCommish.tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-onboarding-stage"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertTrue(
+            app.buttons["onboarding-team-card"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
     }
 
     func testHomeIsSearchFirstAndPersonalized() {
