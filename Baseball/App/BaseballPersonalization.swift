@@ -247,11 +247,6 @@ final class BaseballOnboardingState {
             selectedTeamID = nil
             selectedPlayer = nil
             hasCompletedOnboarding = false
-        } else if arguments.contains("--baseball-signed-out-ui-testing") {
-            isSignedIn = false
-            selectedTeamID = BaseballTeamChoice.coloradoRockies.id
-            selectedPlayer = Self.hunterGoodman
-            hasCompletedOnboarding = true
         } else if arguments.contains("--baseball-ui-testing") {
             isSignedIn = true
             selectedTeamID = BaseballTeamChoice.coloradoRockies.id
@@ -268,11 +263,14 @@ final class BaseballOnboardingState {
 
             selectedTeamID = storedTeamID
             selectedPlayer = storedPlayer
-            isSignedIn = storedSignIn ?? (storedTeamID != nil)
-            hasCompletedOnboarding =
+            let storedOnboardingIsComplete =
                 BaseballTeamChoice.choice(id: storedTeamID) != nil
                 && storedPlayer != nil
                 && storedVersion >= Self.currentVersion
+            hasCompletedOnboarding = storedOnboardingIsComplete
+            isSignedIn =
+                (storedSignIn ?? (storedTeamID != nil))
+                && storedOnboardingIsComplete
         }
 
         step = isSignedIn
@@ -285,6 +283,13 @@ final class BaseballOnboardingState {
 
     var selectedTeam: BaseballTeamChoice? {
         BaseballTeamChoice.choice(id: selectedTeamID)
+    }
+
+    var isPersonalizedExperienceActive: Bool {
+        isSignedIn
+            && hasCompletedOnboarding
+            && selectedTeam != nil
+            && selectedPlayer != nil
     }
 
     var profileSnapshot: BaseballFanProfileSnapshot {
@@ -305,15 +310,13 @@ final class BaseballOnboardingState {
         )
     }
 
-    func setSignedIn(_ signedIn: Bool) {
-        isSignedIn = signedIn
-        step = signedIn
-            ? Self.resolvedStep(
-                teamID: selectedTeamID,
-                player: selectedPlayer
-            )
-            : .team
-        defaults.set(signedIn, forKey: Self.signedInKey)
+    func simulatePersonalizedExperience(_ isActive: Bool) {
+        restartPersonalization()
+        guard isActive else { return }
+
+        selectTeam(.coloradoRockies)
+        selectPlayer(Self.hunterGoodman)
+        _ = complete()
     }
 
     func selectTeam(_ team: BaseballTeamChoice) {
@@ -385,6 +388,7 @@ final class BaseballOnboardingState {
 
     func restartPersonalization() {
         Self.clearPersonalization(in: defaults)
+        isSignedIn = false
         selectedTeamID = nil
         selectedPlayer = nil
         hasCompletedOnboarding = false
@@ -435,6 +439,7 @@ final class BaseballOnboardingState {
     }
 
     private static func clearPersonalization(in defaults: UserDefaults) {
+        defaults.removeObject(forKey: signedInKey)
         defaults.removeObject(forKey: selectedTeamKey)
         clearStoredPlayer(in: defaults)
         defaults.removeObject(forKey: completionVersionKey)

@@ -224,16 +224,7 @@ struct BaseballSearchHomeView: View {
     ) -> some View {
         HostPresentationStage(
             host: environment.host,
-            height: 770,
             accent: accent,
-            hostHeight: 490,
-            hostScale: 1.70,
-            hostXOffsetFraction: 0.15,
-            hostYOffset: 160,
-            hostAlignment: .topTrailing,
-            contentAlignment: .bottomLeading,
-            badgeAlignment: .topLeading,
-            badgeTopPadding: 88,
             onHostTap: onProfileTap,
             content: content
         )
@@ -303,49 +294,34 @@ struct BaseballSearchHomeView: View {
     }
 }
 
+private enum BaseballHostStageLayout {
+    static let height: CGFloat = 770
+    static let hostHeight: CGFloat = 490
+    static let hostScale: CGFloat = 1.70
+    static let hostXOffsetFraction: CGFloat = 0.15
+    static let hostYOffset: CGFloat = 160
+    static let hostAlignment: Alignment = .topTrailing
+    static let contentAlignment: Alignment = .bottomLeading
+    static let badgeAlignment: Alignment = .topLeading
+    static let badgeTopPadding: CGFloat = 88
+}
+
 struct HostPresentationStage<Content: View>: View {
     let host: any AnimatedHostControlling
-    let height: CGFloat
     let accent: Color
-    let hostHeight: CGFloat?
-    let hostScale: CGFloat
-    let hostXOffsetFraction: CGFloat
-    let hostYOffset: CGFloat
-    let hostAlignment: Alignment
-    let contentAlignment: Alignment
-    let badgeAlignment: Alignment
-    let badgeTopPadding: CGFloat
     let onHostTap: () -> Void
     let hostAccessibilityHint: String
     private let content: Content
 
     init(
         host: any AnimatedHostControlling,
-        height: CGFloat,
         accent: Color,
-        hostHeight: CGFloat? = nil,
-        hostScale: CGFloat = 1.2,
-        hostXOffsetFraction: CGFloat = 0.19,
-        hostYOffset: CGFloat = 8,
-        hostAlignment: Alignment = .bottomTrailing,
-        contentAlignment: Alignment = .topLeading,
-        badgeAlignment: Alignment = .topTrailing,
-        badgeTopPadding: CGFloat = 12,
         onHostTap: @escaping () -> Void = {},
         hostAccessibilityHint: String = "Open your baseball profile",
         @ViewBuilder content: () -> Content
     ) {
         self.host = host
-        self.height = height
         self.accent = accent
-        self.hostHeight = hostHeight
-        self.hostScale = hostScale
-        self.hostXOffsetFraction = hostXOffsetFraction
-        self.hostYOffset = hostYOffset
-        self.hostAlignment = hostAlignment
-        self.contentAlignment = contentAlignment
-        self.badgeAlignment = badgeAlignment
-        self.badgeTopPadding = badgeTopPadding
         self.onHostTap = onHostTap
         self.hostAccessibilityHint = hostAccessibilityHint
         self.content = content()
@@ -373,20 +349,21 @@ struct HostPresentationStage<Content: View>: View {
 
                 AnimatedHostView(
                     host: host,
-                    height: hostHeight ?? height - 10,
+                    height: BaseballHostStageLayout.hostHeight,
                     accent: accent,
-                    contentScale: hostScale,
+                    contentScale: BaseballHostStageLayout.hostScale,
                     contentOffset: CGSize(width: -8, height: 2)
                 )
                 .frame(width: proxy.size.width * 0.90)
                 .frame(
                     maxWidth: .infinity,
                     maxHeight: .infinity,
-                    alignment: hostAlignment
+                    alignment: BaseballHostStageLayout.hostAlignment
                 )
                 .offset(
-                    x: proxy.size.width * hostXOffsetFraction,
-                    y: hostYOffset
+                    x: proxy.size.width
+                        * BaseballHostStageLayout.hostXOffsetFraction,
+                    y: BaseballHostStageLayout.hostYOffset
                 )
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onHostTap)
@@ -397,22 +374,22 @@ struct HostPresentationStage<Content: View>: View {
                     .frame(
                         maxWidth: .infinity,
                         maxHeight: .infinity,
-                        alignment: contentAlignment
+                        alignment: BaseballHostStageLayout.contentAlignment
                     )
                     .zIndex(2)
 
                 HostReadyBadge(host: host)
-                    .padding(.top, badgeTopPadding)
+                    .padding(.top, BaseballHostStageLayout.badgeTopPadding)
                     .padding(.horizontal, 12)
                     .frame(
                         maxWidth: .infinity,
                         maxHeight: .infinity,
-                        alignment: badgeAlignment
+                        alignment: BaseballHostStageLayout.badgeAlignment
                     )
                     .zIndex(3)
             }
         }
-        .frame(height: height)
+        .frame(height: BaseballHostStageLayout.height)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("host-presentation-stage")
     }

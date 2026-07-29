@@ -34,8 +34,7 @@ struct BaseballExperienceRootView: View {
 
     var body: some View {
         Group {
-            if onboarding.isSignedIn,
-               onboarding.hasCompletedOnboarding {
+            if onboarding.isPersonalizedExperienceActive {
                 BaseballSearchHomeView(
                     onProfileTap: {
                         activeSheet = .profile
@@ -53,14 +52,14 @@ struct BaseballExperienceRootView: View {
                         activeSheet = .players
                     },
                     onProfileTap: {
-                        if onboarding.isSignedIn,
-                           onboarding.hasCompletedOnboarding {
+                        if onboarding.isPersonalizedExperienceActive {
                             activeSheet = .profile
                         }
                     },
-                    hostAccessibilityHint: onboarding.isSignedIn
-                        ? "Open your baseball profile"
-                        : "Choose your team and favorite player below",
+                    hostAccessibilityHint:
+                        onboarding.isPersonalizedExperienceActive
+                            ? "Open your baseball profile"
+                            : "Choose your team and favorite player below",
                     onComplete: completePersonalization
                 )
                 .transition(.opacity)
@@ -69,9 +68,9 @@ struct BaseballExperienceRootView: View {
         .overlay(alignment: .topTrailing) {
             DemoAuthenticationToggle(
                 isSignedIn: Binding(
-                    get: { onboarding.isSignedIn },
+                    get: { onboarding.isPersonalizedExperienceActive },
                     set: { signedIn in
-                        setSignedIn(signedIn)
+                        simulateSignedInExperience(signedIn)
                     }
                 )
             )
@@ -115,8 +114,7 @@ struct BaseballExperienceRootView: View {
         }
         .task {
             synchronizeProfile()
-            if onboarding.isSignedIn,
-               onboarding.hasCompletedOnboarding,
+            if onboarding.isPersonalizedExperienceActive,
                environment.discoveryCards.isEmpty {
                 await environment.loadDiscovery()
             }
@@ -126,12 +124,13 @@ struct BaseballExperienceRootView: View {
         }
     }
 
-    private func setSignedIn(_ signedIn: Bool) {
-        onboarding.setSignedIn(signedIn)
+    private func simulateSignedInExperience(_ signedIn: Bool) {
+        onboarding.simulatePersonalizedExperience(signedIn)
         activeSheet = nil
         environment.resetToDiscovery()
-        if signedIn, onboarding.hasCompletedOnboarding {
-            synchronizeProfile()
+        synchronizeProfile()
+        if signedIn {
+            environment.host.perform(.greet)
             Task { await environment.loadDiscovery() }
         }
     }
@@ -191,16 +190,7 @@ private struct BaseballOnboardingStage: View {
             ScrollView {
                 HostPresentationStage(
                     host: host,
-                    height: 770,
                     accent: accent,
-                    hostHeight: 490,
-                    hostScale: 1.70,
-                    hostXOffsetFraction: 0.15,
-                    hostYOffset: 130,
-                    hostAlignment: .topTrailing,
-                    contentAlignment: .bottomLeading,
-                    badgeAlignment: .topLeading,
-                    badgeTopPadding: 88,
                     onHostTap: onProfileTap,
                     hostAccessibilityHint: hostAccessibilityHint
                 ) {

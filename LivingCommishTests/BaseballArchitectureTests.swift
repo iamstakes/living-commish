@@ -60,7 +60,7 @@ final class BaseballArchitectureTests: XCTestCase {
         )
     }
 
-    func testDemoSignOutPreservesPersonalizationForSignBackIn() {
+    func testDemoToggleSwitchesBetweenCompleteDeterministicExperiences() {
         let suiteName = "BaseballAuthStateTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer {
@@ -74,16 +74,46 @@ final class BaseballArchitectureTests: XCTestCase {
 
         XCTAssertTrue(state.isSignedIn)
         XCTAssertTrue(state.hasCompletedOnboarding)
-        state.setSignedIn(false)
+        XCTAssertTrue(state.isPersonalizedExperienceActive)
+
+        state.simulatePersonalizedExperience(false)
         XCTAssertFalse(state.isSignedIn)
+        XCTAssertFalse(state.hasCompletedOnboarding)
+        XCTAssertFalse(state.isPersonalizedExperienceActive)
         XCTAssertEqual(state.step, .team)
+        XCTAssertNil(state.selectedTeam)
+        XCTAssertNil(state.selectedPlayer)
+
+        state.simulatePersonalizedExperience(true)
+        XCTAssertTrue(state.isSignedIn)
+        XCTAssertTrue(state.hasCompletedOnboarding)
+        XCTAssertTrue(state.isPersonalizedExperienceActive)
+        XCTAssertEqual(state.step, .ready)
         XCTAssertEqual(state.selectedTeam?.fullName, "Colorado Rockies")
         XCTAssertEqual(state.selectedPlayer?.fullName, "Hunter Goodman")
 
-        state.setSignedIn(true)
-        XCTAssertTrue(state.isSignedIn)
-        XCTAssertTrue(state.hasCompletedOnboarding)
-        XCTAssertEqual(state.step, .ready)
+        let returningLaunch = BaseballOnboardingState(
+            defaults: defaults,
+            arguments: [],
+            rosterProvider: PrototypeBaseballRosterProvider()
+        )
+        XCTAssertTrue(returningLaunch.isPersonalizedExperienceActive)
+        XCTAssertEqual(
+            returningLaunch.selectedPlayer?.fullName,
+            "Hunter Goodman"
+        )
+
+        returningLaunch.simulatePersonalizedExperience(false)
+        let freshLaunch = BaseballOnboardingState(
+            defaults: defaults,
+            arguments: [],
+            rosterProvider: PrototypeBaseballRosterProvider()
+        )
+        XCTAssertFalse(freshLaunch.isSignedIn)
+        XCTAssertFalse(freshLaunch.hasCompletedOnboarding)
+        XCTAssertNil(freshLaunch.selectedTeam)
+        XCTAssertNil(freshLaunch.selectedPlayer)
+        XCTAssertEqual(freshLaunch.step, .team)
     }
 
     func testTeamCatalogContainsAllThirtyMLBClubs() {
