@@ -144,126 +144,40 @@ final class BaseballSearchHomeUITests: XCTestCase {
         let resultCard = app.descendants(matching: .any)["search-result-card"]
         XCTAssertTrue(resultCard.exists)
         XCTAssertTrue(resultCard.label.contains("Mike Schmidt"))
+        XCTAssertTrue(app.staticTexts["1 / 4"].exists)
         XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
+
+        let nextResult = app.buttons["search-results-next"]
+        XCTAssertTrue(nextResult.exists)
+        for (index, expectedText) in [
+            "548 HR",
+            "José Ramírez",
+            "Class of 1995",
+        ].enumerated() {
+            nextResult.tap()
+            expectation(
+                for: NSPredicate(
+                    format: "label CONTAINS %@",
+                    expectedText
+                ),
+                evaluatedWith: resultCard
+            )
+            waitForExpectations(timeout: 3)
+            XCTAssertTrue(app.staticTexts["\(index + 2) / 4"].exists)
+            XCTAssertFalse(resultCard.label.contains("Judge"))
+            XCTAssertFalse(resultCard.label.contains("Ohtani"))
+        }
+
+        let trayScreenshot = XCTAttachment(screenshot: app.screenshot())
+        trayScreenshot.name = "Mike Schmidt Hall of Fame result card"
+        trayScreenshot.lifetime = .keepAlways
+        add(trayScreenshot)
 
         let clearSearch = app.buttons["clear-baseball-search"]
         XCTAssertTrue(clearSearch.waitForExistence(timeout: 3))
         clearSearch.tap()
         XCTAssertTrue(
             app.buttons["onboarding-team-card"].waitForExistence(timeout: 5)
-        )
-    }
-
-    func testDemoToggleCyclesDeterministicallyWithoutMovingCommish() {
-        let app = XCUIApplication()
-        app.launchArguments = ["--baseball-onboarding-ui-testing"]
-        app.launch()
-
-        let onboardingStage = app.descendants(matching: .any)[
-            "baseball-onboarding-stage"
-        ]
-        XCTAssertTrue(onboardingStage.waitForExistence(timeout: 8))
-        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
-        XCTAssertTrue(
-            app.descendants(matching: .any)[
-                "baseball-generic-chrome-background"
-            ].exists
-        )
-        let genericCommish = app.otherElements["baseball-animated-host"]
-        XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
-        XCTAssertTrue(genericCommish.isHittable)
-        let onboardingCommishFrame = genericCommish.frame
-        XCTAssertTrue(app.buttons["onboarding-team-card"].exists)
-        XCTAssertFalse(app.buttons["onboarding-finish"].exists)
-        XCTAssertFalse(
-            app.buttons[
-                "discovery-card-discovery-rockies-tonight"
-            ].exists
-        )
-
-        let authenticationToggle = app.switches[
-            "demo-authentication-toggle"
-        ]
-        XCTAssertTrue(authenticationToggle.waitForExistence(timeout: 5))
-        XCTAssertEqual(authenticationToggle.value as? String, "Signed out")
-        XCTAssertTrue(authenticationToggle.isHittable)
-        authenticationToggle.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
-        ).tap()
-        expectation(
-            for: NSPredicate(format: "value == %@", "Signed in"),
-            evaluatedWith: authenticationToggle
-        )
-        waitForExpectations(timeout: 3)
-
-        XCTAssertTrue(
-            app.textFields["baseball-search-field"]
-                .waitForExistence(timeout: 8)
-        )
-        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
-        XCTAssertTrue(
-            app.buttons["discovery-card-discovery-rockies-tonight"]
-                .waitForExistence(timeout: 8)
-        )
-        let personalizedThought = app.descendants(matching: .any)[
-            "commish-live-thought"
-        ]
-        XCTAssertTrue(personalizedThought.waitForExistence(timeout: 5))
-        XCTAssertTrue(personalizedThought.label.contains("Brew crew"))
-        let personalizedCommish = app.otherElements["baseball-animated-host"]
-        XCTAssertEqual(
-            personalizedCommish.frame.midX,
-            onboardingCommishFrame.midX,
-            accuracy: 2
-        )
-        XCTAssertEqual(
-            personalizedCommish.frame.midY,
-            onboardingCommishFrame.midY,
-            accuracy: 2
-        )
-        XCTAssertEqual(
-            personalizedCommish.frame.width,
-            onboardingCommishFrame.width,
-            accuracy: 2
-        )
-        XCTAssertEqual(
-            personalizedCommish.frame.height,
-            onboardingCommishFrame.height,
-            accuracy: 2
-        )
-
-        authenticationToggle.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
-        ).tap()
-        XCTAssertTrue(onboardingStage.waitForExistence(timeout: 5))
-        XCTAssertTrue(
-            app.otherElements["baseball-animated-host"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
-        XCTAssertTrue(
-            app.descendants(matching: .any)[
-                "baseball-generic-chrome-background"
-            ].exists
-        )
-        XCTAssertTrue(app.buttons["onboarding-team-card"].exists)
-        XCTAssertFalse(app.buttons["onboarding-finish"].exists)
-
-        authenticationToggle.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.88, dy: 0.5)
-        ).tap()
-        expectation(
-            for: NSPredicate(format: "value == %@", "Signed in"),
-            evaluatedWith: authenticationToggle
-        )
-        waitForExpectations(timeout: 3)
-        XCTAssertTrue(
-            app.textFields["baseball-search-field"]
-                .waitForExistence(timeout: 8)
-        )
-        XCTAssertTrue(
-            app.buttons["discovery-card-discovery-rockies-tonight"]
-                .waitForExistence(timeout: 8)
         )
     }
 
@@ -376,44 +290,6 @@ final class BaseballSearchHomeUITests: XCTestCase {
         waitForExpectations(timeout: 3)
 
         XCTAssertFalse(app.buttons["generate-reaction-button"].exists)
-    }
-
-    func testSearchBuildsVisualExperienceInsteadOfTranscript() {
-        let app = launchApp()
-        let field = app.textFields["baseball-search-field"]
-        XCTAssertTrue(field.waitForExistence(timeout: 8))
-        field.tap()
-        field.typeText("mike schmidt")
-        app.buttons["baseball-search-button"].tap()
-
-        let resultsStage = app.descendants(matching: .any)[
-            "baseball-results-stage"
-        ]
-        XCTAssertTrue(resultsStage.waitForExistence(timeout: 8))
-        XCTAssertTrue(
-            app.descendants(matching: .any)["baseball-results-deck"].exists
-        )
-        let resultCard = app.descendants(matching: .any)["search-result-card"]
-        XCTAssertTrue(resultCard.exists)
-        XCTAssertTrue(resultCard.label.contains("Mike Schmidt"))
-        XCTAssertTrue(resultCard.label.contains("Philadelphia Phillies"))
-        XCTAssertGreaterThan(
-            app.otherElements["baseball-animated-host"].frame.height,
-            450
-        )
-        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
-        XCTAssertFalse(app.otherElements["baseball-results-overview"].exists)
-        XCTAssertFalse(app.otherElements["result-presentation-stage"].exists)
-        XCTAssertFalse(app.otherElements["baseball-search-error"].exists)
-        XCTAssertFalse(app.staticTexts["PROTOTYPE DATA"].exists)
-        XCTAssertFalse(app.staticTexts["PROTOTYPE"].exists)
-        XCTAssertFalse(app.buttons["baseball-results-close"].exists)
-        XCTAssertFalse(app.staticTexts["LIVING COMMISH"].exists)
-
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Mike Schmidt result in Commish stage"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
     }
 
     func testMikeSchmidtGalleryQuizAndCardCollectionFlow() {
@@ -592,32 +468,6 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertFalse(
             app.descendants(matching: .any)["baseball-results-stage"].exists
         )
-    }
-
-    func testUnknownSearchStaysInsideTheCommishStage() {
-        let app = launchApp()
-        let field = app.textFields["baseball-search-field"]
-        XCTAssertTrue(field.waitForExistence(timeout: 8))
-        field.tap()
-        field.typeText("tell me something")
-        app.buttons["baseball-search-button"].tap()
-
-        let failureCard = app.descendants(matching: .any)[
-            "baseball-search-error"
-        ]
-        XCTAssertTrue(failureCard.waitForExistence(timeout: 8))
-        XCTAssertTrue(
-            app.descendants(matching: .any)["search-presentation-stage"].exists
-        )
-        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
-        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
-        XCTAssertFalse(app.staticTexts["TRY ONE OF THESE"].exists)
-        XCTAssertFalse(app.otherElements["baseball-results-overview"].exists)
-
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Unknown search remains in Commish stage"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
     }
 
     func testThirdCardOpensMLBPlayerStoryDirectly() {

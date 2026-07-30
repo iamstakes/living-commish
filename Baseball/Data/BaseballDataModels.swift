@@ -54,6 +54,21 @@ struct BaseballPlayerGalleryImage: Equatable, Identifiable, Sendable {
     let sourceName: String
 }
 
+enum BaseballPlayerInsightKind: String, Equatable, Sendable {
+    case careerStats
+    case modernComparison
+    case hallOfFameLegacy
+}
+
+struct BaseballPlayerInsightCard: Equatable, Identifiable, Sendable {
+    let id: String
+    let kind: BaseballPlayerInsightKind
+    let title: String
+    let headline: String
+    let summary: String
+    let facts: [BaseballFact]
+}
+
 struct BaseballTeamCard: Equatable, Identifiable, Sendable {
     let id: String
     let name: String
@@ -158,6 +173,7 @@ enum BaseballResultModule: Equatable, Identifiable, Sendable {
     case highlight(BaseballHighlightCard)
     case statcast(BaseballStatcastCard)
     case comparison(BaseballComparisonCard)
+    case playerInsight(BaseballPlayerInsightCard)
     case personalMemory(BaseballPersonalMemoryCard)
     case whyThisMatters(BaseballWhyThisMattersCard)
     case relatedSearches(BaseballRelatedSearchesCard)
@@ -173,6 +189,7 @@ enum BaseballResultModule: Equatable, Identifiable, Sendable {
         case .highlight(let value): "highlight:\(value.id)"
         case .statcast(let value): "statcast:\(value.id)"
         case .comparison(let value): "comparison:\(value.id)"
+        case .playerInsight(let value): "player-insight:\(value.id)"
         case .personalMemory(let value): "memory:\(value.id)"
         case .whyThisMatters(let value): "why:\(value.id)"
         case .relatedSearches(let value): "related:\(value.id)"
@@ -189,6 +206,7 @@ enum BaseballResultModule: Equatable, Identifiable, Sendable {
         case .highlight(let value): value.facts
         case .statcast(let value): value.facts
         case .comparison(let value): value.facts
+        case .playerInsight(let value): value.facts
         case .personalMemory(let value): value.facts
         case .watchNext(let value): value.facts
         case .hostReaction, .whyThisMatters, .relatedSearches: []

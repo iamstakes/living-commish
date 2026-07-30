@@ -46,6 +46,16 @@ enum MockMichaelProfile {
 enum MockBaseballFixtures {
     static let fixtureDate = Date(timeIntervalSince1970: 1_785_100_000)
     static let provenance = BaseballProvenance.prototypeFixture(asOf: fixtureDate)
+    static let hallOfFameProvenance = BaseballProvenance(
+        sourceName: "National Baseball Hall of Fame",
+        asOf: fixtureDate,
+        isMock: false
+    )
+    static let mlbProvenance = BaseballProvenance(
+        sourceName: "MLB / Cleveland Guardians",
+        asOf: fixtureDate,
+        isMock: false
+    )
     static let mlbStoryProvenance = BaseballProvenance(
         sourceName: "MLB.com Player Stories snapshot",
         asOf: fixtureDate,
@@ -67,6 +77,19 @@ enum MockBaseballFixtures {
             statement: statement,
             kind: .fact,
             provenance: mlbStoryProvenance
+        )
+    }
+
+    static func sourcedFact(
+        _ id: String,
+        _ statement: String,
+        provenance: BaseballProvenance
+    ) -> BaseballFact {
+        BaseballFact(
+            id: id,
+            statement: statement,
+            kind: .fact,
+            provenance: provenance
         )
     }
 
@@ -160,6 +183,61 @@ enum MockBaseballFixtures {
         ],
         quiz: BaseballDailyDropCatalog.mikeSchmidtQuiz
     )
+
+    static let mikeSchmidtInsights = [
+        BaseballPlayerInsightCard(
+            id: "schmidt-career-stats",
+            kind: .careerStats,
+            title: "The complete power profile",
+            headline: "548 HR • 10 Gold Gloves • 3 MVPs",
+            summary: "Eight NL home run crowns. Ten Gold Gloves. Schmidt owned both sides of third base.",
+            facts: [
+                sourcedFact(
+                    "schmidt-career-resume",
+                    "The Hall of Fame credits Schmidt with 548 home runs, 10 Gold Gloves, three NL MVP awards, and eight NL home-run titles.",
+                    provenance: hallOfFameProvenance
+                ),
+            ]
+        ),
+        BaseballPlayerInsightCard(
+            id: "schmidt-modern-comparison",
+            kind: .modernComparison,
+            title: "Then and now at third",
+            headline: "Mike Schmidt × José Ramírez",
+            summary: "Schmidt set the power-and-glove standard. Ramírez adds switch-hitting power and speed to the modern third-base blueprint.",
+            facts: [
+                sourcedFact(
+                    "ramirez-modern-third-base",
+                    "MLB and the Guardians identify José Ramírez as an active third baseman and the first primary third baseman with 275 home runs and 275 stolen bases.",
+                    provenance: mlbProvenance
+                ),
+                sourcedFact(
+                    "schmidt-two-way-standard",
+                    "The Hall of Fame credits Schmidt with 548 home runs and 10 Gold Glove Awards at third base.",
+                    provenance: hallOfFameProvenance
+                ),
+            ]
+        ),
+        BaseballPlayerInsightCard(
+            id: "schmidt-hall-of-fame-legacy",
+            kind: .hallOfFameLegacy,
+            title: "First-ballot immortality",
+            headline: "Class of 1995 • 96.5% of the vote",
+            summary: "Eighteen Phillies seasons. Their first World Series title. Then a first-ballot plaque for the man who defined third base.",
+            facts: [
+                sourcedFact(
+                    "schmidt-cooperstown",
+                    "Schmidt entered the Hall of Fame in 1995 after receiving 96.5 percent of the BBWAA vote.",
+                    provenance: hallOfFameProvenance
+                ),
+                sourcedFact(
+                    "schmidt-1980-title",
+                    "Schmidt won the 1980 World Series MVP as the Phillies claimed the first championship in franchise history.",
+                    provenance: hallOfFameProvenance
+                ),
+            ]
+        ),
+    ]
 
     static let goodmanPlayerStoryFacts = [
         mlbStoryFact(
@@ -354,6 +432,14 @@ struct MockBaseballDataService: BaseballDataProviding {
                 }
             case .historicalComparison:
                 append(.comparison(MockBaseballFixtures.comparison))
+            case .playerInsights:
+                if plan.query.entities.contains(where: {
+                    $0.id == "player-mike-schmidt"
+                }) {
+                    MockBaseballFixtures.mikeSchmidtInsights.forEach {
+                        append(.playerInsight($0))
+                    }
+                }
             case .personalMemory:
                 append(.personalMemory(MockBaseballFixtures.personalMemory))
             case .relatedSearches:

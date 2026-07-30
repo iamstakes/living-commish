@@ -14,7 +14,6 @@ struct BaseballPlayerGalleryExperienceView: View {
             if isTakingQuiz, let quiz = player.quiz {
                 BaseballDailyDropFullScreenView(
                     drop: quiz,
-                    isAlreadyCollected: isQuizRewardCollected,
                     onCollect: onCollect,
                     onOpenCollection: {
                         onOpenCollection(quiz.rewardSticker)

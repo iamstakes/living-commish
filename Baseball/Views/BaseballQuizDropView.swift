@@ -5,7 +5,7 @@ import UIKit
 
 // This flow is a baseball adaptation of the production Takes World Cup quiz
 // implementation at commit 403e83b62d6656ce4ec981858bc177ed6ba0a223.
-// Its full-screen story, single-question quiz, Commish celebration, Rive pack
+// Its full-screen story, three-question quiz, Commish celebration, Rive pack
 // rip, card flip, and claim interactions intentionally retain that structure.
 
 private enum BaseballDailyQuizPhase: Equatable {
@@ -128,19 +128,6 @@ struct BaseballDailyDropFullScreenView: View {
     let onDismiss: () -> Void
 
     @State private var phase: BaseballDailyQuizPhase = .landing
-
-    init(
-        drop: BaseballDailyDrop,
-        isAlreadyCollected: Bool,
-        onCollect: @escaping (BaseballSticker) -> Void,
-        onOpenCollection: @escaping () -> Void,
-        onDismiss: @escaping () -> Void
-    ) {
-        self.drop = drop
-        self.onCollect = onCollect
-        self.onOpenCollection = onOpenCollection
-        self.onDismiss = onDismiss
-    }
 
     var body: some View {
         ZStack {

@@ -520,6 +520,11 @@ struct DefaultBaseballSearchPlanner: BaseballSearchPlanning {
                     .hostReaction, .player, .statcast,
                     .whyThisMatters, .relatedSearches,
                 ]
+            } else if query.entities.contains(where: { $0.id == "player-mike-schmidt" }) {
+                modules = [
+                    .hostReaction, .player, .playerInsights,
+                    .whyThisMatters,
+                ]
             } else if query.entities.contains(where: { $0.id == "player-hunter-goodman" }) {
                 modules = [
                     .hostReaction, .player, .game, .highlight,

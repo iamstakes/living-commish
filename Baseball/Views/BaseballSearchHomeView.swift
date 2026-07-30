@@ -43,9 +43,6 @@ struct BaseballSearchHomeView: View {
         .fullScreenCover(item: $presentedDailyDrop) { drop in
             BaseballDailyDropFullScreenView(
                 drop: drop,
-                isAlreadyCollected: environment.hasCollected(
-                    drop.rewardSticker
-                ),
                 onCollect: { sticker in
                     environment.collectSticker(sticker)
                 },
@@ -1841,6 +1838,15 @@ private extension BaseballResultModule {
                 systemImage: "shield.lefthalf.filled",
                 accent: .purple
             )
+        case .playerInsight(let value):
+            .init(
+                eyebrow: value.kind.eyebrow,
+                title: value.title,
+                metadata: value.headline,
+                summary: value.summary,
+                systemImage: value.kind.systemImage,
+                accent: value.kind.accent
+            )
         default:
             .init(
                 eyebrow: "RESULT",
@@ -1918,6 +1924,15 @@ private extension BaseballResultModule {
                 accent: .purple,
                 destinationQuery: "Compare \(value.leftName) and \(value.rightName)"
             )
+        case .playerInsight(let value):
+            .init(
+                eyebrow: value.kind.eyebrow,
+                title: value.title,
+                subtitle: value.headline,
+                systemImage: value.kind.systemImage,
+                accent: value.kind.accent,
+                destinationQuery: nil
+            )
         case .personalMemory(let value):
             .init(
                 eyebrow: "YOUR BASEBALL",
@@ -1963,6 +1978,32 @@ private extension BaseballResultModule {
                 accent: .cyan,
                 destinationQuery: nil
             )
+        }
+    }
+}
+
+private extension BaseballPlayerInsightKind {
+    var eyebrow: String {
+        switch self {
+        case .careerStats: "CAREER STATS"
+        case .modernComparison: "THEN & NOW"
+        case .hallOfFameLegacy: "HALL OF FAME"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .careerStats: "chart.bar.fill"
+        case .modernComparison: "arrow.left.arrow.right"
+        case .hallOfFameLegacy: "medal.star.fill"
+        }
+    }
+
+    var accent: Color {
+        switch self {
+        case .careerStats: .cyan
+        case .modernComparison: .purple
+        case .hallOfFameLegacy: .orange
         }
     }
 }

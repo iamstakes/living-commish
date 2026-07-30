@@ -1,7 +1,6 @@
 import Foundation
 
 enum BaseballStickerRarity: String, Equatable, Sendable {
-    case base
     case rare
     case legendary
 
@@ -48,7 +47,6 @@ struct BaseballDailyDrop: Equatable, Identifiable, Sendable {
     let landingImageURL: String
     let stories: [BaseballQuizStory]
     let questions: [BaseballQuizQuestion]
-    let minimumCorrectAnswers: Int
     let rewardSticker: BaseballSticker
     let hostThought: String
 }
@@ -152,7 +150,6 @@ enum BaseballDailyDropCatalog {
                 imageURL: "https://img.mlbstatic.com/mlb-images/image/private/ar_16:9,g_auto,q_auto:good,w_1536,c_fill,f_jpg/mlb/fcfhgkkwv82l6xat3mzv"
             ),
         ],
-        minimumCorrectAnswers: 1,
         rewardSticker: BaseballStickerCatalog.hunterGoodman,
         hostThought: "Three Rockies firsts. One rare reward. Let’s meet the Rox."
     )
@@ -210,7 +207,6 @@ enum BaseballDailyDropCatalog {
                 imageURL: "https://img.mlbstatic.com/mlb-images/image/private/t_2x1/t_w1536/mlb/hr45cmr7p9qjbkyv3l46.jpg"
             ),
         ],
-        minimumCorrectAnswers: 1,
         rewardSticker: BaseballStickerCatalog.mikeSchmidt,
         hostThought: "Four homers, ten Gold Gloves, 548 career bombs. Let’s see what you know about Michael Jack."
     )

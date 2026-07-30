@@ -83,6 +83,7 @@ enum BaseballResultModuleKind: String, CaseIterable, Equatable, Sendable {
     case highlight
     case statcast
     case historicalComparison
+    case playerInsights
     case fantasyImpact
     case ticketOpportunity
     case personalMemory

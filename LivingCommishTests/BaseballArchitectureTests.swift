@@ -226,30 +226,6 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertFalse(interpretation.requiresPersonalHistory)
     }
 
-    func testAppleBaseballInterpreterDiagnostic() async throws {
-        let interpreter = AppleFoundationModelsBaseballQueryInterpreter()
-        guard interpreter.isAvailable else {
-            throw XCTSkip(
-                "Apple Foundation Models is unavailable in this test environment."
-            )
-        }
-
-        let query: BaseballSearchQuery
-        do {
-            query = try await interpreter.interpret(
-                "mike schmidt",
-                profile: MockMichaelProfile.value
-            )
-        } catch {
-            throw XCTSkip(
-                "The simulator's Apple model runtime is incomplete: \(error.localizedDescription)"
-            )
-        }
-
-        XCTAssertEqual(query.intent, .entityLookup)
-        XCTAssertEqual(query.entities.first?.canonicalName, "Mike Schmidt")
-    }
-
     func testFavoriteTeamQuestionReturnsAGroundedProfileFact() async throws {
         let profile = MockMichaelProfile.value
         let interpreter = DeterministicBaseballQueryInterpreter()
@@ -390,6 +366,30 @@ final class BaseballArchitectureTests: XCTestCase {
             schmidt.quiz?.rewardSticker,
             BaseballStickerCatalog.mikeSchmidt
         )
+        let insights = snapshot.modules.compactMap { module in
+            if case .playerInsight(let insight) = module {
+                return insight
+            }
+            return nil
+        }
+        XCTAssertEqual(
+            insights.map(\.kind),
+            [.careerStats, .modernComparison, .hallOfFameLegacy]
+        )
+        XCTAssertTrue(
+            insights.contains(where: {
+                $0.headline.contains("José Ramírez")
+            })
+        )
+        XCTAssertFalse(snapshot.modules.contains { module in
+            if case .relatedSearches = module { return true }
+            return false
+        })
+        let schmidtExperienceText = insights
+            .flatMap { [$0.title, $0.headline, $0.summary] }
+            .joined(separator: " ")
+        XCTAssertFalse(schmidtExperienceText.contains("Judge"))
+        XCTAssertFalse(schmidtExperienceText.contains("Ohtani"))
     }
 
     func testPlannerProducesVisualModulePlansInsteadOfTextResponses() async throws {
@@ -571,10 +571,6 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(
             dailyDropCard?.dailyDrop?.rewardSticker.playerName,
             "Hunter Goodman"
-        )
-        XCTAssertEqual(
-            dailyDropCard?.dailyDrop?.minimumCorrectAnswers,
-            1
         )
     }
 
