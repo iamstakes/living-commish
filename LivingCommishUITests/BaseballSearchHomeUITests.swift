@@ -507,6 +507,9 @@ final class BaseballSearchHomeUITests: XCTestCase {
         let app = launchApp()
         let nextButton = app.buttons["host-presentation-next"]
         XCTAssertTrue(nextButton.waitForExistence(timeout: 8))
+        let commishHost = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(commishHost.exists)
+        let commishHostFrame = commishHost.frame
 
         for cardID in [
             "discovery-card-discovery-standings",
@@ -697,6 +700,26 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertEqual(
             selectedAvatarHost.value as? String,
             "Selected profile avatar"
+        )
+        XCTAssertEqual(
+            selectedAvatarHost.frame.midX,
+            commishHostFrame.midX,
+            accuracy: 2
+        )
+        XCTAssertEqual(
+            selectedAvatarHost.frame.midY,
+            commishHostFrame.midY,
+            accuracy: 2
+        )
+        XCTAssertEqual(
+            selectedAvatarHost.frame.width,
+            commishHostFrame.width,
+            accuracy: 2
+        )
+        XCTAssertEqual(
+            selectedAvatarHost.frame.height,
+            commishHostFrame.height,
+            accuracy: 2
         )
 
         let hostScreenshot = XCTAttachment(screenshot: app.screenshot())

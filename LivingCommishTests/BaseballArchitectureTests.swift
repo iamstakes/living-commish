@@ -611,12 +611,24 @@ final class BaseballArchitectureTests: XCTestCase {
             drop.rewardSticker.animatedAvatarResourceName,
             "hunter-goodman-avatar"
         )
-        XCTAssertNotNil(
-            Bundle.main.url(
-                forResource: "hunter-goodman-avatar",
-                withExtension: "gif",
-                subdirectory: "Animations"
-            )
+        let hunterAvatarFrames = Bundle.main.urls(
+            forResourcesWithExtension: "png",
+            subdirectory: "Animations/hunter-goodman-avatar"
+        )
+        XCTAssertEqual(hunterAvatarFrames?.count, 110)
+        XCTAssertEqual(
+            hunterAvatarFrames?
+                .sorted(by: NumericalFrameSorter.areInIncreasingOrder)
+                .first?
+                .lastPathComponent,
+            "HG_PT_RT0001.png"
+        )
+        XCTAssertEqual(
+            hunterAvatarFrames?
+                .sorted(by: NumericalFrameSorter.areInIncreasingOrder)
+                .last?
+                .lastPathComponent,
+            "HG_PT_RT0110.png"
         )
         XCTAssertEqual(
             BaseballStickerCatalog.all.map(\.id),

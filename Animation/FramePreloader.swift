@@ -23,26 +23,38 @@ enum FramePreloader {
                   !urls.isEmpty else {
                 throw FramePreloaderError.missingDirectory(definition.resourceDirectory)
             }
-            result[action] = try urls.sorted(by: NumericalFrameSorter.areInIncreasingOrder).map { url in
-                guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-                      let sourceImage = CGImageSourceCreateImageAtIndex(source, 0, nil),
-                      let context = CGContext(
-                        data: nil,
-                        width: sourceImage.width,
-                        height: sourceImage.height,
-                        bitsPerComponent: 8,
-                        bytesPerRow: sourceImage.width * 4,
-                        space: CGColorSpaceCreateDeviceRGB(),
-                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-                      ),
-                      context.drawAndCreate(sourceImage),
-                      let decodedImage = context.makeImage() else {
-                    throw FramePreloaderError.unreadableFrame(url.lastPathComponent)
-                }
-                return UIImage(cgImage: decodedImage)
-            }
+            result[action] = try urls
+                .sorted(by: NumericalFrameSorter.areInIncreasingOrder)
+                .map(PNGFrameDecoder.decode)
         }
         return result
+    }
+}
+
+enum PNGFrameDecoder {
+    static func decode(_ url: URL) throws -> UIImage {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let sourceImage = CGImageSourceCreateImageAtIndex(
+                source,
+                0,
+                nil
+              ),
+              let context = CGContext(
+                data: nil,
+                width: sourceImage.width,
+                height: sourceImage.height,
+                bitsPerComponent: 8,
+                bytesPerRow: sourceImage.width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+              ),
+              context.drawAndCreate(sourceImage),
+              let decodedImage = context.makeImage() else {
+            throw FramePreloaderError.unreadableFrame(
+                url.lastPathComponent
+            )
+        }
+        return UIImage(cgImage: decodedImage)
     }
 }
 

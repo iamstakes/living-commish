@@ -1,4 +1,3 @@
-import ImageIO
 import SwiftUI
 @preconcurrency import UIKit
 
@@ -72,14 +71,17 @@ struct AnimatedHostView: View {
     private var renderedHost: some View {
         if let selectedAvatar,
            let resourceName = selectedAvatar.animatedAvatarResourceName,
-           let resourceURL = Bundle.main.url(
-                forResource: resourceName,
-                withExtension: "gif",
-                subdirectory: "Animations"
-           ) {
-            AnimatedGIFView(resourceURL: resourceURL)
-                .frame(width: 340, height: 340)
-                .clipped()
+           let frameURLs = Bundle.main.urls(
+                forResourcesWithExtension: "png",
+                subdirectory: "Animations/\(resourceName)"
+           ),
+           !frameURLs.isEmpty {
+            AnimatedPNGSequenceView(
+                frameURLs: frameURLs.sorted(
+                    by: NumericalFrameSorter.areInIncreasingOrder
+                )
+            )
+                .aspectRatio(1, contentMode: .fit)
                 .transition(.opacity)
         } else {
             switch host.renderedContent {
@@ -106,39 +108,35 @@ struct AnimatedHostView: View {
     }
 
     private var resolvedContentScale: CGFloat {
-        selectedAvatar == nil ? contentScale : 1
+        contentScale
     }
 
     private var resolvedContentOffset: CGSize {
-        guard selectedAvatar != nil else { return contentOffset }
-        return CGSize(
-            width: contentOffset.width - 34,
-            height: contentOffset.height - 75
-        )
+        contentOffset
     }
 }
 
-private struct AnimatedGIFView: UIViewRepresentable {
-    let resourceURL: URL
+private struct AnimatedPNGSequenceView: UIViewRepresentable {
+    let frameURLs: [URL]
 
-    func makeUIView(context: Context) -> LoopingGIFImageView {
-        let imageView = LoopingGIFImageView()
+    func makeUIView(context: Context) -> LoopingPNGSequenceImageView {
+        let imageView = LoopingPNGSequenceImageView()
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.isUserInteractionEnabled = false
-        imageView.play(resourceURL)
+        imageView.play(frameURLs)
         return imageView
     }
 
     func updateUIView(
-        _ imageView: LoopingGIFImageView,
+        _ imageView: LoopingPNGSequenceImageView,
         context: Context
     ) {
-        imageView.play(resourceURL)
+        imageView.play(frameURLs)
     }
 
     static func dismantleUIView(
-        _ imageView: LoopingGIFImageView,
+        _ imageView: LoopingPNGSequenceImageView,
         coordinator: Void
     ) {
         imageView.stopPlayback()
@@ -146,8 +144,11 @@ private struct AnimatedGIFView: UIViewRepresentable {
 }
 
 @MainActor
-private final class LoopingGIFImageView: UIImageView {
-    private var activeResourceURL: URL?
+private final class LoopingPNGSequenceImageView: UIImageView {
+    private static let framesPerSecond = 24.0
+
+    private var activeFrameURLs: [URL] = []
+    private var playbackTask: Task<Void, Never>?
     private var playbackToken = UUID()
 
     override var intrinsicContentSize: CGSize {
@@ -157,34 +158,48 @@ private final class LoopingGIFImageView: UIImageView {
         )
     }
 
-    func play(_ resourceURL: URL) {
-        guard activeResourceURL != resourceURL else { return }
-
-        stopPlayback()
-        activeResourceURL = resourceURL
-        let token = UUID()
-        playbackToken = token
-
-        let status = CGAnimateImageAtURLWithBlock(
-            resourceURL as CFURL,
-            nil
-        ) { [weak self] _, frame, stop in
-            guard let self,
-                  self.playbackToken == token else {
-                stop.pointee = true
-                return
-            }
-            self.image = UIImage(cgImage: frame)
+    func play(_ frameURLs: [URL]) {
+        guard !frameURLs.isEmpty,
+              activeFrameURLs != frameURLs else {
+            return
         }
 
-        if status != noErr {
-            activeResourceURL = nil
+        stopPlayback()
+        activeFrameURLs = frameURLs
+        let token = UUID()
+        playbackToken = token
+        playbackTask = Task { [weak self] in
+            var index = 0
+            while !Task.isCancelled {
+                let frameURL = frameURLs[index]
+                let frame = await Task.detached(
+                    priority: .userInitiated
+                ) {
+                    try? PNGFrameDecoder.decode(frameURL)
+                }.value
+
+                guard !Task.isCancelled,
+                      let self,
+                      self.playbackToken == token else {
+                    return
+                }
+                if let frame {
+                    self.image = frame
+                }
+
+                index = (index + 1) % frameURLs.count
+                try? await Task.sleep(
+                    for: .seconds(1 / Self.framesPerSecond)
+                )
+            }
         }
     }
 
     func stopPlayback() {
+        playbackTask?.cancel()
+        playbackTask = nil
         playbackToken = UUID()
-        activeResourceURL = nil
+        activeFrameURLs = []
         image = nil
     }
 }
