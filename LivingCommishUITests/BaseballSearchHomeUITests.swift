@@ -579,11 +579,15 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["profile-sticker-collection"]
                 .exists
         )
-        XCTAssertTrue(
-            app.descendants(matching: .any)[
-                "profile-sticker-sticker-hunter-goodman-three-homer"
-            ].exists
+        let collectedSticker = app.descendants(matching: .any)[
+            "profile-sticker-sticker-hunter-goodman-three-homer"
+        ]
+        XCTAssertTrue(collectedSticker.exists)
+        expectation(
+            for: NSPredicate(format: "hittable == true"),
+            evaluatedWith: collectedSticker
         )
+        waitForExpectations(timeout: 5)
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "Earned baseball sticker in profile"

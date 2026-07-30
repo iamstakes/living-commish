@@ -22,6 +22,7 @@ private enum BaseballPersonalizationSheet: String, Identifiable {
     case teams
     case players
     case profile
+    case collection
 
     var id: String { rawValue }
 }
@@ -38,6 +39,9 @@ struct BaseballExperienceRootView: View {
                 BaseballSearchHomeView(
                     onProfileTap: {
                         activeSheet = .profile
+                    },
+                    onCollectionTap: {
+                        activeSheet = .collection
                     }
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.985)))
@@ -104,6 +108,17 @@ struct BaseballExperienceRootView: View {
             case .profile:
                 BaseballProfileSheet(
                     onboarding: onboarding,
+                    revealsStickerCollection: false,
+                    onRestart: {
+                        activeSheet = nil
+                        onboarding.restartPersonalization()
+                        environment.resetToDiscovery()
+                    }
+                )
+            case .collection:
+                BaseballProfileSheet(
+                    onboarding: onboarding,
+                    revealsStickerCollection: true,
                     onRestart: {
                         activeSheet = nil
                         onboarding.restartPersonalization()
@@ -715,10 +730,21 @@ private struct BaseballPlayerPickerSheet: View {
 
 private struct BaseballProfileSheet: View {
     let onboarding: BaseballOnboardingState
+    let revealsStickerCollection: Bool
     let onRestart: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @Environment(BaseballSearchEnvironment.self) private var environment
+
+    init(
+        onboarding: BaseballOnboardingState,
+        revealsStickerCollection: Bool = false,
+        onRestart: @escaping () -> Void
+    ) {
+        self.onboarding = onboarding
+        self.revealsStickerCollection = revealsStickerCollection
+        self.onRestart = onRestart
+    }
 
     var body: some View {
         NavigationStack {
@@ -727,6 +753,23 @@ private struct BaseballProfileSheet: View {
 
                 ScrollView {
                     VStack(spacing: 18) {
+                        if revealsStickerCollection {
+                            Label(
+                                "Hunter Goodman added",
+                                systemImage: "checkmark.seal.fill"
+                            )
+                            .font(.headline.weight(.black))
+                            .foregroundStyle(.green)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier(
+                                "profile-sticker-added-confirmation"
+                            )
+
+                            ProfileStickerCollectionSection(
+                                stickers: environment.collectedStickers
+                            )
+                        }
+
                         Text("M")
                             .font(.title.weight(.black))
                             .foregroundStyle(.white)
@@ -769,9 +812,11 @@ private struct BaseballProfileSheet: View {
                             )
                         }
 
-                        ProfileStickerCollectionSection(
-                            stickers: environment.collectedStickers
-                        )
+                        if !revealsStickerCollection {
+                            ProfileStickerCollectionSection(
+                                stickers: environment.collectedStickers
+                            )
+                        }
 
                         Text("Scores, standings, stories, rival watch, and the Commish’s presentation are shaped by these choices.")
                             .font(.footnote)
@@ -812,7 +857,9 @@ private struct BaseballProfileSheet: View {
             }
         }
         .preferredColorScheme(.dark)
-        .presentationDetents([.medium, .large])
+        .presentationDetents(
+            revealsStickerCollection ? [.large] : [.medium, .large]
+        )
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("baseball-profile-sheet")
     }
