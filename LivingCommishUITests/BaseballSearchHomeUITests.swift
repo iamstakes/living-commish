@@ -19,6 +19,14 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["baseball-onboarding-stage"].exists
         )
         XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        let signedOutSearch = app.textFields["baseball-search-field"]
+        XCTAssertTrue(signedOutSearch.waitForExistence(timeout: 5))
+        XCTAssertEqual(signedOutSearch.placeholderValue, "Ask me anything MLB!")
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "baseball-generic-chrome-background"
+            ].exists
+        )
         let onboardingThought = app.descendants(matching: .any)[
             "commish-live-thought"
         ]
@@ -107,6 +115,40 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(homeScreenshot)
     }
 
+    func testSignedOutSearchStaysInsideTheGenericCommishStage() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--baseball-onboarding-ui-testing"]
+        app.launch()
+
+        let field = app.textFields["baseball-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        field.tap()
+        field.typeText("mike schmidt")
+        app.buttons["baseball-search-button"].tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-results-stage"]
+                .waitForExistence(timeout: 8)
+        )
+        XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "baseball-generic-chrome-background"
+            ].exists
+        )
+        let resultCard = app.descendants(matching: .any)["search-result-card"]
+        XCTAssertTrue(resultCard.exists)
+        XCTAssertTrue(resultCard.label.contains("Mike Schmidt"))
+        XCTAssertFalse(app.buttons["onboarding-team-card"].exists)
+
+        let clearSearch = app.buttons["clear-baseball-search"]
+        XCTAssertTrue(clearSearch.waitForExistence(timeout: 3))
+        clearSearch.tap()
+        XCTAssertTrue(
+            app.buttons["onboarding-team-card"].waitForExistence(timeout: 5)
+        )
+    }
+
     func testDemoToggleCyclesDeterministicallyWithoutMovingCommish() {
         let app = XCUIApplication()
         app.launchArguments = ["--baseball-onboarding-ui-testing"]
@@ -116,7 +158,12 @@ final class BaseballSearchHomeUITests: XCTestCase {
             "baseball-onboarding-stage"
         ]
         XCTAssertTrue(onboardingStage.waitForExistence(timeout: 8))
-        XCTAssertFalse(app.textFields["baseball-search-field"].exists)
+        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "baseball-generic-chrome-background"
+            ].exists
+        )
         let genericCommish = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(genericCommish.waitForExistence(timeout: 5))
         XCTAssertTrue(genericCommish.isHittable)
@@ -151,7 +198,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["baseball-animated-host"].exists)
         XCTAssertTrue(
             app.buttons["discovery-card-discovery-rockies-tonight"]
-                .waitForExistence(timeout: 5)
+                .waitForExistence(timeout: 8)
         )
         let personalizedThought = app.descendants(matching: .any)[
             "commish-live-thought"
@@ -188,7 +235,12 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.otherElements["baseball-animated-host"]
                 .waitForExistence(timeout: 5)
         )
-        XCTAssertFalse(app.textFields["baseball-search-field"].exists)
+        XCTAssertTrue(app.textFields["baseball-search-field"].exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "baseball-generic-chrome-background"
+            ].exists
+        )
         XCTAssertTrue(app.buttons["onboarding-team-card"].exists)
         XCTAssertFalse(app.buttons["onboarding-finish"].exists)
 
@@ -206,7 +258,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         )
         XCTAssertTrue(
             app.buttons["discovery-card-discovery-rockies-tonight"]
-                .waitForExistence(timeout: 5)
+                .waitForExistence(timeout: 8)
         )
     }
 
@@ -224,7 +276,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(searchField.waitForExistence(timeout: 5))
         XCTAssertEqual(
             searchField.placeholderValue,
-            "Ask me anything about baseball"
+            "Ask me anything MLB!"
         )
         XCTAssertTrue(app.buttons["baseball-search-button"].exists)
         let presentationStage = app.otherElements["baseball-discovery-section"]

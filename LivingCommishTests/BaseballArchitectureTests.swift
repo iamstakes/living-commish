@@ -31,6 +31,11 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertFalse(firstLaunch.hasCompletedOnboarding)
         XCTAssertNil(firstLaunch.selectedTeam)
         XCTAssertEqual(firstLaunch.step, .team)
+        XCTAssertEqual(firstLaunch.profileSnapshot.name, "Baseball Fan")
+        XCTAssertEqual(
+            firstLaunch.profileSnapshot.favoriteTeam,
+            "No favorite team selected"
+        )
 
         firstLaunch.selectTeam(.coloradoRockies)
         XCTAssertEqual(firstLaunch.selectedTeam?.name, "Rockies")
@@ -93,6 +98,11 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(state.step, .team)
         XCTAssertNil(state.selectedTeam)
         XCTAssertNil(state.selectedPlayer)
+        XCTAssertEqual(state.profileSnapshot.name, "Baseball Fan")
+        XCTAssertEqual(
+            state.profileSnapshot.favoriteTeam,
+            "No favorite team selected"
+        )
 
         state.simulatePersonalizedExperience(true)
         XCTAssertTrue(state.isSignedIn)

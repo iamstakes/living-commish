@@ -6,7 +6,6 @@ struct BaseballSearchHomeView: View {
     @Environment(BaseballSearchEnvironment.self) private var environment
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @FocusState private var isSearchFocused: Bool
     @State private var presentedPlayerStory: BaseballPlayerStorySnapshot?
 
     var body: some View {
@@ -38,18 +37,6 @@ struct BaseballSearchHomeView: View {
             reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.86),
             value: stateAnimationKey
         )
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button {
-                    isSearchFocused = false
-                } label: {
-                    Label("Done", systemImage: "keyboard.chevron.compact.down")
-                }
-                .accessibilityLabel("Dismiss search keyboard")
-                .accessibilityIdentifier("dismiss-search-keyboard")
-            }
-        }
         .fullScreenCover(item: $presentedPlayerStory) { story in
             PlayerStoryFullScreenView(
                 story: story,
@@ -58,72 +45,6 @@ struct BaseballSearchHomeView: View {
                 }
             )
         }
-    }
-
-    private var searchSection: some View {
-        GlassEffectContainer(spacing: 10) {
-            HStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    TextField(
-                        "Ask me anything about baseball",
-                        text: Bindable(environment).searchText
-                    )
-                    .font(.body.weight(.medium))
-                    .textInputAutocapitalization(.words)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .focused($isSearchFocused)
-                    .onSubmit(submitSearch)
-                    .accessibilityLabel("Search")
-                    .accessibilityIdentifier("baseball-search-field")
-
-                    if !environment.searchText.isEmpty {
-                        Button {
-                            environment.searchText = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Clear search")
-                    }
-                }
-                .padding(.horizontal, 16)
-                .frame(minHeight: 58)
-                .glassEffect(
-                    .regular.interactive(),
-                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-                )
-
-                Button(action: submitSearch) {
-                    Group {
-                        if environment.isSearching {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Image(systemName: "arrow.up.right")
-                                .font(.headline.bold())
-                        }
-                    }
-                    .frame(width: 25, height: 25)
-                }
-                .buttonStyle(.glassProminent)
-                .tint(RockiesTheme.brightPurple)
-                .disabled(
-                    environment.isSearching
-                        || environment.searchText
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                            .isEmpty
-                )
-                .accessibilityLabel("Run baseball search")
-                .accessibilityIdentifier("baseball-search-button")
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("baseball-search-section")
     }
 
     @ViewBuilder
@@ -232,7 +153,10 @@ struct BaseballSearchHomeView: View {
             content: content
         )
         .overlay(alignment: .top) {
-            searchSection
+            BaseballSearchControl(
+                environment: environment,
+                accent: RockiesTheme.brightPurple
+            )
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
         }
@@ -286,14 +210,114 @@ struct BaseballSearchHomeView: View {
         ][index % 5]
     }
 
-    private func submitSearch() {
-        let query = environment.searchText
-        runSearch(query)
+    private func runSearch(_ query: String) {
+        Task { await environment.search(query) }
+    }
+}
+
+struct BaseballSearchControl: View {
+    @Bindable var environment: BaseballSearchEnvironment
+    let accent: Color
+
+    @FocusState private var isSearchFocused: Bool
+
+    var body: some View {
+        GlassEffectContainer(spacing: 10) {
+            HStack(spacing: 10) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    TextField(
+                        "Ask me anything MLB!",
+                        text: $environment.searchText
+                    )
+                    .font(.body.weight(.medium))
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
+                    .focused($isSearchFocused)
+                    .onSubmit(submitSearch)
+                    .accessibilityLabel("Search")
+                    .accessibilityIdentifier("baseball-search-field")
+
+                    if !environment.searchText.isEmpty {
+                        Button(action: clearSearch) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 32, height: 32)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search and return")
+                        .accessibilityIdentifier("clear-baseball-search")
+                    }
+                }
+                .padding(.horizontal, 16)
+                .frame(minHeight: 58)
+                .glassEffect(
+                    .regular.interactive(),
+                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                )
+
+                Button(action: submitSearch) {
+                    Group {
+                        if environment.isSearching {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "arrow.up.right")
+                                .font(.headline.bold())
+                        }
+                    }
+                    .frame(width: 25, height: 25)
+                }
+                .buttonStyle(.glassProminent)
+                .tint(accent)
+                .disabled(
+                    environment.isSearching
+                        || environment.searchText
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .isEmpty
+                )
+                .accessibilityLabel("Run baseball search")
+                .accessibilityIdentifier("baseball-search-button")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("baseball-search-section")
+        .onChange(of: environment.searchText) { oldValue, newValue in
+            guard !oldValue.isEmpty,
+                  newValue.isEmpty,
+                  !environment.isSearching else {
+                return
+            }
+            environment.resetToDiscovery()
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    isSearchFocused = false
+                } label: {
+                    Label("Done", systemImage: "keyboard.chevron.compact.down")
+                }
+                .accessibilityLabel("Dismiss search keyboard")
+                .accessibilityIdentifier("dismiss-search-keyboard")
+            }
+        }
     }
 
-    private func runSearch(_ query: String) {
+    private func submitSearch() {
+        let query = environment.searchText
         isSearchFocused = false
         Task { await environment.search(query) }
+    }
+
+    private func clearSearch() {
+        isSearchFocused = false
+        environment.searchText = ""
     }
 }
 
@@ -346,7 +370,7 @@ struct HostPresentationStage<Content: View>: View {
                         LinearGradient(
                             colors: [
                                 accent.opacity(0.12),
-                                Color.purple.opacity(0.07),
+                                Color.blue.opacity(0.05),
                                 .clear,
                             ],
                             startPoint: .topTrailing,
@@ -707,7 +731,7 @@ private struct DiscoveryPresentationDeck: View {
     }
 }
 
-private struct SearchResultPresentationDeck: View {
+struct SearchResultPresentationDeck: View {
     private let cardScale: CGFloat = 1.14
 
     let experience: BaseballSearchExperience
@@ -1616,7 +1640,7 @@ private struct PitcherDecision: View {
     }
 }
 
-private struct SearchLoadingCard: View {
+struct SearchLoadingCard: View {
     let title: String
     let detail: String
 
@@ -1684,7 +1708,7 @@ private struct FeaturedResultCard: View {
     }
 }
 
-private struct SearchFailureCard: View {
+struct SearchFailureCard: View {
     let failure: BaseballSearchFailurePresentation
 
     var body: some View {

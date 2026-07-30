@@ -183,41 +183,117 @@ private struct BaseballOnboardingStage: View {
     let hostAccessibilityHint: String
     let onComplete: () -> Void
 
+    @Environment(BaseballSearchEnvironment.self) private var environment
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         ZStack {
-            RockiesChromeBackground()
+            BaseballGenericChromeBackground()
 
             ScrollView {
-                HostPresentationStage(
-                    host: host,
-                    accent: accent,
-                    thought: BaseballCommishThoughts.onboarding,
-                    onHostTap: onProfileTap,
-                    hostAccessibilityHint: hostAccessibilityHint
-                ) {
-                    BaseballOnboardingCard(
-                        onboarding: onboarding,
-                        onChooseTeam: onChooseTeam,
-                        onChoosePlayer: onChoosePlayer,
-                        onComplete: onComplete
-                    )
-                    .padding(.leading, 6)
-                    .padding(.bottom, 6)
-                }
-                .accessibilityIdentifier("baseball-onboarding-stage")
+                stageContent
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 18)
                 .padding(.top, 10)
                 .padding(.bottom, 36)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .preferredColorScheme(.dark)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("baseball-onboarding")
+        .onChange(of: scenePhase) { _, phase in
+            environment.setApplicationActive(phase == .active)
+        }
         .onAppear {
             host.perform(
                 onboarding.selectedTeam == nil ? .greet : .explain
             )
         }
+    }
+
+    @ViewBuilder
+    private var stageContent: some View {
+        switch environment.state {
+        case .discovering:
+            searchStage(
+                accent: accent,
+                thought: BaseballCommishThoughts.onboarding
+            ) {
+                BaseballOnboardingCard(
+                    onboarding: onboarding,
+                    onChooseTeam: onChooseTeam,
+                    onChoosePlayer: onChoosePlayer,
+                    onComplete: onComplete
+                )
+                .padding(.leading, 6)
+                .padding(.bottom, 6)
+            }
+        case .interpreting(let query):
+            searchStage(accent: .cyan, thought: nil) {
+                SearchLoadingCard(
+                    title: "Looking it up",
+                    detail: query
+                )
+                .frame(width: 276)
+                .padding(.leading, 6)
+                .padding(.bottom, 64)
+            }
+        case .loading(let plan):
+            searchStage(accent: .cyan, thought: nil) {
+                SearchLoadingCard(
+                    title: "Building the card",
+                    detail: plan.query.entities.first?.canonicalName
+                        ?? plan.query.rawText
+                )
+                .frame(width: 276)
+                .padding(.leading, 6)
+                .padding(.bottom, 64)
+            }
+        case .presenting(let experience):
+            searchStage(accent: .cyan, thought: nil) {
+                SearchResultPresentationDeck(
+                    experience: experience,
+                    reduceMotion: reduceMotion
+                )
+                .id(experience.query.rawText)
+                .padding(.leading, 6)
+                .padding(.bottom, 6)
+            }
+            .accessibilityIdentifier("baseball-results-stage")
+        case .failed(let failure):
+            searchStage(accent: .orange, thought: nil) {
+                SearchFailureCard(failure: failure)
+                    .frame(width: 276)
+                    .padding(.leading, 6)
+                    .padding(.bottom, 64)
+            }
+        }
+    }
+
+    private func searchStage<Content: View>(
+        accent: Color,
+        thought: String?,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        HostPresentationStage(
+            host: host,
+            accent: accent,
+            thought: thought,
+            onHostTap: onProfileTap,
+            hostAccessibilityHint: hostAccessibilityHint,
+            content: content
+        )
+        .overlay(alignment: .top) {
+            BaseballSearchControl(
+                environment: environment,
+                accent: .cyan
+            )
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+        }
+        .accessibilityIdentifier("baseball-onboarding-stage")
     }
 
     private var accent: Color {
@@ -799,6 +875,94 @@ struct RockiesChromeBackground: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Rockies purple pinstripe and mountain theme")
         .accessibilityIdentifier("rockies-chrome-background")
+    }
+}
+
+struct BaseballGenericChromeBackground: View {
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.018, green: 0.035, blue: 0.07),
+                        Color(red: 0.025, green: 0.075, blue: 0.095),
+                        Color(red: 0.035, green: 0.025, blue: 0.06),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                Circle()
+                    .fill(Color.blue.opacity(0.18))
+                    .frame(width: 350, height: 350)
+                    .blur(radius: 86)
+                    .offset(x: 170, y: -280)
+
+                Circle()
+                    .fill(Color.red.opacity(0.12))
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 92)
+                    .offset(x: -190, y: 310)
+
+                Image(systemName: "baseball.fill")
+                    .font(.system(size: 280, weight: .thin))
+                    .foregroundStyle(.white.opacity(0.025))
+                    .rotationEffect(.degrees(-18))
+                    .offset(x: 135, y: -180)
+                    .accessibilityHidden(true)
+
+                BaseballDiamondOutline()
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.02),
+                                .cyan.opacity(0.10),
+                                .white.opacity(0.025),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        style: StrokeStyle(
+                            lineWidth: 1.2,
+                            lineCap: .round,
+                            lineJoin: .round
+                        )
+                    )
+                    .frame(width: 430, height: 430)
+                    .offset(y: 250)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipped()
+        }
+        .ignoresSafeArea()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Generic Major League Baseball theme")
+        .accessibilityIdentifier("baseball-generic-chrome-background")
+    }
+}
+
+private struct BaseballDiamondOutline: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            let center = CGPoint(x: rect.midX, y: rect.midY)
+            let top = CGPoint(x: center.x, y: rect.minY + rect.height * 0.12)
+            let right = CGPoint(x: rect.maxX - rect.width * 0.12, y: center.y)
+            let bottom = CGPoint(x: center.x, y: rect.maxY - rect.height * 0.12)
+            let left = CGPoint(x: rect.minX + rect.width * 0.12, y: center.y)
+
+            path.move(to: top)
+            path.addLine(to: right)
+            path.addLine(to: bottom)
+            path.addLine(to: left)
+            path.closeSubpath()
+
+            path.move(to: bottom)
+            path.addQuadCurve(
+                to: top,
+                control: CGPoint(x: rect.midX, y: rect.midY)
+            )
+        }
     }
 }
 

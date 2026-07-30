@@ -294,11 +294,11 @@ final class BaseballOnboardingState {
 
     var profileSnapshot: BaseballFanProfileSnapshot {
         let base = MockMichaelProfile.value
-        let team = selectedTeam?.fullName ?? base.favoriteTeam
+        let team = selectedTeam?.fullName ?? "No favorite team selected"
         let players = selectedPlayer.map { [$0.fullName] } ?? []
         return BaseballFanProfileSnapshot(
             id: base.id,
-            name: base.name,
+            name: isSignedIn ? base.name : "Baseball Fan",
             favoriteTeam: team,
             favoritePlayers: players,
             rivalTeams: selectedTeamID == BaseballTeamChoice.coloradoRockies.id
