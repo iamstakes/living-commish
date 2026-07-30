@@ -1,49 +1,29 @@
+import MetalKit
+import RiveRuntime
 import SwiftUI
+import UIKit
 
-private enum BaseballDailyDropStage: Int, Equatable {
-    case story
+// This flow is a baseball adaptation of the production Takes World Cup quiz
+// implementation at commit 403e83b62d6656ce4ec981858bc177ed6ba0a223.
+// Its full-screen story, single-question quiz, Commish celebration, Rive pack
+// rip, card flip, and claim interactions intentionally retain that structure.
+
+private enum BaseballDailyQuizPhase: Equatable {
+    case landing
+    case stories
     case quiz
-    case locked
-    case pack
-    case sticker
-
-    var progressIndex: Int {
-        switch self {
-        case .story: 0
-        case .quiz, .locked: 1
-        case .pack: 2
-        case .sticker: 3
-        }
-    }
+    case reward(BaseballQuizResult)
 }
 
-private enum WorldCupPackMotionPhase: CaseIterable {
-    case rest
-    case liftLeft
-    case swingRight
-    case settle
+struct BaseballQuizResult: Equatable {
+    let correct: Int
+    let total: Int
+    let seconds: Int
+    let points: Int
 
-    var rotation: Double {
-        switch self {
-        case .rest, .settle: 0
-        case .liftLeft: -2
-        case .swingRight: 2
-        }
+    var formattedTime: String {
+        String(format: "%02d:%02d", seconds / 60, seconds % 60)
     }
-
-    var yOffset: CGFloat {
-        switch self {
-        case .liftLeft: -5
-        case .rest, .swingRight, .settle: 0
-        }
-    }
-}
-
-private struct BaseballStoryBeat {
-    let kicker: String
-    let title: String
-    let body: String
-    let color: Color
 }
 
 struct BaseballDailyDropDiscoveryCardContent: View {
@@ -97,8 +77,8 @@ struct BaseballDailyDropDiscoveryCardContent: View {
 
             Text(
                 isCollected
-                    ? "Replay today’s drop"
-                    : "Story → quiz → pack → sticker"
+                    ? "Replay today’s quiz"
+                    : "Story · quiz · player card"
             )
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
@@ -122,16 +102,7 @@ struct BaseballDailyDropFullScreenView: View {
     let onOpenCollection: () -> Void
     let onDismiss: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var wasAlreadyCollected: Bool
-    @State private var stage: BaseballDailyDropStage = .story
-    @State private var storyIndex = 0
-    @State private var answers: [String: Int] = [:]
-    @State private var packOpened = false
-    @State private var stickerRotation = -90.0
-    @State private var stickerOffset: CGFloat = 20
-    @State private var stickerOpacity = 0.0
-    @State private var didCollectSticker = false
+    @State private var phase: BaseballDailyQuizPhase = .landing
 
     init(
         drop: BaseballDailyDrop,
@@ -144,727 +115,1425 @@ struct BaseballDailyDropFullScreenView: View {
         self.onCollect = onCollect
         self.onOpenCollection = onOpenCollection
         self.onDismiss = onDismiss
-        _wasAlreadyCollected = State(initialValue: isAlreadyCollected)
     }
 
     var body: some View {
         ZStack {
-            fullScreenBackground
+            BaseballQuizPalette.background
+                .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                modalHeader
-
-                ScrollView {
-                    VStack(spacing: 18) {
-                        flowRail
-
-                        stageContent
-                            .id(stage)
-                            .transition(
-                                reduceMotion
-                                    ? .opacity
-                                    : .asymmetric(
-                                        insertion: .move(edge: .trailing)
-                                            .combined(with: .opacity),
-                                        removal: .move(edge: .leading)
-                                            .combined(with: .opacity)
-                                    )
-                            )
+            switch phase {
+            case .landing:
+                BaseballQuizLandingView(
+                    onClose: onDismiss,
+                    onStart: {
+                        BaseballQuizHaptics.affirm()
+                        phase = .stories
                     }
-                    .padding(.horizontal, 18)
-                    .padding(.top, 16)
-                    .padding(.bottom, 40)
-                }
-                .scrollIndicators(.hidden)
+                )
+                .transition(.opacity)
+
+            case .stories:
+                BaseballQuizStoriesView(
+                    stories: drop.stories,
+                    onComplete: {
+                        BaseballQuizHaptics.affirm()
+                        phase = .quiz
+                    },
+                    onClose: onDismiss
+                )
+                .transition(.opacity)
+
+            case .quiz:
+                BaseballQuizQuestionsView(
+                    questions: drop.questions,
+                    onClose: onDismiss,
+                    onComplete: { result in
+                        phase = .reward(result)
+                    }
+                )
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.combined(
+                            with: .scale(scale: 0.96)
+                        ),
+                        removal: .opacity
+                    )
+                )
+
+            case .reward(let result):
+                BaseballQuizRewardView(
+                    sticker: drop.rewardSticker,
+                    result: result,
+                    onClaim: {
+                        onCollect(drop.rewardSticker)
+                        onOpenCollection()
+                    }
+                )
+                .transition(.opacity)
             }
         }
+        .animation(
+            .spring(response: 0.5, dampingFraction: 0.85),
+            value: phase
+        )
         .preferredColorScheme(.dark)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("baseball-daily-drop-full-screen")
+    }
+}
+
+private enum BaseballQuizPalette {
+    static let background = Color(
+        red: 0.035,
+        green: 0.049,
+        blue: 0.090
+    )
+    static let auraCore = Color(
+        red: 0.514,
+        green: 0.071,
+        blue: 0.929
+    )
+    static let auraLight = Color(
+        red: 0.694,
+        green: 0.342,
+        blue: 1
+    )
+    static let correct = Color(
+        red: 0.24,
+        green: 1,
+        blue: 0.45
+    )
+    static let wrong = Color(
+        red: 1,
+        green: 0.24,
+        blue: 0.24
+    )
+}
+
+@MainActor
+private enum BaseballQuizHaptics {
+    static func tap() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
-    private var fullScreenBackground: some View {
-        ZStack {
-            Color(red: 0.027, green: 0.035, blue: 0.055)
+    static func affirm() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    static func reject() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
+    }
+}
+
+private struct BaseballQuizCloseButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "xmark")
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Close daily baseball quiz")
+        .accessibilityIdentifier("daily-drop-close")
+    }
+}
+
+private struct BaseballQuizLandingView: View {
+    let onClose: () -> Void
+    let onStart: () -> Void
+
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            BaseballQuizPalette.background
                 .ignoresSafeArea()
 
             LinearGradient(
                 colors: [
-                    RockiesTheme.brightPurple.opacity(0.34),
-                    .clear,
-                    Color.orange.opacity(0.10),
+                    Color.black.opacity(0.05),
+                    BaseballQuizPalette.auraCore.opacity(0.72),
                 ],
-                startPoint: .topTrailing,
-                endPoint: .bottomLeading
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
 
             Circle()
-                .fill(Color.cyan.opacity(0.12))
-                .frame(width: 330, height: 330)
-                .blur(radius: 70)
-                .offset(x: -180, y: -310)
+                .fill(Color.black.opacity(0.26))
+                .frame(width: 420, height: 420)
+                .blur(radius: 36)
+                .offset(x: 80, y: -175)
 
-            Circle()
-                .fill(Color.purple.opacity(0.18))
-                .frame(width: 360, height: 360)
-                .blur(radius: 80)
-                .offset(x: 190, y: 360)
-        }
-        .accessibilityHidden(true)
-    }
-
-    private var modalHeader: some View {
-        HStack(spacing: 12) {
-            Button(action: onDismiss) {
-                Image(systemName: "xmark")
-                    .font(.headline.weight(.black))
-                    .frame(width: 42, height: 42)
-            }
-            .buttonStyle(.glass)
-            .accessibilityLabel("Close daily baseball drop")
-            .accessibilityIdentifier("daily-drop-close")
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("TODAY’S DROP")
-                    .font(.system(size: 9, weight: .black))
-                    .tracking(1.8)
-                    .foregroundStyle(.yellow)
-                Text("Daily Baseball Drop")
-                    .font(.headline.weight(.black))
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            Label("1 sticker", systemImage: "gift.fill")
-                .font(.caption.weight(.black))
-                .foregroundStyle(.purple)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(.white, in: Capsule())
-        }
-        .padding(.horizontal, 18)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-        .background(.black.opacity(0.28))
-        .overlay(alignment: .bottom) {
-            Divider().opacity(0.28)
-        }
-    }
-
-    private var flowRail: some View {
-        let steps = [
-            ("Story", Color.mint),
-            ("Quiz", Color.cyan),
-            ("Pack", Color.yellow),
-            ("Reveal", Color.purple),
-        ]
-
-        return HStack(spacing: 5) {
-            ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                VStack(spacing: 6) {
-                    Capsule()
-                        .fill(
-                            index <= stage.progressIndex
-                                ? step.1
-                                : Color.white.opacity(0.10)
-                        )
-                        .frame(height: 6)
-
-                    Text(step.0.uppercased())
-                        .font(.system(size: 8, weight: .black))
-                        .tracking(0.5)
-                        .foregroundStyle(
-                            index == stage.progressIndex
-                                ? .white
-                                : .white.opacity(0.30)
-                        )
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(13)
-        .background(
-            .white.opacity(0.045),
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "Daily drop progress, step \(stage.progressIndex + 1) of 4"
-        )
-    }
-
-    @ViewBuilder
-    private var stageContent: some View {
-        switch stage {
-        case .story:
-            storyPanel
-        case .quiz:
-            quizPanel
-        case .locked:
-            lockedPanel
-        case .pack:
-            packPanel
-        case .sticker:
-            stickerRevealPanel
-        }
-    }
-
-    private var storyPanel: some View {
-        let beat = storyBeats[storyIndex]
-        let isLastBeat = storyIndex == storyBeats.count - 1
-
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                LinearGradient(
-                    colors: [
-                        beat.color.opacity(0.38),
-                        RockiesTheme.brightPurple.opacity(0.20),
-                        .black.opacity(0.30),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+            Image(systemName: "baseball.fill")
+                .font(.system(size: 330, weight: .black))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(0.46),
+                            .white.opacity(0.10),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
-
-                Circle()
-                    .fill(Color.orange.opacity(0.22))
-                    .frame(width: 210, height: 210)
-                    .blur(radius: 38)
-                    .offset(x: 190, y: 220)
-
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(beat.kicker.uppercased())
-                        .font(.system(size: 10, weight: .black))
-                        .tracking(1.7)
-                        .foregroundStyle(.white.opacity(0.68))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background(.black.opacity(0.24), in: Capsule())
-
-                    Spacer()
-
-                    Image(systemName: storyIndex == 0 ? "baseball.fill" : "sparkles")
-                        .font(.system(size: 48, weight: .black))
-                        .foregroundStyle(.white)
-                        .padding(.bottom, 18)
-
-                    Text(beat.title)
-                        .font(.system(size: 34, weight: .black))
-                        .fontWidth(.expanded)
-                        .leadingTight()
-                        .foregroundStyle(.white)
-
-                    Text(beat.body)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.66))
-                        .lineSpacing(4)
-                        .padding(.top, 14)
-                }
-                .padding(22)
-            }
-            .frame(minHeight: 430)
+                .rotationEffect(.degrees(-18))
+                .offset(x: 95, y: -85)
+                .shadow(color: .black.opacity(0.35), radius: 24, y: 18)
+                .accessibilityHidden(true)
 
             VStack(spacing: 16) {
-                HStack(spacing: 7) {
-                    ForEach(storyBeats.indices, id: \.self) { index in
-                        Capsule()
-                            .fill(
-                                index <= storyIndex
-                                    ? Color.yellow
-                                    : Color.white.opacity(0.10)
-                            )
-                            .frame(height: 6)
-                    }
-                }
+                Spacer()
 
-                Button {
-                    if isLastBeat {
-                        move(to: .quiz)
-                    } else {
-                        withAnimation(.easeInOut(duration: 0.24)) {
-                            storyIndex += 1
-                        }
-                    }
-                } label: {
-                    Text(isLastBeat ? "Start Quiz" : "Tap Through")
-                        .font(.subheadline.weight(.black))
-                        .textCase(.uppercase)
-                        .frame(maxWidth: .infinity, minHeight: 52)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.black)
-                .background(Color.yellow, in: RoundedRectangle(cornerRadius: 17))
-                .accessibilityIdentifier("daily-drop-start-quiz")
-            }
-            .padding(18)
-            .background(.black.opacity(0.26))
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(.white.opacity(0.10), lineWidth: 1)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("daily-drop-story")
-    }
+                Text("The Ultimate Baseball Daily Quiz")
+                    .font(.system(size: 30, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+                    .opacity(appeared ? 1 : 0)
 
-    private var quizPanel: some View {
-        VStack(spacing: 13) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("BLITZ QUIZ")
-                        .font(.system(size: 10, weight: .black))
-                        .tracking(1.8)
-                        .foregroundStyle(.yellow)
-                    Text("Get one right to unlock today’s pack.")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.56))
-                }
+                Text(
+                    "From historic moments to today’s live drama, the Commish is testing your baseball knowledge daily."
+                )
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.white.opacity(0.72))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 6)
 
                 Spacer()
 
-                Text("\(answers.count) / \(drop.questions.count)")
-                    .font(.caption.monospacedDigit().weight(.black))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.black.opacity(0.30), in: Capsule())
-            }
-            .padding(16)
-            .background(
-                Color.yellow.opacity(0.10),
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.yellow.opacity(0.20), lineWidth: 1)
+                Button {
+                    onStart()
+                } label: {
+                    Text("Let’s go")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            BaseballQuizPalette.auraCore,
+                                            BaseballQuizPalette.auraLight,
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 16)
+                .accessibilityIdentifier("daily-drop-start-stories")
             }
 
-            ForEach(Array(drop.questions.enumerated()), id: \.element.id) {
-                index,
-                question in
-                quizQuestionCard(question, number: index + 1)
+            HStack {
+                BaseballQuizCloseButton(action: onClose)
+                Spacer()
             }
-
-            Button(action: submitQuiz) {
-                Text(
-                    answers.count == drop.questions.count
-                        ? "Submit · \(score) right"
-                        : "Answer all \(drop.questions.count)"
-                )
-                .font(.subheadline.weight(.black))
-                .textCase(.uppercase)
-                .frame(maxWidth: .infinity, minHeight: 54)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(
-                answers.count == drop.questions.count
-                    ? Color.black
-                    : Color.white.opacity(0.28)
-            )
-            .background(
-                answers.count == drop.questions.count
-                    ? Color.yellow
-                    : Color.white.opacity(0.08),
-                in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-            )
-            .disabled(answers.count != drop.questions.count)
-            .accessibilityIdentifier("quiz-submit-button")
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("daily-drop-quiz")
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.6, dampingFraction: 0.85)
+                    .delay(0.1)
+            ) {
+                appeared = true
+            }
+        }
+    }
+}
+
+private struct BaseballQuizStoriesView: View {
+    let stories: [BaseballQuizStory]
+    let onComplete: () -> Void
+    let onClose: () -> Void
+
+    @State private var index = 0
+    @State private var textAppeared = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Color.black.ignoresSafeArea()
+
+            BaseballRemoteImage(
+                urlString: currentStory?.imageURL ?? "",
+                fallbackSystemImage: "baseball.fill"
+            )
+            .ignoresSafeArea()
+            .id(index)
+            .transition(.opacity)
+
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.10),
+                    .clear,
+                    .black.opacity(0.92),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+
+            HStack(spacing: 0) {
+                Button(action: goBack) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Previous story")
+                .accessibilityIdentifier("daily-drop-story-previous")
+
+                Button(action: goForward) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(
+                    index == stories.count - 1
+                        ? "Start quiz"
+                        : "Next story"
+                )
+                .accessibilityIdentifier("daily-drop-story-next")
+            }
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                HStack {
+                    BaseballQuizCloseButton(action: onClose)
+
+                    Spacer()
+
+                    HStack(spacing: 7) {
+                        Image(systemName: "baseball.fill")
+                        Text("LIVING COMMISH")
+                    }
+                    .font(.system(size: 12, weight: .black))
+                    .tracking(0.9)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.7), radius: 8)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+
+                Spacer()
+
+                VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        if let story = currentStory {
+                            Text(story.title.capitalized)
+                                .font(.system(size: 32, weight: .regular))
+                                .fontWidth(.expanded)
+                                .lineSpacing(10)
+                                .foregroundStyle(.white)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.8)
+                                .fixedSize(
+                                    horizontal: false,
+                                    vertical: true
+                                )
+
+                            Text(story.subtitle)
+                                .font(.system(size: 18, weight: .regular))
+                                .kerning(0.54)
+                                .lineSpacing(10)
+                                .foregroundStyle(.white.opacity(0.86))
+                                .lineLimit(4)
+                                .minimumScaleFactor(0.85)
+                                .fixedSize(
+                                    horizontal: false,
+                                    vertical: true
+                                )
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .shadow(color: .black.opacity(0.6), radius: 8, y: 2)
+                    .opacity(textAppeared ? 1 : 0)
+                    .offset(y: textAppeared ? 0 : 12)
+
+                    HStack(spacing: 6) {
+                        ForEach(stories.indices, id: \.self) { storyIndex in
+                            Capsule()
+                                .fill(
+                                    storyIndex <= index
+                                        ? Color.white
+                                        : Color.white.opacity(0.25)
+                                )
+                                .frame(height: 3)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .animation(.easeInOut(duration: 0.25), value: index)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+            .allowsHitTesting(true)
+        }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 24)
+                .onEnded { value in
+                    if value.translation.width < -40 {
+                        goForward()
+                    } else if value.translation.width > 40 {
+                        goBack()
+                    }
+                }
+        )
+        .onAppear(perform: animateText)
+        .onChange(of: index) { _, _ in
+            animateText()
+        }
     }
 
-    private func quizQuestionCard(
-        _ question: BaseballQuizQuestion,
-        number: Int
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 13) {
-            HStack(alignment: .top, spacing: 11) {
-                Text("\(number)")
-                    .font(.caption.weight(.black))
-                    .foregroundStyle(.black)
-                    .frame(width: 29, height: 29)
-                    .background(.white, in: Circle())
+    private var currentStory: BaseballQuizStory? {
+        guard stories.indices.contains(index) else { return nil }
+        return stories[index]
+    }
 
-                Text(question.question)
-                    .font(.headline.weight(.black))
-                    .fixedSize(horizontal: false, vertical: true)
+    private func goForward() {
+        BaseballQuizHaptics.tap()
+        if index >= stories.count - 1 {
+            onComplete()
+        } else {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                index += 1
             }
+        }
+    }
 
-            ForEach(Array(question.answers.enumerated()), id: \.offset) {
-                answerIndex,
-                answer in
-                let selected = answers[question.id] == answerIndex
+    private func goBack() {
+        guard index > 0 else { return }
+        BaseballQuizHaptics.tap()
+        withAnimation(.easeInOut(duration: 0.25)) {
+            index -= 1
+        }
+    }
 
-                Button {
-                    answers[question.id] = answerIndex
-                } label: {
-                    Text(answer)
-                        .font(.subheadline.weight(.black))
-                        .foregroundStyle(selected ? .black : .white.opacity(0.72))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .frame(minHeight: 48)
-                        .background(
-                            selected
-                                ? Color.yellow
-                                : Color.black.opacity(0.22),
-                            in: RoundedRectangle(
-                                cornerRadius: 16,
-                                style: .continuous
-                            )
+    private func animateText() {
+        textAppeared = false
+        withAnimation(
+            .spring(response: 0.5, dampingFraction: 0.85)
+                .delay(0.05)
+        ) {
+            textAppeared = true
+        }
+    }
+}
+
+private struct BaseballQuizQuestionsView: View {
+    let questions: [BaseballQuizQuestion]
+    let onClose: () -> Void
+    let onComplete: (BaseballQuizResult) -> Void
+
+    @State private var questionIndex = 0
+    @State private var selectedAnswerIndex: Int?
+    @State private var timeRemaining = 10.0
+    @State private var correctAnswers = 0
+    @State private var totalElapsed = 0.0
+    @State private var points = 0
+    @State private var showNextButton = false
+    @State private var isCelebrating = false
+    @State private var celebrationID = 0
+
+    private let secondsPerQuestion = 10.0
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            BaseballQuizPalette.background
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                navigationBar
+                    .padding(.horizontal, 16)
+
+                if let question = currentQuestion {
+                    BaseballTriviaQuestionView(
+                        question: question,
+                        selectedAnswerIndex: selectedAnswerIndex,
+                        timeRemaining: timeRemaining,
+                        totalTime: secondsPerQuestion,
+                        onAnswerSelected: answer
+                    )
+                    .id(question.id)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing)
+                                .combined(with: .scale(scale: 0.94))
+                                .combined(with: .opacity),
+                            removal: .move(edge: .leading)
+                                .combined(with: .scale(scale: 0.94))
+                                .combined(with: .opacity)
                         )
-                        .overlay {
-                            RoundedRectangle(
-                                cornerRadius: 16,
-                                style: .continuous
-                            )
-                            .stroke(
-                                selected
-                                    ? Color.yellow
-                                    : Color.white.opacity(0.08),
-                                lineWidth: 1
+                    )
+                }
+
+                ZStack {
+                    if showNextButton {
+                        Button(action: advance) {
+                            HStack(spacing: 6) {
+                                Text(
+                                    isLastQuestion
+                                        ? "See reward"
+                                        : "Next question"
+                                )
+                                .font(.system(size: 15, weight: .semibold))
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 13, weight: .bold))
+                            }
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 24)
+                            .frame(height: 44)
+                            .background(
+                                Capsule()
+                                    .fill(.white)
+                                    .shadow(
+                                        color: .white.opacity(0.3),
+                                        radius: 14
+                                    )
                             )
                         }
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(
-                    "quiz-answer-\(question.id)-\(answerIndex)"
-                )
-            }
-        }
-        .padding(17)
-        .background(
-            .white.opacity(0.045),
-            in: RoundedRectangle(cornerRadius: 23, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 23, style: .continuous)
-                .stroke(.white.opacity(0.08), lineWidth: 1)
-        }
-    }
-
-    private var lockedPanel: some View {
-        VStack(spacing: 18) {
-            Spacer(minLength: 36)
-
-            Image(systemName: "lock.fill")
-                .font(.system(size: 44, weight: .black))
-                .foregroundStyle(.red)
-                .frame(width: 86, height: 86)
-                .background(Color.red.opacity(0.14), in: Circle())
-
-            Text("No pack yet")
-                .font(.system(size: 30, weight: .black))
-
-            Text(
-                "You finished with \(score) right. Today’s pack needs one correct answer."
-            )
-            .font(.body.weight(.semibold))
-            .foregroundStyle(.white.opacity(0.58))
-            .multilineTextAlignment(.center)
-
-            Button(action: retryQuiz) {
-                Text("Retry Quiz")
-                    .font(.subheadline.weight(.black))
-                    .textCase(.uppercase)
-                    .frame(maxWidth: .infinity, minHeight: 54)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-            .background(
-                .white.opacity(0.10),
-                in: RoundedRectangle(cornerRadius: 18)
-            )
-            .accessibilityIdentifier("daily-drop-retry")
-
-            Spacer(minLength: 36)
-        }
-        .padding(24)
-        .background(
-            Color.red.opacity(0.10),
-            in: RoundedRectangle(cornerRadius: 28, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(Color.red.opacity(0.25), lineWidth: 1)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("daily-drop-locked")
-    }
-
-    private var packPanel: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 6) {
-                Text("PACK EARNED")
-                    .font(.system(size: 10, weight: .black))
-                    .tracking(2)
-                    .foregroundStyle(.purple.opacity(0.85))
-
-                Text("\(score) / \(drop.questions.count) correct")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.white.opacity(0.52))
-            }
-
-            ZStack {
-                RoundedRectangle(cornerRadius: 31, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [.yellow, .orange, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        .buttonStyle(BaseballPressableScaleStyle())
+                        .transition(
+                            .move(edge: .bottom)
+                                .combined(with: .opacity)
                         )
-                    )
-                    .frame(width: 190, height: 276)
-                    .shadow(
-                        color: Color.purple.opacity(0.44),
-                        radius: 44,
-                        y: 24
-                    )
-
-                VStack {
-                    HStack {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(.yellow)
-                        Spacer()
-                        Text("D1")
-                            .foregroundStyle(.white.opacity(0.52))
+                        .accessibilityIdentifier("quiz-next-button")
                     }
-                    .font(.caption.weight(.black))
-
-                    Spacer()
-
-                    Image(systemName: "baseball.fill")
-                        .font(.system(size: 60, weight: .black))
-                        .foregroundStyle(.yellow)
-
-                    Text("BASEBALL\nPACK")
-                        .font(.title2.weight(.black))
-                        .multilineTextAlignment(.center)
-                        .leadingTight()
-
-                    Spacer()
-
-                    Text("1 STICKER")
-                        .font(.caption.weight(.black))
-                        .tracking(1.8)
-                        .foregroundStyle(.white.opacity(0.36))
                 }
-                .padding(22)
-                .frame(width: 182, height: 268)
-                .background(
-                    Color(red: 0.027, green: 0.035, blue: 0.055),
-                    in: RoundedRectangle(cornerRadius: 27, style: .continuous)
-                )
+                .frame(height: 52)
+                .padding(.bottom, 12)
+            }
+            .padding(.horizontal, 12)
 
-                Capsule()
-                    .fill(.white)
-                    .frame(width: 148, height: 5)
-                    .scaleEffect(
-                        x: packOpened ? 1 : 0,
-                        y: 1,
-                        anchor: .leading
-                    )
-                    .offset(y: -83)
+            if isCelebrating {
+                BaseballCommishCelebrationView {
+                    isCelebrating = false
+                }
+                .id(celebrationID)
             }
-            // Direct native port of the World Cup PackPanel:
-            // 1.4s [0, -2, 2, 0] wobble, then a 0.35s rip/open.
-            .phaseAnimator(
-                reduceMotion
-                    ? [WorldCupPackMotionPhase.rest]
-                    : WorldCupPackMotionPhase.allCases
-            ) { content, phase in
-                content
-                    .rotationEffect(
-                        .degrees(packOpened ? -8 : phase.rotation)
-                    )
-                    .offset(y: packOpened ? -12 : phase.yOffset)
-            } animation: { _ in
-                .easeInOut(duration: 0.35)
-            }
-            .animation(.easeInOut(duration: 0.35), value: packOpened)
-            .padding(.vertical, 12)
-
-            Button(action: packButtonTapped) {
-                Text(packOpened ? "Reveal Sticker" : "Swipe To Rip")
-                    .font(.subheadline.weight(.black))
-                    .textCase(.uppercase)
-                    .frame(maxWidth: .infinity, minHeight: 56)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.black)
-            .background(.white, in: RoundedRectangle(cornerRadius: 18))
-            .animation(nil, value: packOpened)
-            .accessibilityIdentifier("rip-pack-button")
         }
-        .padding(22)
-        .background(
-            Color(red: 0.071, green: 0.035, blue: 0.122),
-            in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+        .animation(
+            .spring(response: 0.5, dampingFraction: 0.8),
+            value: showNextButton
         )
-        .overlay {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .stroke(Color.purple.opacity(0.25), lineWidth: 1)
+        .animation(
+            .spring(response: 0.55, dampingFraction: 0.82),
+            value: questionIndex
+        )
+        .task(id: questionIndex) {
+            await runTimer()
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("daily-drop-pack")
     }
 
-    private var stickerRevealPanel: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 5) {
-                Text(wasAlreadyCollected ? "STICKER REPLAY" : "NEW STICKER")
-                    .font(.system(size: 10, weight: .black))
-                    .tracking(2)
-                    .foregroundStyle(.mint)
+    private var currentQuestion: BaseballQuizQuestion? {
+        guard questions.indices.contains(questionIndex) else { return nil }
+        return questions[questionIndex]
+    }
 
-                Text("Pack reveal")
-                    .font(.system(size: 30, weight: .black))
+    private var isLastQuestion: Bool {
+        questionIndex >= questions.count - 1
+    }
+
+    private var navigationBar: some View {
+        HStack(spacing: 12) {
+            BaseballQuizCloseButton(action: onClose)
+
+            GeometryReader { geometry in
+                let count = max(questions.count, 1)
+                let spacing: CGFloat = 6
+                let totalSpacing = spacing * CGFloat(max(count - 1, 0))
+                let segmentWidth = (
+                    geometry.size.width - totalSpacing
+                ) / CGFloat(count)
+
+                HStack(spacing: spacing) {
+                    ForEach(questions.indices, id: \.self) { index in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(.white.opacity(0.18))
+                                .frame(width: segmentWidth, height: 4)
+
+                            Capsule()
+                                .fill(progressColor(for: index))
+                                .frame(
+                                    width: index <= questionIndex
+                                        ? segmentWidth
+                                        : 0,
+                                    height: 4
+                                )
+                        }
+                    }
+                }
             }
-
-            BaseballStickerCardView(
-                sticker: drop.rewardSticker,
-                size: .large
-            )
-            .rotation3DEffect(
-                .degrees(stickerRotation),
-                axis: (x: 0, y: 1, z: 0)
-            )
-            .offset(y: stickerOffset)
-            .opacity(stickerOpacity)
-
-            VStack(spacing: 8) {
-                Label(
-                    wasAlreadyCollected
-                        ? "Already in your collection"
-                        : "Added to your collection",
-                    systemImage: "checkmark.seal.fill"
-                )
-                .font(.headline.weight(.black))
-                .foregroundStyle(.mint)
-
-                Text(drop.rewardSticker.tagline)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.56))
-                    .multilineTextAlignment(.center)
-            }
-
-            Button(action: onOpenCollection) {
-                Label("View Sticker Collection", systemImage: "square.grid.2x2.fill")
-                    .font(.subheadline.weight(.black))
-                    .textCase(.uppercase)
-                    .frame(maxWidth: .infinity, minHeight: 56)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.black)
-            .background(.mint, in: RoundedRectangle(cornerRadius: 18))
-            .accessibilityIdentifier("daily-drop-open-collection")
+            .frame(height: 4)
         }
-        .padding(24)
-        .background(
-            .white.opacity(0.045),
-            in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+        .frame(height: 44)
+    }
+
+    private func progressColor(for index: Int) -> LinearGradient {
+        let pending = LinearGradient(
+            colors: [
+                BaseballQuizPalette.auraLight,
+                BaseballQuizPalette.auraCore,
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
         )
+        guard index < questionIndex
+                || (index == questionIndex && selectedAnswerIndex != nil),
+              questions.indices.contains(index) else {
+            return pending
+        }
+
+        let wasCorrect: Bool
+        if index == questionIndex {
+            wasCorrect = selectedAnswerIndex
+                == questions[index].correctAnswerIndex
+        } else {
+            // Completed earlier questions contribute to the running total, but
+            // their individual answers are intentionally not retained.
+            wasCorrect = true
+        }
+
+        let color = wasCorrect
+            ? BaseballQuizPalette.correct
+            : BaseballQuizPalette.wrong
+        return LinearGradient(
+            colors: [color, color.opacity(0.72)],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    private func answer(_ answerIndex: Int) {
+        guard selectedAnswerIndex == nil, let question = currentQuestion else {
+            return
+        }
+
+        selectedAnswerIndex = answerIndex
+        totalElapsed += max(0, secondsPerQuestion - timeRemaining)
+
+        if answerIndex == question.correctAnswerIndex {
+            correctAnswers += 1
+            points += 100 + Int(floor(timeRemaining)) * 5
+            BaseballQuizHaptics.affirm()
+            celebrationID += 1
+            isCelebrating = true
+        } else {
+            BaseballQuizHaptics.reject()
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(700))
+            showNextButton = true
+        }
+    }
+
+    private func advance() {
+        guard selectedAnswerIndex != nil else { return }
+        BaseballQuizHaptics.tap()
+
+        if isLastQuestion {
+            onComplete(
+                BaseballQuizResult(
+                    correct: correctAnswers,
+                    total: questions.count,
+                    seconds: max(1, Int(ceil(totalElapsed))),
+                    points: points
+                )
+            )
+            return
+        }
+
+        withAnimation(
+            .spring(response: 0.35, dampingFraction: 0.85)
+        ) {
+            showNextButton = false
+        }
+
+        withAnimation(
+            .spring(response: 0.55, dampingFraction: 0.8)
+        ) {
+            questionIndex += 1
+            selectedAnswerIndex = nil
+            timeRemaining = secondsPerQuestion
+            isCelebrating = false
+        }
+    }
+
+    @MainActor
+    private func runTimer() async {
+        timeRemaining = secondsPerQuestion
+
+        while !Task.isCancelled,
+              selectedAnswerIndex == nil,
+              timeRemaining > 0 {
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled, selectedAnswerIndex == nil else {
+                return
+            }
+            timeRemaining = max(0, timeRemaining - 0.1)
+        }
+
+        if selectedAnswerIndex == nil {
+            answer(-1)
+        }
+    }
+}
+
+private struct BaseballTriviaQuestionView: View {
+    let question: BaseballQuizQuestion
+    let selectedAnswerIndex: Int?
+    let timeRemaining: Double
+    let totalTime: Double
+    let onAnswerSelected: (Int) -> Void
+
+    @State private var appeared = false
+    @State private var imageZoom = 1.06
+    @State private var timerPulse = 1.0
+
+    private var isAnswered: Bool {
+        selectedAnswerIndex != nil
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let imageHeight = max(
+                280,
+                min(
+                    geometry.size.height * 0.62,
+                    geometry.size.height - 240
+                )
+            )
+
+            VStack(spacing: 12) {
+                imageSection(
+                    size: CGSize(
+                        width: geometry.size.width,
+                        height: imageHeight
+                    )
+                )
+
+                VStack(spacing: 8) {
+                    ForEach(question.answers.indices, id: \.self) { index in
+                        answerButton(index: index)
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height,
+                alignment: .top
+            )
+            .scaleEffect(appeared ? 1 : 0.96)
+            .opacity(appeared ? 1 : 0)
+        }
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.55, dampingFraction: 0.82)
+            ) {
+                appeared = true
+            }
+            withAnimation(.easeOut(duration: 0.9)) {
+                imageZoom = 1
+            }
+            withAnimation(
+                .easeInOut(duration: 0.9)
+                    .repeatForever(autoreverses: true)
+            ) {
+                timerPulse = 1.06
+            }
+        }
+    }
+
+    private func imageSection(size: CGSize) -> some View {
+        ZStack(alignment: .topLeading) {
+            BaseballRemoteImage(
+                urlString: question.imageURL,
+                fallbackSystemImage: "baseball.fill"
+            )
+            .scaleEffect(imageZoom)
+
+            if isAnswered {
+                LinearGradient(
+                    colors: [
+                        .black.opacity(0.75),
+                        .black.opacity(0.35),
+                        .clear,
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: size.height * 0.42)
+                .frame(
+                    width: size.width,
+                    height: size.height,
+                    alignment: .top
+                )
+            }
+
+            LinearGradient(
+                colors: [
+                    .clear,
+                    .black.opacity(0.5),
+                    .black.opacity(0.92),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            Text(question.question)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(4)
+                .minimumScaleFactor(0.7)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
+                .frame(
+                    width: size.width,
+                    height: size.height,
+                    alignment: .bottomLeading
+                )
+
+            Group {
+                if isAnswered {
+                    Text(question.fact)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.96))
+                        .lineSpacing(2)
+                        .frame(width: 216, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(.ultraThinMaterial)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(
+                                            .white.opacity(0.18),
+                                            lineWidth: 1
+                                        )
+                                }
+                        )
+                        .transition(
+                            .opacity.combined(
+                                with: .scale(scale: 0.92)
+                            )
+                        )
+                } else {
+                    timerBadge
+                        .transition(
+                            .opacity.combined(
+                                with: .scale(scale: 0.92)
+                            )
+                        )
+                }
+            }
+            .padding(14)
+            .animation(
+                .spring(response: 0.55, dampingFraction: 0.78),
+                value: isAnswered
+            )
+        }
+        .frame(width: size.width, height: size.height)
+        .clipped()
+        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
+            RoundedRectangle(cornerRadius: 24)
                 .stroke(.white.opacity(0.08), lineWidth: 1)
         }
-        .onAppear(perform: revealSticker)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("daily-drop-sticker-reveal")
+        .shadow(color: .black.opacity(0.4), radius: 16, y: 8)
     }
 
-    private var storyBeats: [BaseballStoryBeat] {
-        [
-            BaseballStoryBeat(
-                kicker: "Today’s moment",
-                title: drop.storyTitle,
-                body: drop.storyBody,
-                color: .cyan
-            ),
-            BaseballStoryBeat(
-                kicker: "Momentum check",
-                title: "One right answer opens the pack.",
-                body: "No marathon. Three fast questions, one pack, one new sticker. Hit the beat and rip.",
-                color: .yellow
-            ),
-            BaseballStoryBeat(
-                kicker: "Collection chase",
-                title: "\(drop.rewardSticker.playerName) is waiting.",
-                body: "Finish the quiz and rip today’s pack to add the first sticker to your Living Commish collection.",
-                color: .mint
-            ),
-        ]
+    private var timerBadge: some View {
+        let isLow = timeRemaining <= 5
+        let accent = isLow
+            ? BaseballQuizPalette.wrong
+            : BaseballQuizPalette.correct
+        let timeText = isLow
+            ? String(
+                format: "%.1f",
+                (timeRemaining * 10).rounded(.down) / 10
+            )
+            : "\(Int(ceil(timeRemaining)))"
+
+        return HStack(spacing: 6) {
+            Image(systemName: "baseball.fill")
+                .font(.system(size: 15, weight: .heavy))
+
+            Text(timeText)
+                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .monospacedDigit()
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+            Capsule()
+                .fill(.black)
+                .overlay {
+                    Capsule()
+                        .stroke(accent.opacity(isLow ? 0.9 : 0.45), lineWidth: 1.5)
+                }
+        )
+        .shadow(color: accent.opacity(0.4), radius: isLow ? 14 : 6)
+        .scaleEffect((isLow ? 1.06 : 1) * timerPulse)
     }
 
-    private var score: Int {
-        drop.questions.reduce(into: 0) { total, question in
-            if answers[question.id] == question.correctAnswerIndex {
-                total += 1
+    private func answerButton(index: Int) -> some View {
+        let selected = selectedAnswerIndex == index
+        let correct = isAnswered && index == question.correctAnswerIndex
+
+        return Button {
+            onAnswerSelected(index)
+        } label: {
+            Text(question.answers[index])
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(answerBackground(index: index))
+                )
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            answerStroke(index: index),
+                            lineWidth: selected || correct ? 2 : 1.25
+                        )
+                }
+        }
+        .buttonStyle(BaseballPressableScaleStyle())
+        .disabled(isAnswered)
+        .opacity(isAnswered && !selected && !correct ? 0.5 : 1)
+        .animation(
+            .spring(response: 0.4, dampingFraction: 0.7),
+            value: selectedAnswerIndex
+        )
+        .accessibilityIdentifier("quiz-answer-\(question.id)-\(index)")
+    }
+
+    private func answerBackground(index: Int) -> SwiftUI.Color {
+        guard let selectedAnswerIndex else {
+            return .white.opacity(0.06)
+        }
+        if index == question.correctAnswerIndex {
+            return BaseballQuizPalette.correct.opacity(0.18)
+        }
+        if index == selectedAnswerIndex {
+            return BaseballQuizPalette.wrong.opacity(0.18)
+        }
+        return .white.opacity(0.04)
+    }
+
+    private func answerStroke(index: Int) -> SwiftUI.Color {
+        guard let selectedAnswerIndex else {
+            return .white.opacity(0.18)
+        }
+        if index == question.correctAnswerIndex {
+            return BaseballQuizPalette.correct
+        }
+        if index == selectedAnswerIndex {
+            return BaseballQuizPalette.wrong
+        }
+        return .white.opacity(0.12)
+    }
+}
+
+private struct BaseballPressableScaleStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(
+                .spring(response: 0.3, dampingFraction: 0.7),
+                value: configuration.isPressed
+            )
+    }
+}
+
+private struct BaseballRemoteImage: View {
+    let urlString: String
+    let fallbackSystemImage: String
+
+    var body: some View {
+        GeometryReader { geometry in
+            AsyncImage(url: URL(string: urlString)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .empty:
+                    ZStack {
+                        fallback
+                        ProgressView().tint(.white)
+                    }
+                case .failure:
+                    fallback
+                @unknown default:
+                    fallback
+                }
             }
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height
+            )
+            .clipped()
         }
     }
 
-    private func move(to nextStage: BaseballDailyDropStage) {
-        withAnimation(.easeInOut(duration: reduceMotion ? 0 : 0.28)) {
-            stage = nextStage
+    private var fallback: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    RockiesTheme.brightPurple,
+                    .indigo,
+                    BaseballQuizPalette.background,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: fallbackSystemImage)
+                .font(.system(size: 120, weight: .black))
+                .foregroundStyle(.white.opacity(0.30))
         }
     }
+}
 
-    private func submitQuiz() {
-        guard answers.count == drop.questions.count else { return }
-        move(
-            to: score >= drop.minimumCorrectAnswers
-                ? .pack
-                : .locked
+// MARK: - Exact Takes Rive celebration
+
+private final class BaseballCommishCelebrationViewModel: RiveViewModel {
+    var onFinished: (() -> Void)?
+    private var didFinish = false
+
+    init() {
+        super.init(
+            fileName: "commish_lets_go",
+            animationName: nil,
+            autoPlay: true
         )
     }
 
-    private func retryQuiz() {
-        answers = [:]
-        move(to: .quiz)
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
-    private func packButtonTapped() {
-        guard stage == .pack else { return }
+    private func finish() {
+        guard !didFinish else { return }
+        didFinish = true
+        onFinished?()
+    }
 
-        if !packOpened {
-            withAnimation(.easeInOut(duration: reduceMotion ? 0 : 0.35)) {
-                packOpened = true
+    override func player(pausedWithModel riveModel: RiveModel?) {
+        super.player(pausedWithModel: riveModel)
+        finish()
+    }
+
+    override func player(stoppedWithModel riveModel: RiveModel?) {
+        super.player(stoppedWithModel: riveModel)
+        finish()
+    }
+}
+
+private struct BaseballCommishCelebrationView: View {
+    let onFinished: () -> Void
+
+    @StateObject private var rive = BaseballCommishCelebrationViewModel()
+
+    var body: some View {
+        TransparentQuizRiveView(model: rive)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .onAppear {
+                rive.onFinished = onFinished
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(4))
+                    onFinished()
+                }
             }
-            return
-        }
+    }
+}
 
-        move(to: .sticker)
+// MARK: - Exact Takes Rive pack rip
+
+private struct TransparentQuizRiveView: UIViewRepresentable {
+    let model: RiveViewModel
+
+    func makeUIView(context: Context) -> RiveView {
+        let view = model.createRiveView()
+        Self.makeTransparent(view)
+
+        for delay in [0.0, 0.1, 0.3, 0.6, 1.0] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                Self.makeTransparent(view)
+            }
+        }
+        return view
     }
 
-    private func revealSticker() {
-        if !didCollectSticker {
-            didCollectSticker = true
-            onCollect(drop.rewardSticker)
+    func updateUIView(_ uiView: RiveView, context: Context) {
+        Self.makeTransparent(uiView)
+    }
+
+    private static func makeTransparent(_ view: UIView) {
+        view.isOpaque = false
+        view.backgroundColor = .clear
+
+        if let metalView = view as? MTKView {
+            metalView.clearColor = MTLClearColorMake(0, 0, 0, 0)
         }
 
-        guard !reduceMotion else {
-            stickerRotation = 0
-            stickerOffset = 0
-            stickerOpacity = 1
-            return
-        }
+        clearLayer(view.layer)
+        view.subviews.forEach(makeTransparent)
+    }
 
-        stickerRotation = -90
-        stickerOffset = 20
-        stickerOpacity = 0
-
-        withAnimation(.easeOut(duration: 0.35)) {
-            stickerRotation = 0
-            stickerOffset = 0
-            stickerOpacity = 1
+    private static func clearLayer(_ layer: CALayer) {
+        layer.isOpaque = false
+        if let metalLayer = layer as? CAMetalLayer {
+            metalLayer.isOpaque = false
+            metalLayer.framebufferOnly = false
         }
+        layer.sublayers?.forEach(clearLayer)
+    }
+}
+
+private final class BaseballPackRipViewModel: RiveViewModel {
+    var onFinished: (() -> Void)?
+    private var didFinish = false
+
+    init() {
+        super.init(
+            fileName: "wc_pack_rip",
+            animationName: nil,
+            fit: .cover,
+            autoPlay: false
+        )
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func finish() {
+        guard !didFinish else { return }
+        didFinish = true
+        onFinished?()
+    }
+
+    override func player(pausedWithModel riveModel: RiveModel?) {
+        super.player(pausedWithModel: riveModel)
+        finish()
+    }
+
+    override func player(stoppedWithModel riveModel: RiveModel?) {
+        super.player(stoppedWithModel: riveModel)
+        finish()
+    }
+}
+
+private struct BaseballPackRipView: View {
+    let onOpen: () -> Void
+    let onReveal: () -> Void
+
+    @StateObject private var rive = BaseballPackRipViewModel()
+    @State private var isOpening = false
+    @State private var didReveal = false
+
+    var body: some View {
+        TransparentQuizRiveView(model: rive)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onTapGesture(perform: open)
+            .onAppear {
+                rive.onFinished = reveal
+            }
+            .accessibilityElement()
+            .accessibilityLabel("Open reward pack")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("daily-drop-pack")
+    }
+
+    private func open() {
+        guard !isOpening else { return }
+        isOpening = true
+        onOpen()
+        rive.play()
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(8))
+            reveal()
+        }
+    }
+
+    private func reveal() {
+        guard !didReveal else { return }
+        didReveal = true
+        onReveal()
+    }
+}
+
+private struct BaseballQuizRewardView: View {
+    let sticker: BaseballSticker
+    let result: BaseballQuizResult
+    let onClaim: () -> Void
+
+    private enum Stage {
+        case sealed
+        case opening
+        case revealed
+    }
+
+    @State private var appeared = false
+    @State private var isFlipped = false
+    @State private var stage: Stage = .sealed
+
+    var body: some View {
+        ZStack {
+            BaseballQuizPalette.background
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                resultHeader
+                    .padding(.top, 64)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : -8)
+
+                Spacer()
+
+                cardArea
+
+                VStack(spacing: 8) {
+                    Text(headline)
+                        .font(.system(size: 26, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(subhead)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, stage == .sealed ? 90 : 0)
+                .opacity(textVisible ? 1 : 0)
+                .offset(y: textVisible ? 0 : 12)
+
+                Spacer()
+
+                if showClaimUI {
+                    claimButton
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 32)
+                        .transition(
+                            .opacity.combined(
+                                with: .move(edge: .bottom)
+                            )
+                        )
+                }
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 30)
+                .onEnded { value in
+                    if showClaimUI, value.translation.height < -60 {
+                        claim()
+                    }
+                }
+        )
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.6, dampingFraction: 0.8)
+                    .delay(0.1)
+            ) {
+                appeared = true
+            }
+        }
+    }
+
+    private var resultHeader: some View {
+        VStack(spacing: 18) {
+            Text("\(result.correct)/\(result.total) correct")
+                .font(.system(size: 24, weight: .heavy))
+                .foregroundStyle(.white)
+
+            HStack(spacing: 48) {
+                statColumn(title: "Time") {
+                    Text(result.formattedTime)
+                        .font(.system(size: 20, weight: .heavy))
+                        .foregroundStyle(.white)
+                }
+
+                statColumn(title: "Points Earned") {
+                    HStack(spacing: 6) {
+                        Image(systemName: "circle.hexagongrid.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.cyan)
+
+                        Text("\(result.points)")
+                            .font(.system(size: 20, weight: .heavy))
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+        }
+    }
+
+    private func statColumn<Content: View>(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(spacing: 6) {
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .bold))
+                .kerning(0.8)
+                .foregroundStyle(.white.opacity(0.5))
+            content()
+        }
+    }
+
+    private var showClaimUI: Bool {
+        appeared && stage == .revealed
+    }
+
+    private var textVisible: Bool {
+        appeared && stage != .opening
+    }
+
+    private var cardArea: some View {
+        ZStack {
+            flippableCard
+                .frame(maxWidth: 260)
+                .aspectRatio(0.70, contentMode: .fit)
+                .allowsHitTesting(stage == .revealed)
+                .opacity(stage == .sealed ? 0 : 1)
+                .accessibilityIdentifier("daily-drop-sticker-reveal")
+
+            if stage != .revealed {
+                BaseballPackRipView(
+                    onOpen: {
+                        BaseballQuizHaptics.tap()
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            stage = .opening
+                        }
+                    },
+                    onReveal: {
+                        BaseballQuizHaptics.affirm()
+                        withAnimation(
+                            .spring(response: 0.5, dampingFraction: 0.85)
+                        ) {
+                            stage = .revealed
+                        }
+                    }
+                )
+                .frame(maxWidth: 260)
+                .aspectRatio(0.70, contentMode: .fit)
+                .mask(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(.white)
+                        .padding(10)
+                        .blur(radius: 16)
+                )
+                .scaleEffect(1.5)
+            }
+        }
+        .scaleEffect(appeared ? 1 : 0.7)
+        .opacity(appeared ? 1 : 0)
+    }
+
+    private var flippableCard: some View {
+        ZStack {
+            BaseballStickerCardView(sticker: sticker, size: .large)
+                .opacity(isFlipped ? 0 : 1)
+
+            BaseballStickerBackView(sticker: sticker)
+                .rotation3DEffect(
+                    .degrees(180),
+                    axis: (x: 0, y: 1, z: 0)
+                )
+                .opacity(isFlipped ? 1 : 0)
+        }
+        .rotation3DEffect(
+            .degrees(isFlipped ? 180 : 0),
+            axis: (x: 0, y: 1, z: 0)
+        )
+        .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            BaseballQuizHaptics.tap()
+            withAnimation(
+                .spring(response: 0.5, dampingFraction: 0.8)
+            ) {
+                isFlipped.toggle()
+            }
+        }
+    }
+
+    private var headline: String {
+        stage == .revealed
+            ? "Say hello to your newest squad member!"
+            : "The Commish is impressed!"
+    }
+
+    private var subhead: String {
+        switch stage {
+        case .revealed:
+            "Tap the card to flip it · Swipe up to claim"
+        case .sealed, .opening:
+            "You absolutely nailed that quiz. You’ve unlocked a rare player card for your pack. Tap to open it!"
+        }
+    }
+
+    private var claimButton: some View {
+        Button(action: claim) {
+            Text("Claim reward")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    BaseballQuizPalette.auraCore,
+                                    BaseballQuizPalette.auraLight,
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                )
+        }
+        .accessibilityIdentifier("daily-drop-claim-reward")
+    }
+
+    private func claim() {
+        guard showClaimUI else { return }
+        BaseballQuizHaptics.affirm()
+        onClaim()
     }
 }
 
@@ -882,14 +1551,7 @@ enum BaseballStickerCardSize {
     var height: CGFloat {
         switch self {
         case .compact: 184
-        case .large: 294
-        }
-    }
-
-    var iconSize: CGFloat {
-        switch self {
-        case .compact: 45
-        case .large: 78
+        case .large: 314
         }
     }
 }
@@ -900,78 +1562,103 @@ struct BaseballStickerCardView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
+            RoundedRectangle(cornerRadius: 25, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
+                            Color(red: 0.14, green: 0.07, blue: 0.24),
                             RockiesTheme.brightPurple,
-                            .indigo,
-                            .black,
+                            Color(red: 0.03, green: 0.04, blue: 0.09),
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
 
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
+            RoundedRectangle(cornerRadius: 25, style: .continuous)
                 .stroke(
                     LinearGradient(
                         colors: [.white, .cyan, .purple],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 2
+                    lineWidth: size == .large ? 3 : 2
                 )
 
-            VStack(spacing: size == .large ? 12 : 7) {
+            VStack(spacing: size == .large ? 10 : 5) {
                 HStack {
-                    Text(sticker.rarity.displayName)
+                    Text("COLORADO")
                     Spacer()
                     Text("#\(sticker.jerseyNumber)")
                 }
-                .font(.system(size: size == .large ? 11 : 8, weight: .black))
-                .tracking(0.7)
-                .foregroundStyle(.white.opacity(0.76))
-
-                Spacer(minLength: 0)
-
-                Image(systemName: sticker.systemImage)
-                    .font(.system(size: size.iconSize, weight: .black))
-                    .foregroundStyle(.white)
-                    .frame(
-                        width: size == .large ? 122 : 78,
-                        height: size == .large ? 122 : 78
+                .font(
+                    .system(
+                        size: size == .large ? 10 : 7,
+                        weight: .black
                     )
-                    .background(.white.opacity(0.10), in: Circle())
+                )
+                .tracking(1.2)
+                .foregroundStyle(.white.opacity(0.82))
 
-                Text(sticker.playerName)
+                ZStack(alignment: .bottom) {
+                    Circle()
+                        .fill(.white.opacity(0.12))
+
+                    AsyncImage(url: URL(string: sticker.portraitURL)) { phase in
+                        if case .success(let image) = phase {
+                            image
+                                .resizable()
+                                .scaledToFit()
+                        } else {
+                            Image(systemName: sticker.systemImage)
+                                .font(
+                                    .system(
+                                        size: size == .large ? 72 : 40,
+                                        weight: .black
+                                    )
+                                )
+                                .foregroundStyle(.white.opacity(0.92))
+                        }
+                    }
+                }
+                .frame(
+                    width: size == .large ? 150 : 84,
+                    height: size == .large ? 150 : 84
+                )
+                .clipShape(Circle())
+
+                Text(sticker.playerName.uppercased())
                     .font(
                         .system(
-                            size: size == .large ? 20 : 15,
-                            weight: .black
+                            size: size == .large ? 21 : 13,
+                            weight: .black,
+                            design: .rounded
                         )
                     )
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.76)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .minimumScaleFactor(0.75)
 
-                Text("\(sticker.teamName) • \(sticker.position)")
-                    .font(.system(size: size == .large ? 10 : 7, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.62))
-                    .lineLimit(1)
+                Text(sticker.position)
+                    .font(
+                        .system(
+                            size: size == .large ? 10 : 7,
+                            weight: .bold
+                        )
+                    )
+                    .foregroundStyle(.white.opacity(0.70))
 
-                if size == .large {
-                    Text(sticker.tagline)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.64))
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.82)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                Text(sticker.rarity.displayName)
+                    .font(
+                        .system(
+                            size: size == .large ? 9 : 6,
+                            weight: .black
+                        )
+                    )
+                    .tracking(1.5)
+                    .foregroundStyle(.cyan)
             }
-            .padding(size == .large ? 18 : 13)
+            .padding(size == .large ? 18 : 12)
         }
         .frame(width: size.width, height: size.height)
         .shadow(
@@ -981,14 +1668,57 @@ struct BaseballStickerCardView: View {
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
-            "\(sticker.rarity.displayName) sticker, \(sticker.playerName), \(sticker.teamName), number \(sticker.jerseyNumber)"
+            "\(sticker.rarity.displayName) player card, \(sticker.playerName), \(sticker.teamName), number \(sticker.jerseyNumber)"
         )
         .accessibilityIdentifier("profile-sticker-\(sticker.id)")
     }
 }
 
-private extension View {
-    func leadingTight() -> some View {
-        lineSpacing(-2)
+private struct BaseballStickerBackView: View {
+    let sticker: BaseballSticker
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 25, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            .black,
+                            RockiesTheme.brightPurple,
+                            .indigo,
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            RoundedRectangle(cornerRadius: 25, style: .continuous)
+                .stroke(.white.opacity(0.8), lineWidth: 3)
+
+            VStack(spacing: 18) {
+                Image(systemName: "baseball.diamond.bases.fill")
+                    .font(.system(size: 48, weight: .black))
+                    .foregroundStyle(.white)
+
+                Text(sticker.playerName)
+                    .font(.title2.weight(.black))
+                    .multilineTextAlignment(.center)
+
+                Text(sticker.tagline)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.76))
+                    .multilineTextAlignment(.center)
+
+                Divider()
+                    .overlay(.white.opacity(0.22))
+
+                Text("\(sticker.teamName) · \(sticker.position)")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.cyan)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(24)
+        }
+        .frame(width: 220, height: 314)
     }
 }

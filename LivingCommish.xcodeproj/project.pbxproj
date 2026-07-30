@@ -23,6 +23,8 @@
 		B10000000000000000000014 /* BaseballPersonalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* BaseballPersonalization.swift */; };
 		B10000000000000000000015 /* BaseballQuizModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* BaseballQuizModels.swift */; };
 		B10000000000000000000016 /* BaseballQuizDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* BaseballQuizDropView.swift */; };
+		B10000000000000000000017 /* wc_pack_rip.riv in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* wc_pack_rip.riv */; };
+		B10000000000000000000018 /* commish_lets_go.riv in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* commish_lets_go.riv */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
 		291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */; };
@@ -74,6 +76,8 @@
 		A10000000000000000000014 /* BaseballPersonalization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballPersonalization.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* BaseballQuizModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballQuizModels.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* BaseballQuizDropView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballQuizDropView.swift; sourceTree = "<group>"; };
+		A10000000000000000000017 /* wc_pack_rip.riv */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; path = wc_pack_rip.riv; sourceTree = "<group>"; };
+		A10000000000000000000018 /* commish_lets_go.riv */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; path = commish_lets_go.riv; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
 		420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -282,8 +286,10 @@
 			isa = PBXGroup;
 			children = (
 				01E471777D8B335930125AB5 /* Assets.xcassets */,
+				A10000000000000000000018 /* commish_lets_go.riv */,
 				9D0F2DFF90F839D4DE975E7F /* PrivacyInfo.xcprivacy */,
 				7BE16418C9820B460476CC54 /* Animations */,
+				A10000000000000000000017 /* wc_pack_rip.riv */,
 			);
 			name = Resources;
 			path = Resources;
@@ -413,8 +419,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				99476478ECA9A48348E199EE /* Assets.xcassets in Resources */,
+				B10000000000000000000018 /* commish_lets_go.riv in Resources */,
 				6D2AD1D422969217F78B3497 /* PrivacyInfo.xcprivacy in Resources */,
 				3CC7A45A49ADCEF33572B7E0 /* Animations in Resources */,
+				B10000000000000000000017 /* wc_pack_rip.riv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

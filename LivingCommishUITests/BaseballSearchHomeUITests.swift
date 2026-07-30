@@ -526,15 +526,18 @@ final class BaseballSearchHomeUITests: XCTestCase {
         }
 
         app.buttons["discovery-card-discovery-daily-drop"].tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)[
-                "baseball-daily-drop-full-screen"
-            ].waitForExistence(timeout: 5)
-        )
+
+        let startButton = app.descendants(matching: .any)[
+            "daily-drop-start-stories"
+        ]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        startButton.tap()
 
         for _ in 0..<3 {
-            let storyButton = app.buttons["daily-drop-start-quiz"]
-            XCTAssertTrue(storyButton.waitForExistence(timeout: 3))
+            let storyButton = app.descendants(matching: .any)[
+                "daily-drop-story-next"
+            ]
+            XCTAssertTrue(storyButton.waitForExistence(timeout: 5))
             storyButton.tap()
         }
 
@@ -544,14 +547,19 @@ final class BaseballSearchHomeUITests: XCTestCase {
             "quiz-answer-rockies-division-2",
         ]
         for answerID in correctAnswers {
-            let answer = app.buttons[answerID]
+            let answer = app.descendants(matching: .any)[answerID]
             XCTAssertTrue(
-                answer.waitForExistence(timeout: 3),
+                answer.waitForExistence(timeout: 5),
                 "Expected quiz answer \(answerID)"
             )
             answer.tap()
+
+            let nextQuestion = app.descendants(matching: .any)[
+                "quiz-next-button"
+            ]
+            XCTAssertTrue(nextQuestion.waitForExistence(timeout: 4))
+            nextQuestion.tap()
         }
-        app.buttons["quiz-submit-button"].tap()
 
         let pack = app.descendants(matching: .any)["daily-drop-pack"]
         XCTAssertTrue(pack.waitForExistence(timeout: 4))
@@ -561,23 +569,10 @@ final class BaseballSearchHomeUITests: XCTestCase {
         earnedPackScreenshot.lifetime = .keepAlways
         add(earnedPackScreenshot)
 
-        app.buttons["rip-pack-button"].tap()
-        XCTAssertTrue(
-            app.buttons["rip-pack-button"].label
-                .localizedCaseInsensitiveContains("Reveal Sticker")
-        )
+        pack.tap()
 
-        let rippedPackScreenshot = XCTAttachment(screenshot: app.screenshot())
-        rippedPackScreenshot.name = "Baseball ripped pack"
-        rippedPackScreenshot.lifetime = .keepAlways
-        add(rippedPackScreenshot)
-
-        app.buttons["rip-pack-button"].tap()
-
-        XCTAssertTrue(
-            app.descendants(matching: .any)["daily-drop-sticker-reveal"]
-                .waitForExistence(timeout: 5)
-        )
+        let claimReward = app.buttons["daily-drop-claim-reward"]
+        XCTAssertTrue(claimReward.waitForExistence(timeout: 10))
 
         let stickerRevealScreenshot = XCTAttachment(
             screenshot: app.screenshot()
@@ -586,7 +581,7 @@ final class BaseballSearchHomeUITests: XCTestCase {
         stickerRevealScreenshot.lifetime = .keepAlways
         add(stickerRevealScreenshot)
 
-        app.buttons["daily-drop-open-collection"].tap()
+        claimReward.tap()
 
         XCTAssertTrue(
             app.descendants(matching: .any)["baseball-profile-sheet"]
