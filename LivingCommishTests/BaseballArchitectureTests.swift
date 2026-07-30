@@ -8,10 +8,8 @@ final class BaseballArchitectureTests: XCTestCase {
     func testOnboardingCommishThoughtIntroducesTheExperience() {
         XCTAssertEqual(
             BaseballCommishThoughts.onboarding,
-            "Welcome! I'm the commish - your sports companion. "
-                + "I can answer any question you have about baseball past or "
-                + "present. Select your favorite teams and players and I will "
-                + "make sure that your experience is new and fun on every visit!"
+            "Welcome! I'm your baseball companion. "
+                + "Organized around your fandom!"
         )
     }
 

@@ -34,7 +34,12 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(onboardingThought.label.contains("Welcome!"))
         XCTAssertTrue(
             onboardingThought.label.contains(
-                "your sports companion"
+                "your baseball companion"
+            )
+        )
+        XCTAssertTrue(
+            onboardingThought.label.contains(
+                "Organized around your fandom!"
             )
         )
         let authenticationToggle = app.switches[
