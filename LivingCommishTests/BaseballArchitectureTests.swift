@@ -500,7 +500,10 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(cards.allSatisfy { !$0.facts.isEmpty })
         XCTAssertTrue(
             cards
-                .filter { $0.playerStory == nil }
+                .filter {
+                    $0.playerStory == nil
+                        && $0.dailyDrop == nil
+                }
                 .flatMap(\.facts)
                 .allSatisfy(\.provenance.isMock)
         )
@@ -544,6 +547,69 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertTrue(
             storyCard?.facts.allSatisfy { !$0.provenance.isMock } == true
         )
+
+        let dailyDropCard = cards.dropFirst(3).first
+        XCTAssertEqual(dailyDropCard?.id, "discovery-daily-drop")
+        XCTAssertEqual(dailyDropCard?.dailyDrop?.questions.count, 3)
+        XCTAssertEqual(
+            dailyDropCard?.dailyDrop?.rewardSticker.playerName,
+            "Hunter Goodman"
+        )
+        XCTAssertEqual(
+            dailyDropCard?.dailyDrop?.minimumCorrectAnswers,
+            1
+        )
+    }
+
+    func testDailyDropQuestionsAndStickerRewardAreWellFormed() {
+        let drop = BaseballDailyDropCatalog.hunterGoodmanThreeHomer
+
+        XCTAssertEqual(drop.questions.count, 3)
+        XCTAssertTrue(
+            drop.questions.allSatisfy {
+                $0.answers.indices.contains($0.correctAnswerIndex)
+            }
+        )
+        XCTAssertTrue(drop.questions.allSatisfy { !$0.fact.isEmpty })
+        XCTAssertEqual(drop.rewardSticker.rarity, .rare)
+        XCTAssertEqual(drop.rewardSticker.jerseyNumber, "15")
+        XCTAssertEqual(
+            BaseballStickerCatalog.all.map(\.id),
+            [drop.rewardSticker.id]
+        )
+    }
+
+    func testEnvironmentCollectsStickerAndPersistsItThroughStore() {
+        let commish = TestCommishController()
+        let stickerStore = InMemoryBaseballStickerStore()
+        let environment = BaseballSearchEnvironment(
+            dependencies: BaseballSearchDependencies(
+                profile: MockMichaelProfile.value,
+                queryInterpreter: DeterministicBaseballQueryInterpreter(),
+                planner: DefaultBaseballSearchPlanner(),
+                dataProvider: MockBaseballDataService(),
+                discoveryProvider: MockBaseballDiscoveryService(),
+                hostEditor: DeterministicBaseballHostEditor(),
+                resultComposer: DefaultBaseballResultComposer(),
+                host: CommishHostAdapter(controller: commish),
+                stickerStore: stickerStore
+            )
+        )
+        let sticker = BaseballStickerCatalog.hunterGoodman
+
+        XCTAssertTrue(environment.collectedStickers.isEmpty)
+        XCTAssertFalse(environment.hasCollected(sticker))
+
+        environment.collectSticker(sticker)
+        environment.collectSticker(sticker)
+
+        XCTAssertTrue(environment.hasCollected(sticker))
+        XCTAssertEqual(environment.collectedStickers, [sticker])
+        XCTAssertEqual(
+            stickerStore.loadCollectedStickerIDs(),
+            [sticker.id]
+        )
+        XCTAssertEqual(commish.currentAction, .foamFinger)
     }
 
     func testDiscoveryCardSelectionDrivesHostChoreography() async {

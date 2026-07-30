@@ -21,6 +21,8 @@
 		B10000000000000000000012 /* BaseballSearchHomeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* BaseballSearchHomeUITests.swift */; };
 		B10000000000000000000013 /* BaseballOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* BaseballOnboardingView.swift */; };
 		B10000000000000000000014 /* BaseballPersonalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* BaseballPersonalization.swift */; };
+		B10000000000000000000015 /* BaseballQuizModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* BaseballQuizModels.swift */; };
+		B10000000000000000000016 /* BaseballQuizDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* BaseballQuizDropView.swift */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
 		291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */; };
@@ -70,6 +72,8 @@
 		A10000000000000000000012 /* BaseballSearchHomeUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballSearchHomeUITests.swift; sourceTree = "<group>"; };
 		A10000000000000000000013 /* BaseballOnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballOnboardingView.swift; sourceTree = "<group>"; };
 		A10000000000000000000014 /* BaseballPersonalization.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballPersonalization.swift; sourceTree = "<group>"; };
+		A10000000000000000000015 /* BaseballQuizModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballQuizModels.swift; sourceTree = "<group>"; };
+		A10000000000000000000016 /* BaseballQuizDropView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballQuizDropView.swift; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
 		420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -152,6 +156,7 @@
 		C10000000000000000000004 /* Search */ = {
 			isa = PBXGroup;
 			children = (
+				A10000000000000000000015 /* BaseballQuizModels.swift */,
 				A10000000000000000000003 /* BaseballSearchModels.swift */,
 				A10000000000000000000004 /* BaseballSearchServices.swift */,
 			);
@@ -193,6 +198,7 @@
 				A10000000000000000000010 /* AnimatedHostView.swift */,
 				A10000000000000000000011 /* BaseballSearchHomeView.swift */,
 				A10000000000000000000013 /* BaseballOnboardingView.swift */,
+				A10000000000000000000016 /* BaseballQuizDropView.swift */,
 			);
 			name = Views;
 			path = Views;
@@ -445,6 +451,8 @@
 				B10000000000000000000011 /* BaseballSearchHomeView.swift in Sources */,
 				B10000000000000000000013 /* BaseballOnboardingView.swift in Sources */,
 				B10000000000000000000014 /* BaseballPersonalization.swift in Sources */,
+				B10000000000000000000015 /* BaseballQuizModels.swift in Sources */,
+				B10000000000000000000016 /* BaseballQuizDropView.swift in Sources */,
 				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
 				DA037F7E3771CD955FB97055 /* CommishAnimationAction.swift in Sources */,
 				AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */,

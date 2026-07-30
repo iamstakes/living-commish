@@ -508,6 +508,106 @@ final class BaseballSearchHomeUITests: XCTestCase {
         )
     }
 
+    func testDailyDropRunsQuizRipAndAddsStickerToProfile() {
+        let app = launchApp()
+        let nextButton = app.buttons["host-presentation-next"]
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 8))
+
+        for cardID in [
+            "discovery-card-discovery-standings",
+            "discovery-card-discovery-goodman-story",
+            "discovery-card-discovery-daily-drop",
+        ] {
+            nextButton.tap()
+            XCTAssertTrue(
+                app.buttons[cardID].waitForExistence(timeout: 3),
+                "Expected carousel card \(cardID)"
+            )
+        }
+
+        app.buttons["discovery-card-discovery-daily-drop"].tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "baseball-daily-drop-full-screen"
+            ].waitForExistence(timeout: 5)
+        )
+
+        for _ in 0..<3 {
+            let storyButton = app.buttons["daily-drop-start-quiz"]
+            XCTAssertTrue(storyButton.waitForExistence(timeout: 3))
+            storyButton.tap()
+        }
+
+        let correctAnswers = [
+            "quiz-answer-goodman-player-0",
+            "quiz-answer-rockies-city-1",
+            "quiz-answer-rockies-division-2",
+        ]
+        for answerID in correctAnswers {
+            let answer = app.buttons[answerID]
+            XCTAssertTrue(
+                answer.waitForExistence(timeout: 3),
+                "Expected quiz answer \(answerID)"
+            )
+            answer.tap()
+        }
+        app.buttons["quiz-submit-button"].tap()
+
+        let pack = app.descendants(matching: .any)["daily-drop-pack"]
+        XCTAssertTrue(pack.waitForExistence(timeout: 4))
+
+        let earnedPackScreenshot = XCTAttachment(screenshot: app.screenshot())
+        earnedPackScreenshot.name = "Baseball earned pack"
+        earnedPackScreenshot.lifetime = .keepAlways
+        add(earnedPackScreenshot)
+
+        app.buttons["rip-pack-button"].tap()
+        XCTAssertTrue(
+            app.buttons["rip-pack-button"].label
+                .localizedCaseInsensitiveContains("Reveal Sticker")
+        )
+
+        let rippedPackScreenshot = XCTAttachment(screenshot: app.screenshot())
+        rippedPackScreenshot.name = "Baseball ripped pack"
+        rippedPackScreenshot.lifetime = .keepAlways
+        add(rippedPackScreenshot)
+
+        app.buttons["rip-pack-button"].tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["daily-drop-sticker-reveal"]
+                .waitForExistence(timeout: 5)
+        )
+
+        let stickerRevealScreenshot = XCTAttachment(
+            screenshot: app.screenshot()
+        )
+        stickerRevealScreenshot.name = "Hunter Goodman sticker reveal"
+        stickerRevealScreenshot.lifetime = .keepAlways
+        add(stickerRevealScreenshot)
+
+        app.buttons["daily-drop-open-collection"].tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-profile-sheet"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["profile-sticker-collection"]
+                .exists
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)[
+                "profile-sticker-sticker-hunter-goodman-three-homer"
+            ].exists
+        )
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Earned baseball sticker in profile"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testFavoriteTeamQuestionReturnsTheProfileFact() {
         let app = launchApp()
         let field = app.textFields["baseball-search-field"]

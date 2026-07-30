@@ -419,7 +419,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                     losingPitcherLine: "2–10  |  7.34 ERA"
                 ),
                 standings: nil,
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-standings",
@@ -455,7 +456,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                     nextGameVenue: "Petco Park",
                     probablePitchers: "Lorenzen vs King"
                 ),
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-goodman-story",
@@ -515,7 +517,25 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                             metrics: ["71.5 mph", "235 ft"]
                         ),
                     ]
-                )
+                ),
+                dailyDrop: nil
+            ),
+            BaseballDiscoveryCard(
+                id: "discovery-daily-drop",
+                eyebrow: "DAILY BASEBALL DROP",
+                title: BaseballDailyDropCatalog.hunterGoodmanThreeHomer.title,
+                whyItMatters: "A quick story and quiz turns \(profile.name)’s favorite player into a collectible reward.",
+                systemImage: "sparkles",
+                destinationQuery: "Hunter Goodman three homer game",
+                hostBehavior: .think,
+                hostThought: BaseballDailyDropCatalog
+                    .hunterGoodmanThreeHomer
+                    .hostThought,
+                facts: MockBaseballFixtures.goodmanPlayerStoryFacts,
+                finalScore: nil,
+                standings: nil,
+                playerStory: nil,
+                dailyDrop: BaseballDailyDropCatalog.hunterGoodmanThreeHomer
             ),
             BaseballDiscoveryCard(
                 id: "discovery-dodgers-lost",
@@ -529,7 +549,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 facts: MockBaseballFixtures.dodgers.facts,
                 finalScore: nil,
                 standings: nil,
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-condensed",
@@ -543,7 +564,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 facts: MockBaseballFixtures.watchNext.facts,
                 finalScore: nil,
                 standings: nil,
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
         ]
     }
@@ -566,7 +588,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 facts: [],
                 finalScore: nil,
                 standings: nil,
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
             BaseballDiscoveryCard(
                 id: "discovery-profile-player",
@@ -580,7 +603,8 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
                 facts: [],
                 finalScore: nil,
                 standings: nil,
-                playerStory: nil
+                playerStory: nil,
+                dailyDrop: nil
             ),
         ]
     }

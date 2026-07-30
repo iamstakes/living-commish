@@ -11,11 +11,37 @@ struct BaseballSearchDependencies {
     let hostEditor: any BaseballHostEditorializing
     let resultComposer: any BaseballResultComposing
     let host: any AnimatedHostControlling
+    let stickerStore: any BaseballStickerStoring
+
+    init(
+        profile: BaseballFanProfileSnapshot,
+        queryInterpreter: any BaseballQueryInterpreting,
+        planner: any BaseballSearchPlanning,
+        dataProvider: any BaseballDataProviding,
+        discoveryProvider: any BaseballDiscoveryProviding,
+        hostEditor: any BaseballHostEditorializing,
+        resultComposer: any BaseballResultComposing,
+        host: any AnimatedHostControlling,
+        stickerStore: any BaseballStickerStoring = InMemoryBaseballStickerStore()
+    ) {
+        self.profile = profile
+        self.queryInterpreter = queryInterpreter
+        self.planner = planner
+        self.dataProvider = dataProvider
+        self.discoveryProvider = discoveryProvider
+        self.hostEditor = hostEditor
+        self.resultComposer = resultComposer
+        self.host = host
+        self.stickerStore = stickerStore
+    }
 
     static func prototype(bundle: Bundle = .main) -> BaseballSearchDependencies {
         let arguments = ProcessInfo.processInfo.arguments
         let forceDeterministicSearch = arguments.contains("--baseball-ui-testing")
             || arguments.contains("--baseball-onboarding-ui-testing")
+        let stickerStore: any BaseballStickerStoring = forceDeterministicSearch
+            ? InMemoryBaseballStickerStore()
+            : UserDefaultsBaseballStickerStore()
 
         return BaseballSearchDependencies(
             profile: MockMichaelProfile.value,
@@ -27,7 +53,8 @@ struct BaseballSearchDependencies {
             discoveryProvider: MockBaseballDiscoveryService(),
             hostEditor: DeterministicBaseballHostEditor(),
             resultComposer: DefaultBaseballResultComposer(),
-            host: CommishHostAdapter(bundle: bundle)
+            host: CommishHostAdapter(bundle: bundle),
+            stickerStore: stickerStore
         )
     }
 }
@@ -43,6 +70,7 @@ final class BaseballSearchEnvironment {
     private(set) var discoveryCards: [BaseballDiscoveryCard] = []
     private(set) var activeDiscoveryCardID: String?
     private(set) var discoveryError: String?
+    private(set) var collectedStickerIDs: Set<String>
 
     @ObservationIgnored private let queryInterpreter: any BaseballQueryInterpreting
     @ObservationIgnored private let planner: any BaseballSearchPlanning
@@ -50,10 +78,14 @@ final class BaseballSearchEnvironment {
     @ObservationIgnored private let discoveryProvider: any BaseballDiscoveryProviding
     @ObservationIgnored private let hostEditor: any BaseballHostEditorializing
     @ObservationIgnored private let resultComposer: any BaseballResultComposing
+    @ObservationIgnored private let stickerStore: any BaseballStickerStoring
 
     init(dependencies: BaseballSearchDependencies) {
         profile = dependencies.profile
         host = dependencies.host
+        stickerStore = dependencies.stickerStore
+        collectedStickerIDs = dependencies.stickerStore
+            .loadCollectedStickerIDs()
         queryInterpreter = dependencies.queryInterpreter
         planner = dependencies.planner
         dataProvider = dependencies.dataProvider
@@ -71,6 +103,23 @@ final class BaseballSearchEnvironment {
         case .interpreting, .loading: true
         case .discovering, .presenting, .failed: false
         }
+    }
+
+    var collectedStickers: [BaseballSticker] {
+        BaseballStickerCatalog.all.filter {
+            collectedStickerIDs.contains($0.id)
+        }
+    }
+
+    func hasCollected(_ sticker: BaseballSticker) -> Bool {
+        collectedStickerIDs.contains(sticker.id)
+    }
+
+    func collectSticker(_ sticker: BaseballSticker) {
+        guard !collectedStickerIDs.contains(sticker.id) else { return }
+        collectedStickerIDs.insert(sticker.id)
+        stickerStore.saveCollectedStickerIDs(collectedStickerIDs)
+        host.perform(.celebrate)
     }
 
     func updateProfile(_ updatedProfile: BaseballFanProfileSnapshot) {

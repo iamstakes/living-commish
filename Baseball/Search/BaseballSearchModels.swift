@@ -155,6 +155,7 @@ struct BaseballDiscoveryCard: Equatable, Identifiable, Sendable {
     let finalScore: BaseballFinalScoreSnapshot?
     let standings: BaseballStandingsSnapshot?
     let playerStory: BaseballPlayerStorySnapshot?
+    let dailyDrop: BaseballDailyDrop?
 }
 
 struct BaseballFinalScoreSnapshot: Equatable, Sendable {

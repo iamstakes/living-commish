@@ -7,6 +7,7 @@ struct BaseballSearchHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var presentedPlayerStory: BaseballPlayerStorySnapshot?
+    @State private var presentedDailyDrop: BaseballDailyDrop?
 
     var body: some View {
         @Bindable var environment = environment
@@ -42,6 +43,29 @@ struct BaseballSearchHomeView: View {
                 story: story,
                 onDismiss: {
                     presentedPlayerStory = nil
+                }
+            )
+        }
+        .fullScreenCover(item: $presentedDailyDrop) { drop in
+            BaseballDailyDropFullScreenView(
+                drop: drop,
+                isAlreadyCollected: environment.hasCollected(
+                    drop.rewardSticker
+                ),
+                onCollect: { sticker in
+                    environment.collectSticker(sticker)
+                },
+                onOpenCollection: {
+                    presentedDailyDrop = nil
+                    Task { @MainActor in
+                        if !reduceMotion {
+                            try? await Task.sleep(for: .milliseconds(250))
+                        }
+                        onProfileTap()
+                    }
+                },
+                onDismiss: {
+                    presentedDailyDrop = nil
                 }
             )
         }
@@ -98,6 +122,9 @@ struct BaseballSearchHomeView: View {
                         position: activeDiscoveryCardIndex + 1,
                         count: environment.discoveryCards.count,
                         reduceMotion: reduceMotion,
+                        isDailyDropCollected: activeDiscoveryCard.dailyDrop.map {
+                            environment.hasCollected($0.rewardSticker)
+                        } ?? false,
                         onPrevious: {
                             environment.moveDiscoveryCard(by: -1)
                         },
@@ -105,7 +132,9 @@ struct BaseballSearchHomeView: View {
                             environment.moveDiscoveryCard(by: 1)
                         },
                         onOpen: {
-                            if let playerStory = activeDiscoveryCard.playerStory {
+                            if let dailyDrop = activeDiscoveryCard.dailyDrop {
+                                presentedDailyDrop = dailyDrop
+                            } else if let playerStory = activeDiscoveryCard.playerStory {
                                 presentedPlayerStory = playerStory
                             } else {
                                 runSearch(activeDiscoveryCard.destinationQuery)
@@ -564,6 +593,7 @@ private struct DiscoveryPresentationDeck: View {
     let position: Int
     let count: Int
     let reduceMotion: Bool
+    let isDailyDropCollected: Bool
     let onPrevious: () -> Void
     let onNext: () -> Void
     let onOpen: () -> Void
@@ -579,7 +609,12 @@ private struct DiscoveryPresentationDeck: View {
 
                 Button(action: onOpen) {
                     Group {
-                        if let finalScore = card.finalScore {
+                        if let dailyDrop = card.dailyDrop {
+                            BaseballDailyDropDiscoveryCardContent(
+                                drop: dailyDrop,
+                                isCollected: isDailyDropCollected
+                            )
+                        } else if let finalScore = card.finalScore {
                             FinalScoreDiscoveryCardContent(score: finalScore)
                         } else if let standings = card.standings {
                             DynamicStandingsDiscoveryCardContent(
@@ -720,10 +755,21 @@ private struct DiscoveryPresentationDeck: View {
             """
         }
 
+        if let dailyDrop = card.dailyDrop {
+            return """
+            \(dailyDrop.eyebrow). \(dailyDrop.title). \
+            Story, three-question quiz, pack rip, and \
+            \(dailyDrop.rewardSticker.playerName) sticker reward.
+            """
+        }
+
         return "\(card.title). \(card.whyItMatters)"
     }
 
     private var accessibilityHint: String {
+        if card.dailyDrop != nil {
+            return "Start the daily baseball story and quiz"
+        }
         if card.playerStory != nil {
             return "Open the player story full screen"
         }

@@ -718,71 +718,88 @@ private struct BaseballProfileSheet: View {
     let onRestart: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(BaseballSearchEnvironment.self) private var environment
 
     var body: some View {
         NavigationStack {
             ZStack {
                 RockiesChromeBackground()
 
-                VStack(spacing: 18) {
-                    Text("M")
-                        .font(.title.weight(.black))
-                        .foregroundStyle(.white)
-                        .frame(width: 76, height: 76)
-                        .background(RockiesTheme.brightPurple.gradient, in: Circle())
-                        .overlay {
-                            Circle()
-                                .stroke(RockiesTheme.silver.opacity(0.64), lineWidth: 1.5)
+                ScrollView {
+                    VStack(spacing: 18) {
+                        Text("M")
+                            .font(.title.weight(.black))
+                            .foregroundStyle(.white)
+                            .frame(width: 76, height: 76)
+                            .background(
+                                RockiesTheme.brightPurple.gradient,
+                                in: Circle()
+                            )
+                            .overlay {
+                                Circle()
+                                    .stroke(
+                                        RockiesTheme.silver.opacity(0.64),
+                                        lineWidth: 1.5
+                                    )
+                            }
+
+                        VStack(spacing: 3) {
+                            Text(onboarding.profileSnapshot.name)
+                                .font(.title2.weight(.black))
+                                .accessibilityIdentifier("profile-name")
+                            Text("Baseball profile")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
 
-                    VStack(spacing: 3) {
-                        Text(onboarding.profileSnapshot.name)
-                            .font(.title2.weight(.black))
-                            .accessibilityIdentifier("profile-name")
-                        Text("Baseball profile")
-                            .font(.subheadline)
+                        VStack(spacing: 10) {
+                            ProfileFactRow(
+                                eyebrow: "FAVORITE TEAM",
+                                title: onboarding.selectedTeam?.fullName
+                                    ?? "Not selected",
+                                symbol: "shield.lefthalf.filled",
+                                identifier: "profile-favorite-team"
+                            )
+                            ProfileFactRow(
+                                eyebrow: "FAVORITE PLAYER",
+                                title: onboarding.selectedPlayer?.fullName
+                                    ?? "Not selected",
+                                symbol: "figure.baseball",
+                                identifier: "profile-favorite-player"
+                            )
+                        }
+
+                        ProfileStickerCollectionSection(
+                            stickers: environment.collectedStickers
+                        )
+
+                        Text("Scores, standings, stories, rival watch, and the Commish’s presentation are shaped by these choices.")
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
-                    }
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
 
-                    VStack(spacing: 10) {
-                        ProfileFactRow(
-                            eyebrow: "FAVORITE TEAM",
-                            title: onboarding.selectedTeam?.fullName
-                                ?? "Not selected",
-                            symbol: "shield.lefthalf.filled",
-                            identifier: "profile-favorite-team"
-                        )
-                        ProfileFactRow(
-                            eyebrow: "FAVORITE PLAYER",
-                            title: onboarding.selectedPlayer?.fullName
-                                ?? "Not selected",
-                            symbol: "figure.baseball",
-                            identifier: "profile-favorite-player"
-                        )
-                    }
-
-                    Text("Scores, standings, stories, rival watch, and the Commish’s presentation are shaped by these choices.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-
-                    Button {
-                        dismiss()
-                        onRestart()
-                    } label: {
-                        Label("Personalize again", systemImage: "slider.horizontal.3")
+                        Button {
+                            dismiss()
+                            onRestart()
+                        } label: {
+                            Label(
+                                "Personalize again",
+                                systemImage: "slider.horizontal.3"
+                            )
                             .font(.headline.weight(.bold))
                             .frame(maxWidth: .infinity, minHeight: 52)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(RockiesTheme.brightPurple)
+                        .accessibilityIdentifier(
+                            "profile-restart-personalization"
+                        )
                     }
-                    .buttonStyle(.glassProminent)
-                    .tint(RockiesTheme.brightPurple)
-                    .accessibilityIdentifier("profile-restart-personalization")
-
-                    Spacer()
+                    .padding(22)
+                    .padding(.top, 20)
+                    .padding(.bottom, 34)
                 }
-                .padding(22)
-                .padding(.top, 20)
             }
             .navigationTitle("Your profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -798,6 +815,74 @@ private struct BaseballProfileSheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("baseball-profile-sheet")
+    }
+}
+
+private struct ProfileStickerCollectionSection: View {
+    let stickers: [BaseballSticker]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("STICKER COLLECTION", systemImage: "square.grid.2x2.fill")
+                    .font(.system(size: 10, weight: .black))
+                    .tracking(0.8)
+                    .foregroundStyle(.cyan)
+
+                Spacer()
+
+                Text("\(stickers.count) / \(BaseballStickerCatalog.all.count)")
+                    .font(.caption2.monospacedDigit().weight(.black))
+                    .foregroundStyle(.secondary)
+            }
+
+            if stickers.isEmpty {
+                HStack(spacing: 12) {
+                    Image(systemName: "rectangle.portrait.on.rectangle.portrait")
+                        .font(.title2)
+                        .foregroundStyle(RockiesTheme.silver)
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Your collection starts here")
+                            .font(.subheadline.weight(.black))
+                        Text("Complete the daily baseball drop to earn your first sticker.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(15)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    .white.opacity(0.07),
+                    in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+                )
+                .accessibilityIdentifier("profile-sticker-empty-state")
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(stickers) { sticker in
+                            BaseballStickerCardView(
+                                sticker: sticker,
+                                size: .compact
+                            )
+                        }
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 2)
+                }
+            }
+        }
+        .padding(15)
+        .background(
+            .white.opacity(0.045),
+            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.white.opacity(0.07), lineWidth: 1)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("profile-sticker-collection")
     }
 }
 
