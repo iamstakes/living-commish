@@ -526,12 +526,9 @@ final class BaseballSearchHomeUITests: XCTestCase {
         }
 
         app.buttons["discovery-card-discovery-daily-drop"].tap()
-
-        let startButton = app.descendants(matching: .any)[
-            "daily-drop-start-stories"
-        ]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
-        startButton.tap()
+        XCTAssertFalse(
+            app.descendants(matching: .any)["daily-drop-start-stories"].exists
+        )
 
         for _ in 0..<3 {
             let storyButton = app.descendants(matching: .any)[
