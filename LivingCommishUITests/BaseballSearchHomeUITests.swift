@@ -579,6 +579,31 @@ final class BaseballSearchHomeUITests: XCTestCase {
             app.descendants(matching: .any)["profile-sticker-collection"]
                 .exists
         )
+        let avatarPrompt = app.descendants(matching: .any)[
+            "avatar-sticker-prompt"
+        ]
+        XCTAssertTrue(avatarPrompt.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Change your avatar?"].exists)
+        XCTAssertTrue(
+            app.staticTexts[
+                "Use your new Hunter Goodman sticker as your profile avatar?"
+            ].exists
+        )
+
+        let promptScreenshot = XCTAttachment(screenshot: app.screenshot())
+        promptScreenshot.name = "Use Hunter Goodman sticker as avatar prompt"
+        promptScreenshot.lifetime = .keepAlways
+        add(promptScreenshot)
+
+        let useAvatar = app.buttons["avatar-prompt-use-sticker"]
+        XCTAssertTrue(useAvatar.exists)
+        useAvatar.tap()
+        expectation(
+            for: NSPredicate(format: "exists == false"),
+            evaluatedWith: avatarPrompt
+        )
+        waitForExpectations(timeout: 3)
+
         let collectedSticker = app.descendants(matching: .any)[
             "profile-sticker-sticker-hunter-goodman-three-homer"
         ]
@@ -588,11 +613,39 @@ final class BaseballSearchHomeUITests: XCTestCase {
             evaluatedWith: collectedSticker
         )
         waitForExpectations(timeout: 5)
+        let stickerAvatar = app.descendants(matching: .any)[
+            "profile-avatar-sticker-hunter-goodman-three-homer"
+        ]
+        XCTAssertTrue(stickerAvatar.exists)
+        XCTAssertTrue(stickerAvatar.isHittable)
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Earned baseball sticker in profile"
+        screenshot.name = "Hunter Goodman sticker and profile avatar"
         screenshot.lifetime = .keepAlways
         add(screenshot)
+
+        app.buttons["baseball-profile-done"].tap()
+
+        let resetRewards = app.buttons["demo-reset-stickers"]
+        XCTAssertTrue(resetRewards.waitForExistence(timeout: 4))
+        resetRewards.tap()
+        expectation(
+            for: NSPredicate(format: "exists == false"),
+            evaluatedWith: resetRewards
+        )
+        waitForExpectations(timeout: 3)
+
+        let profile = app.otherElements["baseball-animated-host"]
+        XCTAssertTrue(profile.waitForExistence(timeout: 3))
+        profile.tap()
+        XCTAssertTrue(
+            app.descendants(matching: .any)["profile-avatar-initial"]
+                .waitForExistence(timeout: 4)
+        )
+        XCTAssertTrue(
+            app.descendants(matching: .any)["profile-sticker-empty-state"]
+                .exists
+        )
     }
 
     func testFavoriteTeamQuestionReturnsTheProfileFact() {

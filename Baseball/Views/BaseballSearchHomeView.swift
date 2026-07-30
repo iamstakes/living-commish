@@ -2,7 +2,7 @@ import SwiftUI
 
 struct BaseballSearchHomeView: View {
     var onProfileTap: () -> Void = {}
-    var onCollectionTap: () -> Void = {}
+    var onCollectionTap: (BaseballSticker) -> Void = { _ in }
 
     @Environment(BaseballSearchEnvironment.self) private var environment
     @Environment(\.scenePhase) private var scenePhase
@@ -54,7 +54,7 @@ struct BaseballSearchHomeView: View {
                         if !reduceMotion {
                             try? await Task.sleep(for: .milliseconds(250))
                         }
-                        onCollectionTap()
+                        onCollectionTap(drop.rewardSticker)
                     }
                 },
                 onDismiss: {

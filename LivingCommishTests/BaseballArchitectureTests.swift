@@ -599,17 +599,28 @@ final class BaseballArchitectureTests: XCTestCase {
 
         XCTAssertTrue(environment.collectedStickers.isEmpty)
         XCTAssertFalse(environment.hasCollected(sticker))
+        XCTAssertNil(environment.avatarSticker)
 
         environment.collectSticker(sticker)
         environment.collectSticker(sticker)
+        environment.useStickerAsAvatar(sticker)
 
         XCTAssertTrue(environment.hasCollected(sticker))
         XCTAssertEqual(environment.collectedStickers, [sticker])
+        XCTAssertEqual(environment.avatarSticker, sticker)
         XCTAssertEqual(
             stickerStore.loadCollectedStickerIDs(),
             [sticker.id]
         )
+        XCTAssertEqual(stickerStore.loadAvatarStickerID(), sticker.id)
         XCTAssertEqual(commish.currentAction, .foamFinger)
+
+        environment.resetStickerDemo()
+
+        XCTAssertTrue(environment.collectedStickers.isEmpty)
+        XCTAssertNil(environment.avatarSticker)
+        XCTAssertTrue(stickerStore.loadCollectedStickerIDs().isEmpty)
+        XCTAssertNil(stickerStore.loadAvatarStickerID())
     }
 
     func testDiscoveryCardSelectionDrivesHostChoreography() async {

@@ -135,11 +135,14 @@ enum BaseballDailyDropCatalog {
 protocol BaseballStickerStoring {
     func loadCollectedStickerIDs() -> Set<String>
     func saveCollectedStickerIDs(_ ids: Set<String>)
+    func loadAvatarStickerID() -> String?
+    func saveAvatarStickerID(_ id: String?)
 }
 
 @MainActor
 final class UserDefaultsBaseballStickerStore: BaseballStickerStoring {
     static let collectedStickerIDsKey = "baseball.collectedStickerIDs"
+    static let avatarStickerIDKey = "baseball.avatarStickerID"
 
     private let defaults: UserDefaults
 
@@ -158,14 +161,31 @@ final class UserDefaultsBaseballStickerStore: BaseballStickerStoring {
     func saveCollectedStickerIDs(_ ids: Set<String>) {
         defaults.set(ids.sorted(), forKey: Self.collectedStickerIDsKey)
     }
+
+    func loadAvatarStickerID() -> String? {
+        defaults.string(forKey: Self.avatarStickerIDKey)
+    }
+
+    func saveAvatarStickerID(_ id: String?) {
+        if let id {
+            defaults.set(id, forKey: Self.avatarStickerIDKey)
+        } else {
+            defaults.removeObject(forKey: Self.avatarStickerIDKey)
+        }
+    }
 }
 
 @MainActor
 final class InMemoryBaseballStickerStore: BaseballStickerStoring {
     private var collectedStickerIDs: Set<String>
+    private var avatarStickerID: String?
 
-    init(collectedStickerIDs: Set<String> = []) {
+    init(
+        collectedStickerIDs: Set<String> = [],
+        avatarStickerID: String? = nil
+    ) {
         self.collectedStickerIDs = collectedStickerIDs
+        self.avatarStickerID = avatarStickerID
     }
 
     func loadCollectedStickerIDs() -> Set<String> {
@@ -174,5 +194,13 @@ final class InMemoryBaseballStickerStore: BaseballStickerStoring {
 
     func saveCollectedStickerIDs(_ ids: Set<String>) {
         collectedStickerIDs = ids
+    }
+
+    func loadAvatarStickerID() -> String? {
+        avatarStickerID
+    }
+
+    func saveAvatarStickerID(_ id: String?) {
+        avatarStickerID = id
     }
 }

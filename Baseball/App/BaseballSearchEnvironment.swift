@@ -71,6 +71,7 @@ final class BaseballSearchEnvironment {
     private(set) var activeDiscoveryCardID: String?
     private(set) var discoveryError: String?
     private(set) var collectedStickerIDs: Set<String>
+    private(set) var avatarStickerID: String?
 
     @ObservationIgnored private let queryInterpreter: any BaseballQueryInterpreting
     @ObservationIgnored private let planner: any BaseballSearchPlanning
@@ -84,8 +85,17 @@ final class BaseballSearchEnvironment {
         profile = dependencies.profile
         host = dependencies.host
         stickerStore = dependencies.stickerStore
-        collectedStickerIDs = dependencies.stickerStore
+        let storedStickerIDs = dependencies.stickerStore
             .loadCollectedStickerIDs()
+        collectedStickerIDs = storedStickerIDs
+        let storedAvatarStickerID = dependencies.stickerStore
+            .loadAvatarStickerID()
+        if let storedAvatarStickerID,
+           storedStickerIDs.contains(storedAvatarStickerID) {
+            avatarStickerID = storedAvatarStickerID
+        } else {
+            avatarStickerID = nil
+        }
         queryInterpreter = dependencies.queryInterpreter
         planner = dependencies.planner
         dataProvider = dependencies.dataProvider
@@ -111,6 +121,12 @@ final class BaseballSearchEnvironment {
         }
     }
 
+    var avatarSticker: BaseballSticker? {
+        BaseballStickerCatalog.all.first {
+            $0.id == avatarStickerID
+        }
+    }
+
     func hasCollected(_ sticker: BaseballSticker) -> Bool {
         collectedStickerIDs.contains(sticker.id)
     }
@@ -120,6 +136,21 @@ final class BaseballSearchEnvironment {
         collectedStickerIDs.insert(sticker.id)
         stickerStore.saveCollectedStickerIDs(collectedStickerIDs)
         host.perform(.celebrate)
+    }
+
+    func useStickerAsAvatar(_ sticker: BaseballSticker) {
+        guard collectedStickerIDs.contains(sticker.id) else { return }
+        avatarStickerID = sticker.id
+        stickerStore.saveAvatarStickerID(sticker.id)
+        host.perform(.celebrate)
+    }
+
+    func resetStickerDemo() {
+        collectedStickerIDs = []
+        avatarStickerID = nil
+        stickerStore.saveCollectedStickerIDs([])
+        stickerStore.saveAvatarStickerID(nil)
+        resetToDiscovery()
     }
 
     func updateProfile(_ updatedProfile: BaseballFanProfileSnapshot) {

@@ -18,13 +18,24 @@ enum RockiesTheme {
     }
 }
 
-private enum BaseballPersonalizationSheet: String, Identifiable {
+private enum BaseballPersonalizationSheet: Identifiable {
     case teams
     case players
     case profile
-    case collection
+    case collection(BaseballSticker)
 
-    var id: String { rawValue }
+    var id: String {
+        switch self {
+        case .teams:
+            "teams"
+        case .players:
+            "players"
+        case .profile:
+            "profile"
+        case .collection(let sticker):
+            "collection-\(sticker.id)"
+        }
+    }
 }
 
 struct BaseballExperienceRootView: View {
@@ -40,8 +51,8 @@ struct BaseballExperienceRootView: View {
                     onProfileTap: {
                         activeSheet = .profile
                     },
-                    onCollectionTap: {
-                        activeSheet = .collection
+                    onCollectionTap: { sticker in
+                        activeSheet = .collection(sticker)
                     }
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.985)))
@@ -70,16 +81,33 @@ struct BaseballExperienceRootView: View {
             }
         }
         .overlay(alignment: .topTrailing) {
-            DemoAuthenticationToggle(
-                isSignedIn: Binding(
-                    get: { onboarding.isPersonalizedExperienceActive },
-                    set: { signedIn in
-                        simulateSignedInExperience(signedIn)
-                    }
+            VStack(alignment: .trailing, spacing: 8) {
+                DemoAuthenticationToggle(
+                    isSignedIn: Binding(
+                        get: { onboarding.isPersonalizedExperienceActive },
+                        set: { signedIn in
+                            simulateSignedInExperience(signedIn)
+                        }
+                    )
                 )
-            )
+
+                if !environment.collectedStickers.isEmpty
+                    || environment.avatarSticker != nil {
+                    DemoStickerResetButton {
+                        activeSheet = nil
+                        environment.resetStickerDemo()
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+            }
             .padding(.top, 82)
             .padding(.trailing, 28)
+            .animation(
+                reduceMotion
+                    ? nil
+                    : .spring(response: 0.4, dampingFraction: 0.85),
+                value: environment.collectedStickerIDs
+            )
         }
         .animation(
             reduceMotion
@@ -108,17 +136,17 @@ struct BaseballExperienceRootView: View {
             case .profile:
                 BaseballProfileSheet(
                     onboarding: onboarding,
-                    revealsStickerCollection: false,
+                    newlyCollectedSticker: nil,
                     onRestart: {
                         activeSheet = nil
                         onboarding.restartPersonalization()
                         environment.resetToDiscovery()
                     }
                 )
-            case .collection:
+            case .collection(let sticker):
                 BaseballProfileSheet(
                     onboarding: onboarding,
-                    revealsStickerCollection: true,
+                    newlyCollectedSticker: sticker,
                     onRestart: {
                         activeSheet = nil
                         onboarding.restartPersonalization()
@@ -186,6 +214,24 @@ private struct DemoAuthenticationToggle: View {
         .accessibilityLabel("Demo signed-in state")
         .accessibilityValue(isSignedIn ? "Signed in" : "Signed out")
         .accessibilityIdentifier("demo-authentication-toggle")
+    }
+}
+
+private struct DemoStickerResetButton: View {
+    let onReset: () -> Void
+
+    var body: some View {
+        Button(action: onReset) {
+            Label("Reset rewards", systemImage: "arrow.counterclockwise")
+                .font(.caption2.weight(.bold))
+                .padding(.horizontal, 11)
+                .frame(minHeight: 36)
+        }
+        .buttonStyle(.glass)
+        .accessibilityHint(
+            "Clears collected stickers and restores the initial avatar"
+        )
+        .accessibilityIdentifier("demo-reset-stickers")
     }
 }
 
@@ -730,19 +776,21 @@ private struct BaseballPlayerPickerSheet: View {
 
 private struct BaseballProfileSheet: View {
     let onboarding: BaseballOnboardingState
-    let revealsStickerCollection: Bool
+    let newlyCollectedSticker: BaseballSticker?
     let onRestart: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @Environment(BaseballSearchEnvironment.self) private var environment
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAvatarPromptPresented = false
 
     init(
         onboarding: BaseballOnboardingState,
-        revealsStickerCollection: Bool = false,
+        newlyCollectedSticker: BaseballSticker? = nil,
         onRestart: @escaping () -> Void
     ) {
         self.onboarding = onboarding
-        self.revealsStickerCollection = revealsStickerCollection
+        self.newlyCollectedSticker = newlyCollectedSticker
         self.onRestart = onRestart
     }
 
@@ -753,10 +801,15 @@ private struct BaseballProfileSheet: View {
 
                 ScrollView {
                     VStack(spacing: 18) {
-                        if revealsStickerCollection {
+                        if let newlyCollectedSticker {
                             Label(
-                                "Hunter Goodman added",
-                                systemImage: "checkmark.seal.fill"
+                                collectionConfirmation(
+                                    for: newlyCollectedSticker
+                                ),
+                                systemImage: environment.avatarSticker?.id
+                                    == newlyCollectedSticker.id
+                                    ? "person.crop.circle.badge.checkmark"
+                                    : "checkmark.seal.fill"
                             )
                             .font(.headline.weight(.black))
                             .foregroundStyle(.green)
@@ -770,21 +823,11 @@ private struct BaseballProfileSheet: View {
                             )
                         }
 
-                        Text("M")
-                            .font(.title.weight(.black))
-                            .foregroundStyle(.white)
-                            .frame(width: 76, height: 76)
-                            .background(
-                                RockiesTheme.brightPurple.gradient,
-                                in: Circle()
-                            )
-                            .overlay {
-                                Circle()
-                                    .stroke(
-                                        RockiesTheme.silver.opacity(0.64),
-                                        lineWidth: 1.5
-                                    )
-                            }
+                        ProfileAvatarView(
+                            sticker: environment.avatarSticker,
+                            fallbackInitial: profileInitial,
+                            diameter: 76
+                        )
 
                         VStack(spacing: 3) {
                             Text(onboarding.profileSnapshot.name)
@@ -812,7 +855,7 @@ private struct BaseballProfileSheet: View {
                             )
                         }
 
-                        if !revealsStickerCollection {
+                        if newlyCollectedSticker == nil {
                             ProfileStickerCollectionSection(
                                 stickers: environment.collectedStickers
                             )
@@ -845,6 +888,29 @@ private struct BaseballProfileSheet: View {
                     .padding(.top, 20)
                     .padding(.bottom, 34)
                 }
+
+                if isAvatarPromptPresented,
+                   let newlyCollectedSticker {
+                    Color.black.opacity(0.56)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+
+                    ProfileAvatarPrompt(
+                        sticker: newlyCollectedSticker,
+                        onUseAvatar: {
+                            environment.useStickerAsAvatar(
+                                newlyCollectedSticker
+                            )
+                            dismissAvatarPrompt()
+                        },
+                        onNotNow: dismissAvatarPrompt
+                    )
+                    .padding(24)
+                    .transition(
+                        .scale(scale: 0.92).combined(with: .opacity)
+                    )
+                    .zIndex(1)
+                }
             }
             .navigationTitle("Your profile")
             .navigationBarTitleDisplayMode(.inline)
@@ -853,15 +919,188 @@ private struct BaseballProfileSheet: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .accessibilityIdentifier("baseball-profile-done")
+                }
+            }
+            .task(id: newlyCollectedSticker?.id) {
+                guard let newlyCollectedSticker,
+                      environment.avatarSticker?.id
+                        != newlyCollectedSticker.id else {
+                    return
+                }
+                if !reduceMotion {
+                    try? await Task.sleep(for: .milliseconds(700))
+                }
+                withAnimation(
+                    reduceMotion
+                        ? nil
+                        : .spring(response: 0.45, dampingFraction: 0.86)
+                ) {
+                    isAvatarPromptPresented = true
                 }
             }
         }
         .preferredColorScheme(.dark)
         .presentationDetents(
-            revealsStickerCollection ? [.large] : [.medium, .large]
+            newlyCollectedSticker == nil ? [.medium, .large] : [.large]
         )
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("baseball-profile-sheet")
+    }
+
+    private var profileInitial: String {
+        onboarding.profileSnapshot.name.first.map(String.init) ?? "F"
+    }
+
+    private func collectionConfirmation(
+        for sticker: BaseballSticker
+    ) -> String {
+        if environment.avatarSticker?.id == sticker.id {
+            return "\(sticker.playerName) is your avatar"
+        }
+        return "\(sticker.playerName) added"
+    }
+
+    private func dismissAvatarPrompt() {
+        withAnimation(
+            reduceMotion
+                ? nil
+                : .easeOut(duration: 0.22)
+        ) {
+            isAvatarPromptPresented = false
+        }
+    }
+}
+
+private struct ProfileAvatarView: View {
+    let sticker: BaseballSticker?
+    let fallbackInitial: String
+    let diameter: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(RockiesTheme.brightPurple.gradient)
+
+            if let sticker {
+                AsyncImage(url: URL(string: sticker.portraitURL)) { phase in
+                    if case .success(let image) = phase {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Image(systemName: sticker.systemImage)
+                            .font(
+                                .system(
+                                    size: diameter * 0.42,
+                                    weight: .black
+                                )
+                            )
+                            .foregroundStyle(.white)
+                    }
+                }
+                .clipShape(Circle())
+            } else {
+                Text(fallbackInitial)
+                    .font(.system(size: diameter * 0.42, weight: .black))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: diameter, height: diameter)
+        .overlay {
+            Circle()
+                .stroke(
+                    sticker == nil
+                        ? AnyShapeStyle(
+                            RockiesTheme.silver.opacity(0.64)
+                        )
+                        : AnyShapeStyle(
+                            LinearGradient(
+                                colors: [.white, .cyan, .purple],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        ),
+                    lineWidth: sticker == nil ? 1.5 : 3
+                )
+        }
+        .shadow(
+            color: sticker == nil
+                ? .clear
+                : RockiesTheme.brightPurple.opacity(0.46),
+            radius: 16,
+            y: 8
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            sticker.map {
+                "\($0.playerName) sticker profile avatar"
+            } ?? "\(fallbackInitial) profile avatar"
+        )
+        .accessibilityIdentifier(
+            sticker.map {
+                "profile-avatar-\($0.id)"
+            } ?? "profile-avatar-initial"
+        )
+    }
+}
+
+private struct ProfileAvatarPrompt: View {
+    let sticker: BaseballSticker
+    let onUseAvatar: () -> Void
+    let onNotNow: () -> Void
+
+    var body: some View {
+        VStack(spacing: 18) {
+            ProfileAvatarView(
+                sticker: sticker,
+                fallbackInitial: "",
+                diameter: 104
+            )
+
+            VStack(spacing: 7) {
+                Text("Change your avatar?")
+                    .font(.title2.weight(.black))
+
+                Text(
+                    "Use your new \(sticker.playerName) sticker as your profile avatar?"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button(action: onUseAvatar) {
+                Label(
+                    "Use as my avatar",
+                    systemImage: "person.crop.circle.badge.checkmark"
+                )
+                .font(.headline.weight(.bold))
+                .frame(maxWidth: .infinity, minHeight: 52)
+            }
+            .buttonStyle(.glassProminent)
+            .tint(RockiesTheme.brightPurple)
+            .accessibilityIdentifier("avatar-prompt-use-sticker")
+
+            Button("Not now", action: onNotNow)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("avatar-prompt-not-now")
+        }
+        .padding(24)
+        .frame(maxWidth: 340)
+        .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .stroke(.white.opacity(0.16), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.46), radius: 36, y: 18)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("avatar-sticker-prompt")
     }
 }
 
