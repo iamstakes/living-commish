@@ -463,8 +463,9 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(screenshot)
     }
 
-    func testThirdCardExpandsHunterGoodmanStoryFullScreen() {
+    func testThirdCardOpensMLBPlayerStoryDirectly() {
         let app = launchApp()
+        let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
 
         let nextButton = app.buttons["host-presentation-next"]
         XCTAssertTrue(nextButton.waitForExistence(timeout: 8))
@@ -481,31 +482,18 @@ final class BaseballSearchHomeUITests: XCTestCase {
         XCTAssertTrue(storyCard.label.contains("30th homer"))
         storyCard.tap()
 
-        let fullScreenStory = app.descendants(matching: .any)[
-            "player-story-full-screen"
-        ]
         XCTAssertTrue(
-            fullScreenStory.waitForExistence(timeout: 5)
+            safari.wait(for: .runningForeground, timeout: 8),
+            "The third tile should open MLB.com directly"
         )
-        XCTAssertTrue(app.staticTexts["player-story-title"].exists)
-        XCTAssertTrue(app.staticTexts["Best of the Last 10"].exists)
-        XCTAssertTrue(
-            app.staticTexts["His 30th homer was his third of the game"].exists
-        )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["player-story-source-link"].exists
+        XCTAssertFalse(
+            app.descendants(matching: .any)["player-story-full-screen"].exists
         )
 
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "Hunter Goodman full-screen player story"
+        let screenshot = XCTAttachment(screenshot: safari.screenshot())
+        screenshot.name = "Hunter Goodman MLB player story"
         screenshot.lifetime = .keepAlways
         add(screenshot)
-
-        app.buttons["Close player story"].tap()
-        XCTAssertTrue(
-            app.otherElements["baseball-discovery-section"]
-                .waitForExistence(timeout: 3)
-        )
     }
 
     func testDailyDropRunsQuizRipAndAddsStickerToProfile() {
@@ -526,9 +514,12 @@ final class BaseballSearchHomeUITests: XCTestCase {
         }
 
         app.buttons["discovery-card-discovery-daily-drop"].tap()
-        XCTAssertFalse(
-            app.descendants(matching: .any)["daily-drop-start-stories"].exists
-        )
+
+        let startButton = app.descendants(matching: .any)[
+            "daily-drop-start-stories"
+        ]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        startButton.tap()
 
         for _ in 0..<3 {
             let storyButton = app.descendants(matching: .any)[

@@ -9,6 +9,7 @@ import UIKit
 // rip, card flip, and claim interactions intentionally retain that structure.
 
 private enum BaseballDailyQuizPhase: Equatable {
+    case landing
     case stories
     case quiz
     case reward(BaseballQuizResult)
@@ -101,7 +102,7 @@ struct BaseballDailyDropFullScreenView: View {
     let onOpenCollection: () -> Void
     let onDismiss: () -> Void
 
-    @State private var phase: BaseballDailyQuizPhase = .stories
+    @State private var phase: BaseballDailyQuizPhase = .landing
 
     init(
         drop: BaseballDailyDrop,
@@ -122,6 +123,16 @@ struct BaseballDailyDropFullScreenView: View {
                 .ignoresSafeArea()
 
             switch phase {
+            case .landing:
+                BaseballQuizLandingView(
+                    onClose: onDismiss,
+                    onStart: {
+                        BaseballQuizHaptics.affirm()
+                        phase = .stories
+                    }
+                )
+                .transition(.opacity)
+
             case .stories:
                 BaseballQuizStoriesView(
                     stories: drop.stories,
@@ -226,6 +237,119 @@ private struct BaseballQuizCloseButton: View {
         }
         .accessibilityLabel("Close daily baseball quiz")
         .accessibilityIdentifier("daily-drop-close")
+    }
+}
+
+private struct BaseballQuizLandingView: View {
+    let onClose: () -> Void
+    let onStart: () -> Void
+
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            BaseballQuizPalette.background
+                .ignoresSafeArea()
+
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.05),
+                    BaseballQuizPalette.auraCore.opacity(0.72),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            Circle()
+                .fill(Color.black.opacity(0.26))
+                .frame(width: 420, height: 420)
+                .blur(radius: 36)
+                .offset(x: 80, y: -175)
+
+            Image(systemName: "baseball.fill")
+                .font(.system(size: 330, weight: .black))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(0.46),
+                            .white.opacity(0.10),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .rotationEffect(.degrees(-18))
+                .offset(x: 95, y: -85)
+                .shadow(color: .black.opacity(0.35), radius: 24, y: 18)
+                .accessibilityHidden(true)
+
+            VStack(spacing: 16) {
+                Spacer()
+
+                Text("The Ultimate Baseball Daily Quiz")
+                    .font(.system(size: 30, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+                    .opacity(appeared ? 1 : 0)
+
+                Text(
+                    "From historic moments to today’s live drama, the Commish is testing your baseball knowledge daily."
+                )
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.white.opacity(0.72))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 6)
+
+                Spacer()
+
+                Button {
+                    onStart()
+                } label: {
+                    Text("Let’s go")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            BaseballQuizPalette.auraCore,
+                                            BaseballQuizPalette.auraLight,
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 16)
+                .accessibilityIdentifier("daily-drop-start-stories")
+            }
+
+            HStack {
+                BaseballQuizCloseButton(action: onClose)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+        }
+        .onAppear {
+            withAnimation(
+                .spring(response: 0.6, dampingFraction: 0.85)
+                    .delay(0.1)
+            ) {
+                appeared = true
+            }
+        }
     }
 }
 
