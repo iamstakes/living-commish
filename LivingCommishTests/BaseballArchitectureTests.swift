@@ -373,6 +373,23 @@ final class BaseballArchitectureTests: XCTestCase {
         })
         XCTAssertTrue(editorial.reaction.line.contains("Phillies icon"))
         XCTAssertTrue(editorial.reaction.line.contains("Hall of Fame"))
+
+        guard let schmidt = snapshot.modules.compactMap({ module in
+            if case .player(let player) = module {
+                return player
+            }
+            return nil
+        }).first(where: { $0.id == "mike-schmidt" }) else {
+            return XCTFail("Expected the Mike Schmidt player result")
+        }
+
+        XCTAssertEqual(schmidt.gallery.count, 4)
+        XCTAssertEqual(schmidt.gallery.first?.title, "Michael Jack Schmidt")
+        XCTAssertEqual(schmidt.quiz?.title, "Mike Schmidt Quiz")
+        XCTAssertEqual(
+            schmidt.quiz?.rewardSticker,
+            BaseballStickerCatalog.mikeSchmidt
+        )
     }
 
     func testPlannerProducesVisualModulePlansInsteadOfTextResponses() async throws {
@@ -607,8 +624,32 @@ final class BaseballArchitectureTests: XCTestCase {
         )
         XCTAssertEqual(
             BaseballStickerCatalog.all.map(\.id),
-            [drop.rewardSticker.id]
+            [
+                drop.rewardSticker.id,
+                BaseballStickerCatalog.mikeSchmidt.id,
+            ]
         )
+    }
+
+    func testMikeSchmidtQuizAndLegendaryRewardAreWellFormed() {
+        let quiz = BaseballDailyDropCatalog.mikeSchmidtQuiz
+
+        XCTAssertEqual(quiz.eyebrow, "LEGENDS QUIZ")
+        XCTAssertEqual(quiz.title, "Mike Schmidt Quiz")
+        XCTAssertEqual(quiz.storyTitle, "Meet Michael Jack.")
+        XCTAssertEqual(quiz.stories.count, 3)
+        XCTAssertEqual(quiz.questions.count, 3)
+        XCTAssertEqual(
+            quiz.questions.map {
+                $0.answers[$0.correctAnswerIndex]
+            },
+            ["Four", "48", "548"]
+        )
+        XCTAssertEqual(quiz.rewardSticker.playerName, "Mike Schmidt")
+        XCTAssertEqual(quiz.rewardSticker.teamName, "Philadelphia Phillies")
+        XCTAssertEqual(quiz.rewardSticker.jerseyNumber, "20")
+        XCTAssertEqual(quiz.rewardSticker.rarity, .legendary)
+        XCTAssertNil(quiz.rewardSticker.animatedAvatarResourceName)
     }
 
     func testEnvironmentCollectsStickerAndPersistsItThroughStore() {

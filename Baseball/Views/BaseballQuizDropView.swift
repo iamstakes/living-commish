@@ -162,6 +162,7 @@ struct BaseballDailyDropFullScreenView: View {
             case .stories:
                 BaseballQuizStoriesView(
                     stories: drop.stories,
+                    quizTitle: drop.title,
                     onComplete: {
                         BaseballQuizHaptics.affirm()
                         phase = .quiz
@@ -173,6 +174,7 @@ struct BaseballDailyDropFullScreenView: View {
             case .quiz:
                 BaseballQuizQuestionsView(
                     questions: drop.questions,
+                    quizTitle: drop.title,
                     onClose: onDismiss,
                     onComplete: { result in
                         phase = .reward(result)
@@ -233,6 +235,22 @@ private enum BaseballQuizPalette {
         green: 0.24,
         blue: 0.24
     )
+
+    static func accent(for sticker: BaseballSticker) -> SwiftUI.Color {
+        if sticker.teamName == "Philadelphia Phillies" {
+            return Color(red: 0.91, green: 0.08, blue: 0.18)
+        }
+        return auraCore
+    }
+
+    static func accentLight(
+        for sticker: BaseballSticker
+    ) -> SwiftUI.Color {
+        if sticker.teamName == "Philadelphia Phillies" {
+            return Color(red: 1, green: 0.28, blue: 0.25)
+        }
+        return auraLight
+    }
 }
 
 @MainActor
@@ -251,6 +269,7 @@ private enum BaseballQuizHaptics {
 }
 
 private struct BaseballQuizCloseButton: View {
+    let quizTitle: String
     let action: () -> Void
 
     var body: some View {
@@ -261,7 +280,7 @@ private struct BaseballQuizCloseButton: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel("Close Rockies Quiz")
+        .accessibilityLabel("Close \(quizTitle)")
         .accessibilityIdentifier("daily-drop-close")
     }
 }
@@ -301,7 +320,9 @@ private struct BaseballQuizLandingView: View {
 
             LinearGradient(
                 colors: [
-                    RockiesTheme.brightPurple.opacity(0.52),
+                    BaseballQuizPalette
+                        .accent(for: drop.rewardSticker)
+                        .opacity(0.52),
                     .clear,
                 ],
                 startPoint: .bottomLeading,
@@ -311,7 +332,10 @@ private struct BaseballQuizLandingView: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    BaseballQuizCloseButton(action: onClose)
+                    BaseballQuizCloseButton(
+                        quizTitle: drop.title,
+                        action: onClose
+                    )
                     Spacer()
                 }
                 .padding(.horizontal, 12)
@@ -348,8 +372,12 @@ private struct BaseballQuizLandingView: View {
                             .font(.system(size: 46, weight: .black))
                             .fontWidth(.expanded)
                             .foregroundStyle(.white)
-                            .minimumScaleFactor(0.78)
-                            .lineLimit(1)
+                            .minimumScaleFactor(0.70)
+                            .lineLimit(2)
+                            .fixedSize(
+                                horizontal: false,
+                                vertical: true
+                            )
 
                         Text(drop.storyBody)
                             .font(.system(size: 17, weight: .semibold))
@@ -362,7 +390,9 @@ private struct BaseballQuizLandingView: View {
                         Image(systemName: "diamond.fill")
                             .foregroundStyle(Color.yellow)
 
-                        Text("RARE REWARD")
+                        Text(
+                            "\(drop.rewardSticker.rarity.displayName) REWARD"
+                        )
                             .font(.system(size: 12, weight: .black))
                             .tracking(1)
 
@@ -377,7 +407,7 @@ private struct BaseballQuizLandingView: View {
 
                     Button(action: onStart) {
                         HStack {
-                            Text("Start Rockies Quiz")
+                            Text("Start \(drop.title)")
                             Spacer()
                             Image(systemName: "arrow.right")
                         }
@@ -391,8 +421,12 @@ private struct BaseballQuizLandingView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            BaseballQuizPalette.auraCore,
-                                            BaseballQuizPalette.auraLight,
+                                            BaseballQuizPalette.accent(
+                                                for: drop.rewardSticker
+                                            ),
+                                            BaseballQuizPalette.accentLight(
+                                                for: drop.rewardSticker
+                                            ),
                                         ],
                                         startPoint: .leading,
                                         endPoint: .trailing
@@ -426,6 +460,7 @@ private struct BaseballQuizLandingView: View {
 
 private struct BaseballQuizStoriesView: View {
     let stories: [BaseballQuizStory]
+    let quizTitle: String
     let onComplete: () -> Void
     let onClose: () -> Void
 
@@ -464,8 +499,8 @@ private struct BaseballQuizStoriesView: View {
                     Spacer()
 
                     HStack(spacing: 7) {
-                        Image(systemName: "mountain.2.fill")
-                        Text("ROCKIES QUIZ")
+                        Image(systemName: "baseball.diamond.bases.fill")
+                        Text(quizTitle.uppercased())
                     }
                     .font(.system(size: 12, weight: .black))
                     .tracking(0.9)
@@ -553,7 +588,10 @@ private struct BaseballQuizStoriesView: View {
             .ignoresSafeArea()
 
             HStack {
-                BaseballQuizCloseButton(action: onClose)
+                BaseballQuizCloseButton(
+                    quizTitle: quizTitle,
+                    action: onClose
+                )
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -613,6 +651,7 @@ private struct BaseballQuizStoriesView: View {
 
 private struct BaseballQuizQuestionsView: View {
     let questions: [BaseballQuizQuestion]
+    let quizTitle: String
     let onClose: () -> Void
     let onComplete: (BaseballQuizResult) -> Void
 
@@ -728,7 +767,10 @@ private struct BaseballQuizQuestionsView: View {
 
     private var navigationBar: some View {
         HStack(spacing: 12) {
-            BaseballQuizCloseButton(action: onClose)
+            BaseballQuizCloseButton(
+                quizTitle: quizTitle,
+                action: onClose
+            )
 
             GeometryReader { geometry in
                 let count = max(questions.count, 1)
@@ -1583,7 +1625,7 @@ private struct BaseballQuizRewardView: View {
         case .revealed:
             "Tap the card to flip it · Swipe up to claim"
         case .sealed, .opening:
-            "You absolutely nailed that quiz. You’ve unlocked a rare player card for your pack. Tap to open it!"
+            "You absolutely nailed that quiz. You’ve unlocked a \(sticker.rarity.displayName.lowercased()) player card for your pack. Tap to open it!"
         }
     }
 
@@ -1599,8 +1641,12 @@ private struct BaseballQuizRewardView: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    BaseballQuizPalette.auraCore,
-                                    BaseballQuizPalette.auraLight,
+                                    BaseballQuizPalette.accent(
+                                        for: sticker
+                                    ),
+                                    BaseballQuizPalette.accentLight(
+                                        for: sticker
+                                    ),
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -1647,8 +1693,8 @@ struct BaseballStickerCardView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.14, green: 0.07, blue: 0.24),
-                            RockiesTheme.brightPurple,
+                            accent.opacity(0.48),
+                            accent,
                             Color(red: 0.03, green: 0.04, blue: 0.09),
                         ],
                         startPoint: .topLeading,
@@ -1659,7 +1705,7 @@ struct BaseballStickerCardView: View {
             RoundedRectangle(cornerRadius: 25, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [.white, .cyan, .purple],
+                        colors: [.white, accentLight, accent],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -1668,7 +1714,7 @@ struct BaseballStickerCardView: View {
 
             VStack(spacing: size == .large ? 10 : 5) {
                 HStack {
-                    Text("COLORADO")
+                    Text(teamWordmark)
                     Spacer()
                     Text("#\(sticker.jerseyNumber)")
                 }
@@ -1737,13 +1783,13 @@ struct BaseballStickerCardView: View {
                         )
                     )
                     .tracking(1.5)
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(accentLight)
             }
             .padding(size == .large ? 18 : 12)
         }
         .frame(width: size.width, height: size.height)
         .shadow(
-            color: RockiesTheme.brightPurple.opacity(0.38),
+            color: accent.opacity(0.38),
             radius: size == .large ? 32 : 14,
             y: size == .large ? 18 : 7
         )
@@ -1752,6 +1798,25 @@ struct BaseballStickerCardView: View {
             "\(sticker.rarity.displayName) player card, \(sticker.playerName), \(sticker.teamName), number \(sticker.jerseyNumber)"
         )
         .accessibilityIdentifier("profile-sticker-\(sticker.id)")
+    }
+
+    private var accent: SwiftUI.Color {
+        BaseballQuizPalette.accent(for: sticker)
+    }
+
+    private var accentLight: SwiftUI.Color {
+        BaseballQuizPalette.accentLight(for: sticker)
+    }
+
+    private var teamWordmark: String {
+        switch sticker.teamName {
+        case "Colorado Rockies":
+            "COLORADO"
+        case "Philadelphia Phillies":
+            "PHILADELPHIA"
+        default:
+            sticker.teamName.uppercased()
+        }
     }
 }
 
@@ -1765,8 +1830,10 @@ private struct BaseballStickerBackView: View {
                     LinearGradient(
                         colors: [
                             .black,
-                            RockiesTheme.brightPurple,
-                            .indigo,
+                            BaseballQuizPalette.accent(for: sticker),
+                            BaseballQuizPalette
+                                .accentLight(for: sticker)
+                                .opacity(0.72),
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

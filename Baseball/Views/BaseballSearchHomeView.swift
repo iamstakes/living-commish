@@ -9,6 +9,7 @@ struct BaseballSearchHomeView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.openURL) private var openURL
     @State private var presentedDailyDrop: BaseballDailyDrop?
+    @State private var presentedPlayerGallery: BaseballPlayerCard?
 
     var body: some View {
         @Bindable var environment = environment
@@ -59,6 +60,29 @@ struct BaseballSearchHomeView: View {
                 },
                 onDismiss: {
                     presentedDailyDrop = nil
+                }
+            )
+        }
+        .fullScreenCover(item: $presentedPlayerGallery) { player in
+            BaseballPlayerGalleryExperienceView(
+                player: player,
+                isQuizRewardCollected: player.quiz.map {
+                    environment.hasCollected($0.rewardSticker)
+                } ?? false,
+                onCollect: { sticker in
+                    environment.collectSticker(sticker)
+                },
+                onOpenCollection: { sticker in
+                    presentedPlayerGallery = nil
+                    Task { @MainActor in
+                        if !reduceMotion {
+                            try? await Task.sleep(for: .milliseconds(250))
+                        }
+                        onCollectionTap(sticker)
+                    }
+                },
+                onDismiss: {
+                    presentedPlayerGallery = nil
                 }
             )
         }
@@ -196,7 +220,10 @@ struct BaseballSearchHomeView: View {
         return integratedSearchStage(accent: accent, thought: nil) {
             SearchResultPresentationDeck(
                 experience: experience,
-                reduceMotion: reduceMotion
+                reduceMotion: reduceMotion,
+                onOpenPlayerGallery: { player in
+                    presentedPlayerGallery = player
+                }
             )
             .id(experience.query.rawText)
             .padding(.leading, 6)
@@ -778,6 +805,7 @@ struct SearchResultPresentationDeck: View {
 
     let experience: BaseballSearchExperience
     let reduceMotion: Bool
+    let onOpenPlayerGallery: (BaseballPlayerCard) -> Void
     @State private var activeIndex = 0
 
     var body: some View {
@@ -792,12 +820,48 @@ struct SearchResultPresentationDeck: View {
                         .offset(x: -14, y: 14)
                         .rotationEffect(.degrees(-2))
 
-                    FeaturedResultCard(module: activeModule, compact: true)
-                        .frame(width: 230, height: 215, alignment: .topLeading)
+                    if case .player(let player) = activeModule,
+                       !player.gallery.isEmpty {
+                        Button {
+                            onOpenPlayerGallery(player)
+                        } label: {
+                            FeaturedResultCard(
+                                module: activeModule,
+                                compact: true
+                            )
+                            .frame(
+                                width: 230,
+                                height: 215,
+                                alignment: .topLeading
+                            )
+                        }
+                        .buttonStyle(.plain)
                         .scaleEffect(cardScale)
                         .frame(width: 264, height: 247)
-                        .accessibilityIdentifier("search-result-card")
+                        .accessibilityLabel(
+                            "Open \(player.name), \(player.teamName), image gallery and quiz"
+                        )
+                        .accessibilityHint(
+                            "Shows more archival photos and a quiz for a collectible card"
+                        )
+                        .accessibilityIdentifier(
+                            "search-result-card-open-gallery"
+                        )
+                    } else {
+                        FeaturedResultCard(
+                            module: activeModule,
+                            compact: true
+                        )
+                        .frame(
+                            width: 230,
+                            height: 215,
+                            alignment: .topLeading
+                        )
+                        .scaleEffect(cardScale)
+                        .frame(width: 264, height: 247)
+                    }
                 }
+                .accessibilityIdentifier("search-result-card")
 
                 HStack(spacing: 10) {
                     Button {
@@ -1523,10 +1587,23 @@ private struct FeaturedResultCard: View {
     let module: BaseballResultModule
     var compact = false
 
+    @ViewBuilder
     var body: some View {
+        if case .player(let player) = module,
+           let leadImage = player.gallery.first {
+            PlayerGalleryResultCard(
+                player: player,
+                leadImage: leadImage
+            )
+        } else {
+            genericCard
+        }
+    }
+
+    private var genericCard: some View {
         let content = module.featuredContent
 
-        VStack(alignment: .leading, spacing: 11) {
+        return VStack(alignment: .leading, spacing: 11) {
             HStack(spacing: 8) {
                 Label(content.eyebrow, systemImage: content.systemImage)
                     .font(.caption2.weight(.black))
@@ -1556,6 +1633,134 @@ private struct FeaturedResultCard: View {
         )
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("baseball-featured-result")
+    }
+}
+
+private struct PlayerGalleryResultCard: View {
+    let player: BaseballPlayerCard
+    let leadImage: BaseballPlayerGalleryImage
+
+    private let philliesRed = Color(
+        red: 0.91,
+        green: 0.08,
+        blue: 0.18
+    )
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            SearchResultPlayerImage(urlString: leadImage.imageURL)
+
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.02),
+                    .black.opacity(0.24),
+                    .black.opacity(0.95),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("HALL OF FAME • NO. 20")
+                    .font(.system(size: 8, weight: .black))
+                    .tracking(0.8)
+                    .foregroundStyle(.white.opacity(0.76))
+
+                Text(player.name)
+                    .font(.system(size: 25, weight: .black))
+                    .foregroundStyle(.white)
+
+                Text("\(player.teamName.uppercased()) • \(player.position)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.74))
+
+                HStack(spacing: 5) {
+                    Image(systemName: "sparkles")
+                    Text("QUIZ + LEGENDARY CARD")
+                }
+                .font(.system(size: 8, weight: .black))
+                .tracking(0.55)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(philliesRed, in: Capsule())
+            }
+            .padding(15)
+
+            HStack {
+                Text("TAP TO EXPLORE")
+                    .font(.system(size: 7, weight: .black))
+                    .tracking(0.7)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(.black.opacity(0.58), in: Capsule())
+
+                Spacer()
+
+                Image(systemName: "photo.stack.fill")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white)
+                    .frame(width: 30, height: 30)
+                    .background(philliesRed, in: Circle())
+            }
+            .padding(13)
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .frame(width: 230, height: 215)
+        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 25, style: .continuous)
+                .stroke(philliesRed.opacity(0.62), lineWidth: 1.5)
+        }
+        .shadow(color: philliesRed.opacity(0.22), radius: 16, y: 7)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("baseball-featured-result")
+    }
+}
+
+private struct SearchResultPlayerImage: View {
+    let urlString: String
+
+    var body: some View {
+        GeometryReader { proxy in
+            AsyncImage(url: URL(string: urlString)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .empty:
+                    placeholder
+                        .overlay {
+                            ProgressView().tint(.white)
+                        }
+                case .failure:
+                    placeholder
+                @unknown default:
+                    placeholder
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .clipped()
+        }
+    }
+
+    private var placeholder: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.64, green: 0.02, blue: 0.08),
+                    .black,
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: "figure.baseball")
+                .font(.system(size: 58, weight: .black))
+                .foregroundStyle(.white.opacity(0.34))
+        }
     }
 }
 

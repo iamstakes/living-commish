@@ -67,7 +67,20 @@ enum BaseballStickerCatalog {
         animatedAvatarResourceName: "hunter-goodman-avatar"
     )
 
-    static let all = [hunterGoodman]
+    static let mikeSchmidt = BaseballSticker(
+        id: "sticker-mike-schmidt-hall-of-fame",
+        playerName: "Mike Schmidt",
+        teamName: "Philadelphia Phillies",
+        position: "3B",
+        jerseyNumber: "20",
+        rarity: .legendary,
+        tagline: "548 home runs. Ten Gold Gloves. One unforgettable Phillie.",
+        systemImage: "figure.baseball",
+        portraitURL: "https://img.mlbstatic.com/mlb-photos/image/upload/w_768,q_auto:best/v1/people/121836/headshot/67/current",
+        animatedAvatarResourceName: nil
+    )
+
+    static let all = [hunterGoodman, mikeSchmidt]
 }
 
 enum BaseballDailyDropCatalog {
@@ -142,6 +155,64 @@ enum BaseballDailyDropCatalog {
         minimumCorrectAnswers: 1,
         rewardSticker: BaseballStickerCatalog.hunterGoodman,
         hostThought: "Three Rockies firsts. One rare reward. Let’s meet the Rox."
+    )
+
+    static let mikeSchmidtQuiz = BaseballDailyDrop(
+        id: "player-quiz-mike-schmidt",
+        eyebrow: "LEGENDS QUIZ",
+        title: "Mike Schmidt Quiz",
+        storyTitle: "Meet Michael Jack.",
+        storyBody: "Prove you know No. 20 and earn a LEGENDARY Mike Schmidt card.",
+        landingImageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20hero.jpg.jpeg?itok=BBedRApQ",
+        stories: [
+            BaseballQuizStory(
+                id: "schmidt-four-homer-game",
+                title: "Four Homers. One Borrowed Bat.",
+                subtitle: "On April 17, 1976, Schmidt borrowed Tony Taylor’s bat and homered in four straight at-bats at Wrigley Field.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20Mike%20PA73-1044_Bat_NBLMcWilliams.jpg.jpeg?itok=jqry5n1M"
+            ),
+            BaseballQuizStory(
+                id: "schmidt-1980",
+                title: "The Year He Had It All.",
+                subtitle: "In 1980, Schmidt hit 48 homers, won NL MVP and World Series MVP, and delivered Philadelphia’s first championship.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20hero.jpg.jpeg?itok=BBedRApQ"
+            ),
+            BaseballQuizStory(
+                id: "schmidt-500",
+                title: "No. 500 Won The Game.",
+                subtitle: "Schmidt’s 500th homer was a go-ahead, three-run shot in the ninth inning at Pittsburgh on April 18, 1987.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/t_2x1/t_w1536/mlb/hr45cmr7p9qjbkyv3l46.jpg"
+            ),
+        ],
+        questions: [
+            BaseballQuizQuestion(
+                id: "schmidt-four-homer-game",
+                question: "How many home runs did Mike Schmidt hit at Wrigley Field on April 17, 1976?",
+                answers: ["Two", "Four", "Three", "Five"],
+                correctAnswerIndex: 1,
+                fact: "Schmidt homered in four straight at-bats as Philadelphia rallied from 12–1 down to win 18–16.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20Mike%20PA73-1044_Bat_NBLMcWilliams.jpg.jpeg?itok=jqry5n1M"
+            ),
+            BaseballQuizQuestion(
+                id: "schmidt-1980-homers",
+                question: "How many home runs did Schmidt hit during his MVP season in 1980?",
+                answers: ["44", "52", "48", "40"],
+                correctAnswerIndex: 2,
+                fact: "Schmidt’s career-high 48 homers helped carry the Phillies to their first World Series championship.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20hero.jpg.jpeg?itok=BBedRApQ"
+            ),
+            BaseballQuizQuestion(
+                id: "schmidt-career-homers",
+                question: "How many career home runs did Mike Schmidt hit?",
+                answers: ["548", "512", "536", "500"],
+                correctAnswerIndex: 0,
+                fact: "Schmidt retired in 1989 with 548 home runs, all of them as a Philadelphia Phillie.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/t_2x1/t_w1536/mlb/hr45cmr7p9qjbkyv3l46.jpg"
+            ),
+        ],
+        minimumCorrectAnswers: 1,
+        rewardSticker: BaseballStickerCatalog.mikeSchmidt,
+        hostThought: "Four homers, ten Gold Gloves, 548 career bombs. Let’s see what you know about Michael Jack."
     )
 }
 

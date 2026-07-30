@@ -25,6 +25,7 @@
 		B10000000000000000000016 /* BaseballQuizDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* BaseballQuizDropView.swift */; };
 		B10000000000000000000017 /* wc_pack_rip.riv in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* wc_pack_rip.riv */; };
 		B10000000000000000000018 /* commish_lets_go.riv in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* commish_lets_go.riv */; };
+		B10000000000000000000019 /* BaseballPlayerGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000019 /* BaseballPlayerGalleryView.swift */; };
 		0905801DBBCAED61D7D90119 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60A153C6A94238A0F245A6DB /* Foundation.framework */; };
 		0FAA9CD710DD4505947F9D4B /* RiveCommishController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56FC86F0DE1DCEF3385EF97 /* RiveCommishController.swift */; };
 		291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F04C53ACB0D273D6052AA8 /* LivingCommishApp.swift */; };
@@ -78,6 +79,7 @@
 		A10000000000000000000016 /* BaseballQuizDropView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballQuizDropView.swift; sourceTree = "<group>"; };
 		A10000000000000000000017 /* wc_pack_rip.riv */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; path = wc_pack_rip.riv; sourceTree = "<group>"; };
 		A10000000000000000000018 /* commish_lets_go.riv */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; path = commish_lets_go.riv; sourceTree = "<group>"; };
+		A10000000000000000000019 /* BaseballPlayerGalleryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BaseballPlayerGalleryView.swift; sourceTree = "<group>"; };
 		07C3196CAB1205AD8AFAF51B /* CommishControlling.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommishControlling.swift; sourceTree = "<group>"; };
 		0E99886B1EE2FF054CDB49DF /* AnimationConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationConfiguration.swift; sourceTree = "<group>"; };
 		420A8F5A4C64832A65EAD381 /* LivingCommishTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LivingCommishTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -203,6 +205,7 @@
 				A10000000000000000000011 /* BaseballSearchHomeView.swift */,
 				A10000000000000000000013 /* BaseballOnboardingView.swift */,
 				A10000000000000000000016 /* BaseballQuizDropView.swift */,
+				A10000000000000000000019 /* BaseballPlayerGalleryView.swift */,
 			);
 			name = Views;
 			path = Views;
@@ -461,6 +464,7 @@
 				B10000000000000000000014 /* BaseballPersonalization.swift in Sources */,
 				B10000000000000000000015 /* BaseballQuizModels.swift in Sources */,
 				B10000000000000000000016 /* BaseballQuizDropView.swift in Sources */,
+				B10000000000000000000019 /* BaseballPlayerGalleryView.swift in Sources */,
 				291BB9E44F8381BE718B706D /* LivingCommishApp.swift in Sources */,
 				DA037F7E3771CD955FB97055 /* CommishAnimationAction.swift in Sources */,
 				AED41260FBC450767B99D356 /* AdaptiveCommishController.swift in Sources */,

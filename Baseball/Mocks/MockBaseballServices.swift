@@ -79,7 +79,9 @@ enum MockBaseballFixtures {
         facts: [
             fact("judge-power", "Fixture: Judge’s result experience leads with power and contact quality."),
             fact("judge-role", "Fixture: Judge is listed as a New York Yankees outfielder in this prototype."),
-        ]
+        ],
+        gallery: [],
+        quiz: nil
     )
 
     static let ohtani = BaseballPlayerCard(
@@ -91,7 +93,9 @@ enum MockBaseballFixtures {
         facts: [
             fact("ohtani-role", "Fixture: Ohtani is listed as designated hitter in this prototype."),
             fact("ohtani-pitching", "Fixture: The availability card explains that pitching status requires sourced context."),
-        ]
+        ],
+        gallery: [],
+        quiz: nil
     )
 
     static let goodman = BaseballPlayerCard(
@@ -103,7 +107,9 @@ enum MockBaseballFixtures {
         facts: [
             fact("goodman-emerging", "Fixture: Goodman is tagged as an emerging player for the demo profile."),
             fact("goodman-rockies", "Fixture: Goodman is connected to the profile’s favorite team."),
-        ]
+        ],
+        gallery: [],
+        quiz: nil
     )
 
     static let mikeSchmidt = BaseballPlayerCard(
@@ -121,7 +127,38 @@ enum MockBaseballFixtures {
                 "schmidt-hall-of-fame",
                 "Fixture: Mike Schmidt is a Hall of Fame third baseman known for elite power and defense."
             ),
-        ]
+        ],
+        gallery: [
+            BaseballPlayerGalleryImage(
+                id: "schmidt-portrait",
+                title: "Michael Jack Schmidt",
+                caption: "The swing, the glove, and No. 20 became one of Philadelphia’s defining baseball careers.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20Mike%20PA73-1044_Bat_NBLMcWilliams.jpg.jpeg?itok=jqry5n1M",
+                sourceName: "National Baseball Hall of Fame"
+            ),
+            BaseballPlayerGalleryImage(
+                id: "schmidt-swing",
+                title: "Eight Home Run Titles",
+                caption: "Schmidt led the National League in home runs eight times over his 18-season Phillies career.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20hero.jpg.jpeg?itok=BBedRApQ",
+                sourceName: "National Baseball Hall of Fame"
+            ),
+            BaseballPlayerGalleryImage(
+                id: "schmidt-glove",
+                title: "The Complete Third Baseman",
+                caption: "His power came with elite defense: Schmidt won 10 Gold Glove Awards at third base.",
+                imageURL: "https://baseballhall.org/sites/default/files/styles/fullscreen_image_popup/public/Schmidt%20Mike%204135-94_Act_NBLSauritch.jpg.jpeg?itok=AHRbZQxr",
+                sourceName: "National Baseball Hall of Fame"
+            ),
+            BaseballPlayerGalleryImage(
+                id: "schmidt-500",
+                title: "Home Run No. 500",
+                caption: "His three-run homer in Pittsburgh on April 18, 1987, turned a one-run deficit into an 8–6 Phillies win.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/t_2x1/t_w1536/mlb/hr45cmr7p9qjbkyv3l46.jpg",
+                sourceName: "MLB / Philadelphia Phillies"
+            ),
+        ],
+        quiz: BaseballDailyDropCatalog.mikeSchmidtQuiz
     )
 
     static let goodmanPlayerStoryFacts = [

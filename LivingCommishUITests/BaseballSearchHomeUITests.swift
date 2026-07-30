@@ -416,6 +416,163 @@ final class BaseballSearchHomeUITests: XCTestCase {
         add(screenshot)
     }
 
+    func testMikeSchmidtGalleryQuizAndCardCollectionFlow() {
+        let app = launchApp()
+        let field = app.textFields["baseball-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 8))
+        field.tap()
+        field.typeText("mike schmidt")
+        app.buttons["baseball-search-button"].tap()
+
+        let resultCard = app.buttons["search-result-card"]
+        XCTAssertTrue(resultCard.waitForExistence(timeout: 8))
+        XCTAssertTrue(resultCard.label.contains("Mike Schmidt"))
+        XCTAssertTrue(resultCard.label.contains("Philadelphia Phillies"))
+
+        let trayScreenshot = XCTAttachment(screenshot: app.screenshot())
+        trayScreenshot.name = "Mike Schmidt image card in search tray"
+        trayScreenshot.lifetime = .keepAlways
+        add(trayScreenshot)
+
+        resultCard.tap()
+
+        let galleryTitle = app.staticTexts["THE SCHMIDT ARCHIVE"]
+        XCTAssertTrue(galleryTitle.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Michael Jack Schmidt"].exists)
+
+        let galleryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        galleryScreenshot.name = "Mike Schmidt archival image gallery"
+        galleryScreenshot.lifetime = .keepAlways
+        add(galleryScreenshot)
+
+        let homeRun500Thumbnail = app.buttons[
+            "player-gallery-thumbnail-schmidt-500"
+        ]
+        XCTAssertTrue(homeRun500Thumbnail.exists)
+        homeRun500Thumbnail.tap()
+        XCTAssertTrue(
+            app.staticTexts["Home Run No. 500"]
+                .waitForExistence(timeout: 3)
+        )
+
+        let milestoneScreenshot = XCTAttachment(
+            screenshot: app.screenshot()
+        )
+        milestoneScreenshot.name = "Mike Schmidt 500th home run gallery image"
+        milestoneScreenshot.lifetime = .keepAlways
+        add(milestoneScreenshot)
+
+        let startQuiz = app.buttons["player-gallery-start-quiz"]
+        XCTAssertTrue(startQuiz.exists)
+        startQuiz.tap()
+
+        let startStories = app.buttons["daily-drop-start-stories"]
+        XCTAssertTrue(startStories.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Meet Michael Jack."].exists)
+        XCTAssertTrue(
+            app.staticTexts[
+                "Prove you know No. 20 and earn a LEGENDARY Mike Schmidt card."
+            ].exists
+        )
+
+        let landingScreenshot = XCTAttachment(screenshot: app.screenshot())
+        landingScreenshot.name = "Mike Schmidt Quiz landing"
+        landingScreenshot.lifetime = .keepAlways
+        add(landingScreenshot)
+
+        startStories.tap()
+
+        let storyCopy = app.descendants(matching: .any)[
+            "daily-drop-story-copy"
+        ]
+        XCTAssertTrue(storyCopy.waitForExistence(timeout: 5))
+        XCTAssertTrue(storyCopy.label.contains("Four Homers"))
+
+        let storyButton = app.buttons["daily-drop-story-next"]
+        XCTAssertTrue(storyButton.waitForExistence(timeout: 5))
+        storyButton.tap()
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "Year He Had It All"
+            ),
+            evaluatedWith: storyCopy
+        )
+        waitForExpectations(timeout: 3)
+        storyButton.tap()
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "No. 500 Won The Game"
+            ),
+            evaluatedWith: storyCopy
+        )
+        waitForExpectations(timeout: 3)
+        storyButton.tap()
+
+        for answerID in [
+            "quiz-answer-schmidt-four-homer-game-1",
+            "quiz-answer-schmidt-1980-homers-2",
+            "quiz-answer-schmidt-career-homers-0",
+        ] {
+            let answer = app.buttons[answerID]
+            XCTAssertTrue(
+                answer.waitForExistence(timeout: 5),
+                "Expected Mike Schmidt quiz answer \(answerID)"
+            )
+            answer.tap()
+
+            let nextQuestion = app.buttons["quiz-next-button"]
+            XCTAssertTrue(nextQuestion.waitForExistence(timeout: 4))
+            nextQuestion.tap()
+        }
+
+        let pack = app.descendants(matching: .any)["daily-drop-pack"]
+        XCTAssertTrue(pack.waitForExistence(timeout: 4))
+        pack.tap()
+
+        let claimReward = app.buttons["daily-drop-claim-reward"]
+        XCTAssertTrue(claimReward.waitForExistence(timeout: 10))
+
+        let rewardScreenshot = XCTAttachment(screenshot: app.screenshot())
+        rewardScreenshot.name = "Legendary Mike Schmidt card reveal"
+        rewardScreenshot.lifetime = .keepAlways
+        add(rewardScreenshot)
+
+        claimReward.tap()
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["baseball-profile-sheet"]
+                .waitForExistence(timeout: 5)
+        )
+        XCTAssertTrue(
+            app.staticTexts["Mike Schmidt added"].exists
+        )
+        let collectedCard = app.descendants(matching: .any)[
+            "profile-sticker-sticker-mike-schmidt-hall-of-fame"
+        ]
+        XCTAssertTrue(collectedCard.exists)
+        XCTAssertTrue(collectedCard.label.contains("LEGENDARY"))
+        XCTAssertTrue(collectedCard.label.contains("Philadelphia Phillies"))
+        XCTAssertFalse(
+            app.descendants(matching: .any)["avatar-sticker-prompt"]
+                .waitForExistence(timeout: 1)
+        )
+
+        let collectionScreenshot = XCTAttachment(
+            screenshot: app.screenshot()
+        )
+        collectionScreenshot.name = "Mike Schmidt card added to collection"
+        collectionScreenshot.lifetime = .keepAlways
+        add(collectionScreenshot)
+
+        app.buttons["baseball-profile-done"].tap()
+        let resetRewards = app.buttons["demo-reset-stickers"]
+        XCTAssertTrue(resetRewards.waitForExistence(timeout: 4))
+        resetRewards.tap()
+        XCTAssertFalse(resetRewards.waitForExistence(timeout: 2))
+    }
+
     func testSearchKeyboardCanBeDismissedWithoutSubmitting() {
         let app = launchApp()
         let field = app.textFields["baseball-search-field"]

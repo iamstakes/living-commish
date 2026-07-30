@@ -71,6 +71,9 @@ struct BaseballExperienceRootView: View {
                             activeSheet = .profile
                         }
                     },
+                    onCollectionTap: { sticker in
+                        activeSheet = .collection(sticker)
+                    },
                     hostAccessibilityHint:
                         onboarding.isPersonalizedExperienceActive
                             ? "Open your baseball profile"
@@ -241,12 +244,14 @@ private struct BaseballOnboardingStage: View {
     let onChooseTeam: () -> Void
     let onChoosePlayer: () -> Void
     let onProfileTap: () -> Void
+    let onCollectionTap: (BaseballSticker) -> Void
     let hostAccessibilityHint: String
     let onComplete: () -> Void
 
     @Environment(BaseballSearchEnvironment.self) private var environment
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @State private var presentedPlayerGallery: BaseballPlayerCard?
 
     var body: some View {
         ZStack {
@@ -270,6 +275,29 @@ private struct BaseballOnboardingStage: View {
         .onAppear {
             host.perform(
                 onboarding.selectedTeam == nil ? .greet : .explain
+            )
+        }
+        .fullScreenCover(item: $presentedPlayerGallery) { player in
+            BaseballPlayerGalleryExperienceView(
+                player: player,
+                isQuizRewardCollected: player.quiz.map {
+                    environment.hasCollected($0.rewardSticker)
+                } ?? false,
+                onCollect: { sticker in
+                    environment.collectSticker(sticker)
+                },
+                onOpenCollection: { sticker in
+                    presentedPlayerGallery = nil
+                    Task { @MainActor in
+                        if !reduceMotion {
+                            try? await Task.sleep(for: .milliseconds(250))
+                        }
+                        onCollectionTap(sticker)
+                    }
+                },
+                onDismiss: {
+                    presentedPlayerGallery = nil
+                }
             )
         }
     }
@@ -316,7 +344,10 @@ private struct BaseballOnboardingStage: View {
             searchStage(accent: .cyan, thought: nil) {
                 SearchResultPresentationDeck(
                     experience: experience,
-                    reduceMotion: reduceMotion
+                    reduceMotion: reduceMotion,
+                    onOpenPlayerGallery: { player in
+                        presentedPlayerGallery = player
+                    }
                 )
                 .id(experience.query.rawText)
                 .padding(.leading, 6)
@@ -924,6 +955,7 @@ private struct BaseballProfileSheet: View {
             }
             .task(id: newlyCollectedSticker?.id) {
                 guard let newlyCollectedSticker,
+                      newlyCollectedSticker.animatedAvatarResourceName != nil,
                       environment.avatarSticker?.id
                         != newlyCollectedSticker.id else {
                     return
@@ -1131,7 +1163,7 @@ private struct ProfileStickerCollectionSection: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Your collection starts here")
                             .font(.subheadline.weight(.black))
-                        Text("Complete the daily baseball drop to earn your first sticker.")
+                        Text("Complete a baseball quiz to earn your first player card.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

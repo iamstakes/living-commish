@@ -42,6 +42,16 @@ struct BaseballPlayerCard: Equatable, Identifiable, Sendable {
     let position: String
     let summary: String
     let facts: [BaseballFact]
+    let gallery: [BaseballPlayerGalleryImage]
+    let quiz: BaseballDailyDrop?
+}
+
+struct BaseballPlayerGalleryImage: Equatable, Identifiable, Sendable {
+    let id: String
+    let title: String
+    let caption: String
+    let imageURL: String
+    let sourceName: String
 }
 
 struct BaseballTeamCard: Equatable, Identifiable, Sendable {
