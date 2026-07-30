@@ -31,68 +31,93 @@ struct BaseballDailyDropDiscoveryCardContent: View {
     let isCollected: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label(drop.eyebrow, systemImage: "sparkles")
-                    .font(.system(size: 9, weight: .black))
-                    .tracking(0.8)
-                    .foregroundStyle(.purple)
-
-                Spacer()
-
-                Image(
-                    systemName: isCollected
-                        ? "checkmark.seal.fill"
-                        : "arrow.up.right"
-                )
-                .font(.caption.bold())
-                .foregroundStyle(isCollected ? .mint : .secondary)
-            }
-
-            Spacer(minLength: 0)
-
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                RockiesTheme.brightPurple,
-                                .indigo,
-                                .black,
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 76, height: 72)
-
-                Image(systemName: "baseball.fill")
-                    .font(.system(size: 32, weight: .black))
-                    .foregroundStyle(.white)
-            }
-
-            Text(drop.title)
-                .font(.title3.weight(.black))
-                .foregroundStyle(.primary)
-
-            Text(
-                isCollected
-                    ? "Replay today’s quiz"
-                    : "Story · quiz · player card"
+        ZStack(alignment: .topLeading) {
+            BaseballRemoteImage(
+                urlString: drop.landingImageURL,
+                fallbackSystemImage: "mountain.2.fill"
             )
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.secondary)
+            .saturation(0.82)
+            .contrast(1.08)
+
+            LinearGradient(
+                colors: [
+                    .black.opacity(0.20),
+                    .black.opacity(0.34),
+                    BaseballQuizPalette.background.opacity(0.98),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .center, spacing: 7) {
+                    Label(drop.eyebrow, systemImage: "sparkles")
+                        .font(.system(size: 9, weight: .black))
+                        .tracking(0.9)
+                        .foregroundStyle(.white)
+
+                    Spacer(minLength: 4)
+
+                    Text(isCollected ? "COLLECTED" : "BRAND NEW")
+                        .font(.system(size: 8, weight: .black))
+                        .tracking(0.8)
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(
+                            isCollected
+                                ? BaseballQuizPalette.correct
+                                : Color.yellow,
+                            in: Capsule()
+                        )
+                }
+
+                Spacer(minLength: 0)
+
+                Text(drop.title)
+                    .font(.system(size: 26, weight: .black))
+                    .fontWidth(.expanded)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.75), radius: 8, y: 2)
+
+                HStack(spacing: 6) {
+                    Image(
+                        systemName: isCollected
+                            ? "arrow.counterclockwise"
+                            : "diamond.fill"
+                    )
+                    Text(
+                        isCollected
+                            ? "Replay today’s quiz"
+                            : "Win a RARE reward"
+                    )
+                }
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(
+                    isCollected
+                        ? Color.white.opacity(0.78)
+                        : Color.yellow
+                )
+            }
+            .padding(16)
         }
-        .padding(17)
         .frame(width: 230, height: 215, alignment: .leading)
-        .background(
-            RockiesTheme.brightPurple.opacity(0.16),
-            in: RoundedRectangle(cornerRadius: 26, style: .continuous)
-        )
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(.white.opacity(0.12), lineWidth: 1)
+                .stroke(
+                    isCollected
+                        ? Color.mint.opacity(0.55)
+                        : Color.yellow.opacity(0.62),
+                    lineWidth: 1.5
+                )
         }
+        .shadow(
+            color: (isCollected ? Color.mint : Color.yellow).opacity(0.18),
+            radius: 18,
+            y: 8
+        )
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -125,6 +150,7 @@ struct BaseballDailyDropFullScreenView: View {
             switch phase {
             case .landing:
                 BaseballQuizLandingView(
+                    drop: drop,
                     onClose: onDismiss,
                     onStart: {
                         BaseballQuizHaptics.affirm()
@@ -235,84 +261,130 @@ private struct BaseballQuizCloseButton: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .accessibilityLabel("Close daily baseball quiz")
+        .accessibilityLabel("Close Rockies Quiz")
         .accessibilityIdentifier("daily-drop-close")
     }
 }
 
 private struct BaseballQuizLandingView: View {
+    let drop: BaseballDailyDrop
     let onClose: () -> Void
     let onStart: () -> Void
 
     @State private var appeared = false
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             BaseballQuizPalette.background
                 .ignoresSafeArea()
 
+            BaseballRemoteImage(
+                urlString: drop.landingImageURL,
+                fallbackSystemImage: "mountain.2.fill"
+            )
+            .saturation(0.78)
+            .contrast(1.12)
+            .scaleEffect(appeared ? 1.03 : 1.1)
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
+
             LinearGradient(
                 colors: [
-                    Color.black.opacity(0.05),
-                    BaseballQuizPalette.auraCore.opacity(0.72),
+                    .black.opacity(0.54),
+                    .black.opacity(0.10),
+                    BaseballQuizPalette.background.opacity(0.96),
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
             .ignoresSafeArea()
 
-            Circle()
-                .fill(Color.black.opacity(0.26))
-                .frame(width: 420, height: 420)
-                .blur(radius: 36)
-                .offset(x: 80, y: -175)
+            LinearGradient(
+                colors: [
+                    RockiesTheme.brightPurple.opacity(0.52),
+                    .clear,
+                ],
+                startPoint: .bottomLeading,
+                endPoint: .topTrailing
+            )
+            .ignoresSafeArea()
 
-            Image(systemName: "baseball.fill")
-                .font(.system(size: 330, weight: .black))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(0.46),
-                            .white.opacity(0.10),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .rotationEffect(.degrees(-18))
-                .offset(x: 95, y: -85)
-                .shadow(color: .black.opacity(0.35), radius: 24, y: 18)
-                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    BaseballQuizCloseButton(action: onClose)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
 
-            VStack(spacing: 16) {
                 Spacer()
 
-                Text("The Ultimate Baseball Daily Quiz")
-                    .font(.system(size: 30, weight: .heavy))
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 8) {
+                        Text("BRAND NEW")
+                            .font(.system(size: 11, weight: .black))
+                            .tracking(1.1)
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 7)
+                            .background(Color.yellow, in: Capsule())
+
+                        Text(drop.eyebrow)
+                            .font(.system(size: 11, weight: .black))
+                            .tracking(1.1)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 7)
+                            .background(.black.opacity(0.42), in: Capsule())
+                    }
+
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text(drop.title.uppercased())
+                            .font(.system(size: 13, weight: .black))
+                            .tracking(2.2)
+                            .foregroundStyle(Color.yellow)
+
+                        Text(drop.storyTitle)
+                            .font(.system(size: 46, weight: .black))
+                            .fontWidth(.expanded)
+                            .foregroundStyle(.white)
+                            .minimumScaleFactor(0.78)
+                            .lineLimit(1)
+
+                        Text(drop.storyBody)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.86))
+                            .lineSpacing(3)
+                    }
+                    .shadow(color: .black.opacity(0.75), radius: 12, y: 3)
+
+                    HStack(spacing: 9) {
+                        Image(systemName: "diamond.fill")
+                            .foregroundStyle(Color.yellow)
+
+                        Text("RARE REWARD")
+                            .font(.system(size: 12, weight: .black))
+                            .tracking(1)
+
+                        Text("•")
+                            .foregroundStyle(.white.opacity(0.44))
+
+                        Text("3 questions")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.78))
+                    }
                     .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 28)
-                    .opacity(appeared ? 1 : 0)
 
-                Text(
-                    "From historic moments to today’s live drama, the Commish is testing your baseball knowledge daily."
-                )
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.white.opacity(0.72))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 28)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 6)
-
-                Spacer()
-
-                Button {
-                    onStart()
-                } label: {
-                    Text("Let’s go")
-                        .font(.system(size: 17, weight: .bold))
+                    Button(action: onStart) {
+                        HStack {
+                            Text("Start Rockies Quiz")
+                            Spacer()
+                            Image(systemName: "arrow.right")
+                        }
+                        .font(.system(size: 17, weight: .black))
                         .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .frame(height: 52)
                         .background(
                             Capsule()
@@ -327,20 +399,19 @@ private struct BaseballQuizLandingView: View {
                                     )
                                 )
                         )
+                        .overlay {
+                            Capsule()
+                                .stroke(.white.opacity(0.24), lineWidth: 1)
+                        }
+                    }
+                    .buttonStyle(BaseballPressableScaleStyle())
+                    .accessibilityIdentifier("daily-drop-start-stories")
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
                 .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 16)
-                .accessibilityIdentifier("daily-drop-start-stories")
+                .offset(y: appeared ? 0 : 18)
             }
-
-            HStack {
-                BaseballQuizCloseButton(action: onClose)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
         }
         .onAppear {
             withAnimation(
@@ -385,36 +456,16 @@ private struct BaseballQuizStoriesView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
 
-            HStack(spacing: 0) {
-                Button(action: goBack) {
-                    Color.clear
-                        .contentShape(Rectangle())
-                }
-                .accessibilityLabel("Previous story")
-                .accessibilityIdentifier("daily-drop-story-previous")
-
-                Button(action: goForward) {
-                    Color.clear
-                        .contentShape(Rectangle())
-                }
-                .accessibilityLabel(
-                    index == stories.count - 1
-                        ? "Start quiz"
-                        : "Next story"
-                )
-                .accessibilityIdentifier("daily-drop-story-next")
-            }
-            .ignoresSafeArea()
-
             VStack(spacing: 0) {
                 HStack {
-                    BaseballQuizCloseButton(action: onClose)
+                    Color.clear
+                        .frame(width: 44, height: 44)
 
                     Spacer()
 
                     HStack(spacing: 7) {
-                        Image(systemName: "baseball.fill")
-                        Text("LIVING COMMISH")
+                        Image(systemName: "mountain.2.fill")
+                        Text("ROCKIES QUIZ")
                     }
                     .font(.system(size: 12, weight: .black))
                     .tracking(0.9)
@@ -458,6 +509,8 @@ private struct BaseballQuizStoriesView: View {
                     .shadow(color: .black.opacity(0.6), radius: 8, y: 2)
                     .opacity(textAppeared ? 1 : 0)
                     .offset(y: textAppeared ? 0 : 12)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("daily-drop-story-copy")
 
                     HStack(spacing: 6) {
                         ForEach(stories.indices, id: \.self) { storyIndex in
@@ -476,7 +529,35 @@ private struct BaseballQuizStoriesView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
             }
-            .allowsHitTesting(true)
+            .allowsHitTesting(false)
+
+            HStack(spacing: 0) {
+                Button(action: goBack) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Previous story")
+                .accessibilityIdentifier("daily-drop-story-previous")
+
+                Button(action: goForward) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(
+                    index == stories.count - 1
+                        ? "Start quiz"
+                        : "Next story"
+                )
+                .accessibilityIdentifier("daily-drop-story-next")
+            }
+            .ignoresSafeArea()
+
+            HStack {
+                BaseballQuizCloseButton(action: onClose)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
         }
         .contentShape(Rectangle())
         .gesture(

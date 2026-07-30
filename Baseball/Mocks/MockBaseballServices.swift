@@ -143,6 +143,21 @@ enum MockBaseballFixtures {
         ),
     ]
 
+    static let rockiesOriginsQuizFacts = [
+        mlbStoryFact(
+            "rockies-first-expansion-pick",
+            "MLB.com: Colorado selected right-hander David Nied first in the 1992 Expansion Draft."
+        ),
+        mlbStoryFact(
+            "rockies-first-home-game",
+            "MLB.com: The Rockies played their first home game at Mile High Stadium on April 9, 1993."
+        ),
+        mlbStoryFact(
+            "rockies-first-home-run",
+            "MLB.com: Dante Bichette hit the first home run in Rockies history at Shea Stadium on April 7, 1993."
+        ),
+    ]
+
     static let rockies = BaseballTeamCard(
         id: "colorado-rockies",
         name: "Colorado Rockies",
@@ -522,20 +537,20 @@ struct MockBaseballDiscoveryService: BaseballDiscoveryProviding {
             ),
             BaseballDiscoveryCard(
                 id: "discovery-daily-drop",
-                eyebrow: "DAILY BASEBALL DROP",
-                title: BaseballDailyDropCatalog.hunterGoodmanThreeHomer.title,
-                whyItMatters: "A quick story and quiz turns \(profile.name)’s favorite player into a collectible reward.",
+                eyebrow: "DAILY DROP",
+                title: BaseballDailyDropCatalog.rockiesOriginsQuiz.title,
+                whyItMatters: "A brand-new Rockies history quiz unlocks a rare collectible reward for \(profile.name).",
                 systemImage: "sparkles",
-                destinationQuery: "Hunter Goodman three homer game",
+                destinationQuery: "Colorado Rockies franchise firsts",
                 hostBehavior: .think,
                 hostThought: BaseballDailyDropCatalog
-                    .hunterGoodmanThreeHomer
+                    .rockiesOriginsQuiz
                     .hostThought,
-                facts: MockBaseballFixtures.goodmanPlayerStoryFacts,
+                facts: MockBaseballFixtures.rockiesOriginsQuizFacts,
                 finalScore: nil,
                 standings: nil,
                 playerStory: nil,
-                dailyDrop: BaseballDailyDropCatalog.hunterGoodmanThreeHomer
+                dailyDrop: BaseballDailyDropCatalog.rockiesOriginsQuiz
             ),
             BaseballDiscoveryCard(
                 id: "discovery-dodgers-lost",

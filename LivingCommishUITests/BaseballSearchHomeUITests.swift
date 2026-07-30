@@ -513,26 +513,82 @@ final class BaseballSearchHomeUITests: XCTestCase {
             )
         }
 
+        let discoveryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        discoveryScreenshot.name = "Brand new Rockies Quiz discovery card"
+        discoveryScreenshot.lifetime = .keepAlways
+        add(discoveryScreenshot)
+
         app.buttons["discovery-card-discovery-daily-drop"].tap()
 
         let startButton = app.descendants(matching: .any)[
             "daily-drop-start-stories"
         ]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["BRAND NEW"].exists)
+        XCTAssertTrue(app.staticTexts["Meet the Rox!"].exists)
+        XCTAssertTrue(
+            app.staticTexts[
+                "Win a RARE reward for taking today’s quiz."
+            ].exists
+        )
+
+        let landingScreenshot = XCTAttachment(screenshot: app.screenshot())
+        landingScreenshot.name = "Brand new Rockies Quiz landing"
+        landingScreenshot.lifetime = .keepAlways
+        add(landingScreenshot)
+
         startButton.tap()
 
-        for _ in 0..<3 {
-            let storyButton = app.descendants(matching: .any)[
-                "daily-drop-story-next"
-            ]
-            XCTAssertTrue(storyButton.waitForExistence(timeout: 5))
-            storyButton.tap()
-        }
+        let storyCopy = app.descendants(matching: .any)[
+            "daily-drop-story-copy"
+        ]
+        XCTAssertTrue(storyCopy.waitForExistence(timeout: 5))
+        XCTAssertTrue(storyCopy.label.contains("Very First Rockie"))
+
+        let firstStoryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        firstStoryScreenshot.name = "Rockies Quiz David Nied story"
+        firstStoryScreenshot.lifetime = .keepAlways
+        add(firstStoryScreenshot)
+
+        let storyButton = app.descendants(matching: .any)[
+            "daily-drop-story-next"
+        ]
+        XCTAssertTrue(storyButton.waitForExistence(timeout: 5))
+        storyButton.tap()
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "80,227 Fans"
+            ),
+            evaluatedWith: storyCopy
+        )
+        waitForExpectations(timeout: 3)
+
+        let secondStoryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        secondStoryScreenshot.name = "Rockies Quiz Mile High story"
+        secondStoryScreenshot.lifetime = .keepAlways
+        add(secondStoryScreenshot)
+
+        storyButton.tap()
+        expectation(
+            for: NSPredicate(
+                format: "label CONTAINS %@",
+                "First Rockies Homer"
+            ),
+            evaluatedWith: storyCopy
+        )
+        waitForExpectations(timeout: 3)
+
+        let thirdStoryScreenshot = XCTAttachment(screenshot: app.screenshot())
+        thirdStoryScreenshot.name = "Rockies Quiz Dante Bichette story"
+        thirdStoryScreenshot.lifetime = .keepAlways
+        add(thirdStoryScreenshot)
+        storyButton.tap()
 
         let correctAnswers = [
-            "quiz-answer-goodman-player-0",
-            "quiz-answer-rockies-city-1",
-            "quiz-answer-rockies-division-2",
+            "quiz-answer-rockies-first-selection-0",
+            "quiz-answer-rockies-first-home-ballpark-1",
+            "quiz-answer-rockies-first-home-run-2",
         ]
         for answerID in correctAnswers {
             let answer = app.descendants(matching: .any)[answerID]

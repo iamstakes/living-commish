@@ -562,9 +562,30 @@ final class BaseballArchitectureTests: XCTestCase {
     }
 
     func testDailyDropQuestionsAndStickerRewardAreWellFormed() {
-        let drop = BaseballDailyDropCatalog.hunterGoodmanThreeHomer
+        let drop = BaseballDailyDropCatalog.rockiesOriginsQuiz
 
+        XCTAssertEqual(drop.eyebrow, "DAILY DROP")
+        XCTAssertEqual(drop.title, "Rockies Quiz")
+        XCTAssertEqual(drop.storyTitle, "Meet the Rox!")
+        XCTAssertEqual(
+            drop.storyBody,
+            "Win a RARE reward for taking today’s quiz."
+        )
         XCTAssertEqual(drop.questions.count, 3)
+        XCTAssertEqual(
+            drop.questions.map(\.question),
+            [
+                "Who was the first player Colorado selected in the 1992 Expansion Draft?",
+                "Where did the Rockies play their first home game?",
+                "Who hit the first home run in Rockies history?",
+            ]
+        )
+        XCTAssertEqual(
+            drop.questions.map {
+                $0.answers[$0.correctAnswerIndex]
+            },
+            ["David Nied", "Mile High Stadium", "Dante Bichette"]
+        )
         XCTAssertTrue(
             drop.questions.allSatisfy {
                 $0.answers.indices.contains($0.correctAnswerIndex)

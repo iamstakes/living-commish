@@ -45,6 +45,7 @@ struct BaseballDailyDrop: Equatable, Identifiable, Sendable {
     let title: String
     let storyTitle: String
     let storyBody: String
+    let landingImageURL: String
     let stories: [BaseballQuizStory]
     let questions: [BaseballQuizQuestion]
     let minimumCorrectAnswers: Int
@@ -70,66 +71,77 @@ enum BaseballStickerCatalog {
 }
 
 enum BaseballDailyDropCatalog {
-    static let hunterGoodmanThreeHomer = BaseballDailyDrop(
-        id: "daily-drop-goodman-three-homer",
-        eyebrow: "DAILY BASEBALL DROP",
-        title: "Goodman goes deep",
-        storyTitle: "Three swings changed the afternoon.",
-        storyBody: "Hunter Goodman’s 30th home run was also his third homer of the game. Read the moment, answer three quick questions, and rip a pack for his first Living Commish sticker.",
+    static let rockiesOriginsQuiz = BaseballDailyDrop(
+        id: "daily-drop-rockies-origins",
+        eyebrow: "DAILY DROP",
+        title: "Rockies Quiz",
+        storyTitle: "Meet the Rox!",
+        storyBody: "Win a RARE reward for taking today’s quiz.",
+        landingImageURL: "https://wp-cpr.s3.amazonaws.com/uploads/2019/06/rockies-mile-high-stadium1_0-1.jpg",
         stories: [
             BaseballQuizStory(
-                id: "goodman-three-homers",
-                title: "Three Swings. Three Homers.",
-                subtitle: "Hunter Goodman turned a long afternoon into a place in Rockies history.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_2x1/t_w1536/mlb/xqkkbneysjnvpbny2p7u.jpg"
+                id: "rockies-first-selection",
+                title: "The Very First Rockie.",
+                subtitle: "Colorado used the first pick in the 1992 Expansion Draft on right-hander David Nied.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/ar_9:16,g_auto,q_auto:good,w_900,c_fill,f_jpg/mlb/fzdcf30t9wxcpjkf8l9k"
             ),
             BaseballQuizStory(
-                id: "goodman-thirty",
-                title: "Number 30 Was The Exclamation Point.",
-                subtitle: "His third blast of the game also made him the first Rockies catcher to reach 30.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_2x1/t_w1536/v1782613141/mlb/d7pu6iwnksqssb7rffau.jpg"
+                id: "rockies-first-home-game",
+                title: "80,227 Fans. One New Home.",
+                subtitle: "On April 9, 1993, the Rockies debuted at Mile High Stadium—and beat Montreal 11–4.",
+                imageURL: "https://wp-cpr.s3.amazonaws.com/uploads/2019/06/rockies-mile-high-stadium1_0-1.jpg"
             ),
             BaseballQuizStory(
-                id: "goodman-collection",
-                title: "Now Put Him In Your Collection.",
-                subtitle: "Three questions stand between you and a Hunter Goodman player card.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_2x1/t_w1536/mlb/xqkkbneysjnvpbny2p7u.jpg"
+                id: "rockies-first-home-run",
+                title: "The First Rockies Homer.",
+                subtitle: "Dante Bichette launched the franchise’s first home run at Shea Stadium on April 7, 1993.",
+                imageURL: "https://img.mlbstatic.com/mlb-photos/image/upload/w_768,q_auto:best/v1/people/110974/headshot/67/current"
             ),
         ],
         questions: [
             BaseballQuizQuestion(
-                id: "goodman-player",
-                question: "Which Rockies player hit three home runs in the featured game?",
+                id: "rockies-first-selection",
+                question: "Who was the first player Colorado selected in the 1992 Expansion Draft?",
                 answers: [
-                    "Hunter Goodman",
-                    "Kris Bryant",
-                    "Ezequiel Tovar",
-                    "Jordan Beck",
+                    "David Nied",
+                    "Dante Bichette",
+                    "Andrés Galarraga",
+                    "Eric Young",
                 ],
                 correctAnswerIndex: 0,
-                fact: "Goodman’s 30th home run was his third homer of the game.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_2x1/t_w1536/mlb/xqkkbneysjnvpbny2p7u.jpg"
+                fact: "The Rockies made right-hander David Nied the first pick of the 1992 Expansion Draft.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/ar_16:9,g_auto,q_auto:good,w_1536,c_fill,f_jpg/mlb/fzdcf30t9wxcpjkf8l9k"
             ),
             BaseballQuizQuestion(
-                id: "rockies-city",
-                question: "The Rockies play their home games in which city?",
-                answers: ["Phoenix", "Denver", "Salt Lake City", "Albuquerque"],
+                id: "rockies-first-home-ballpark",
+                question: "Where did the Rockies play their first home game?",
+                answers: [
+                    "Coors Field",
+                    "Mile High Stadium",
+                    "Bears Stadium",
+                    "Shea Stadium",
+                ],
                 correctAnswerIndex: 1,
-                fact: "The Colorado Rockies play at Coors Field in Denver.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_1x1/t_w1024/mlb/kjn9vfcy1ry12lgqtczi.jpg"
+                fact: "A crowd of 80,227 packed Mile High Stadium for Colorado’s first home game on April 9, 1993.",
+                imageURL: "https://wp-cpr.s3.amazonaws.com/uploads/2019/06/rockies-mile-high-stadium1_0-1.jpg"
             ),
             BaseballQuizQuestion(
-                id: "rockies-division",
-                question: "Which division includes the Colorado Rockies?",
-                answers: ["NL Central", "AL West", "NL West", "AL Central"],
+                id: "rockies-first-home-run",
+                question: "Who hit the first home run in Rockies history?",
+                answers: [
+                    "Eric Young",
+                    "Andrés Galarraga",
+                    "Dante Bichette",
+                    "Charlie Hayes",
+                ],
                 correctAnswerIndex: 2,
-                fact: "Colorado competes in the National League West.",
-                imageURL: "https://img.mlbstatic.com/mlb-images/image/upload/t_2x1/t_w1536/v1782613141/mlb/d7pu6iwnksqssb7rffau.jpg"
+                fact: "Dante Bichette hit the franchise’s first homer at Shea Stadium on April 7, 1993.",
+                imageURL: "https://img.mlbstatic.com/mlb-images/image/private/ar_16:9,g_auto,q_auto:good,w_1536,c_fill,f_jpg/mlb/fcfhgkkwv82l6xat3mzv"
             ),
         ],
         minimumCorrectAnswers: 1,
         rewardSticker: BaseballStickerCatalog.hunterGoodman,
-        hostThought: "Three quick questions. One pack. Let’s see what you know."
+        hostThought: "Three Rockies firsts. One rare reward. Let’s meet the Rox."
     )
 }
 
