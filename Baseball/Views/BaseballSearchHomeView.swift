@@ -368,6 +368,8 @@ struct HostPresentationStage<Content: View>: View {
     let hostAccessibilityHint: String
     private let content: Content
 
+    @Environment(BaseballSearchEnvironment.self) private var environment
+
     init(
         host: any AnimatedHostControlling,
         accent: Color,
@@ -409,7 +411,8 @@ struct HostPresentationStage<Content: View>: View {
                     height: BaseballHostStageLayout.hostHeight,
                     accent: accent,
                     contentScale: BaseballHostStageLayout.hostScale,
-                    contentOffset: CGSize(width: -8, height: 2)
+                    contentOffset: CGSize(width: -8, height: 2),
+                    selectedAvatar: environment.avatarSticker
                 )
                 .frame(width: proxy.size.width * 0.90)
                 .frame(

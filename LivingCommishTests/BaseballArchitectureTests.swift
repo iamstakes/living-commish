@@ -574,6 +574,17 @@ final class BaseballArchitectureTests: XCTestCase {
         XCTAssertEqual(drop.rewardSticker.rarity, .rare)
         XCTAssertEqual(drop.rewardSticker.jerseyNumber, "15")
         XCTAssertEqual(
+            drop.rewardSticker.animatedAvatarResourceName,
+            "hunter-goodman-avatar"
+        )
+        XCTAssertNotNil(
+            Bundle.main.url(
+                forResource: "hunter-goodman-avatar",
+                withExtension: "gif",
+                subdirectory: "Animations"
+            )
+        )
+        XCTAssertEqual(
             BaseballStickerCatalog.all.map(\.id),
             [drop.rewardSticker.id]
         )

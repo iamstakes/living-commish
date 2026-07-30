@@ -1,4 +1,6 @@
+import ImageIO
 import SwiftUI
+@preconcurrency import UIKit
 
 struct AnimatedHostView: View {
     let host: any AnimatedHostControlling
@@ -6,6 +8,7 @@ struct AnimatedHostView: View {
     var accent: Color = .purple
     var contentScale: CGFloat = 1
     var contentOffset: CGSize = .zero
+    var selectedAvatar: BaseballSticker?
 
     var body: some View {
         let motifSize = min(max(height * 0.72, 230), 320)
@@ -45,40 +48,144 @@ struct AnimatedHostView: View {
             renderedHost
                 .padding(.horizontal, 28)
                 .padding(.vertical, 2)
-                .scaleEffect(contentScale, anchor: .bottom)
-                .offset(contentOffset)
+                .scaleEffect(resolvedContentScale, anchor: .bottom)
+                .offset(resolvedContentOffset)
         }
         .frame(maxWidth: .infinity)
         .frame(height: height)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(host.descriptor.accessibilityName)
-        .accessibilityValue(host.currentBehavior.displayName)
+        .accessibilityLabel(
+            selectedAvatar.map {
+                "\($0.playerName) animated sticker avatar"
+            } ?? host.descriptor.accessibilityName
+        )
+        .accessibilityValue(
+            selectedAvatar == nil
+                ? host.currentBehavior.displayName
+                : "Selected profile avatar"
+        )
         .accessibilityIdentifier("baseball-animated-host")
     }
 
     @ViewBuilder
     private var renderedHost: some View {
-        switch host.renderedContent {
-        case .nativeView(let view):
-            view
-                .aspectRatio(contentMode: .fit)
-        case .imageFrame(let image):
-            Image(uiImage: image)
-                .resizable()
-                .interpolation(.high)
-                .aspectRatio(contentMode: .fit)
+        if let selectedAvatar,
+           let resourceName = selectedAvatar.animatedAvatarResourceName,
+           let resourceURL = Bundle.main.url(
+                forResource: resourceName,
+                withExtension: "gif",
+                subdirectory: "Animations"
+           ) {
+            AnimatedGIFView(resourceURL: resourceURL)
+                .frame(width: 340, height: 340)
+                .clipped()
                 .transition(.opacity)
-        case .unavailable:
-            VStack(spacing: 12) {
-                ProgressView()
-                    .controlSize(.large)
-                    .tint(.white)
-                Text("Warming up your host…")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
+        } else {
+            switch host.renderedContent {
+            case .nativeView(let view):
+                view
+                    .aspectRatio(contentMode: .fit)
+            case .imageFrame(let image):
+                Image(uiImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .transition(.opacity)
+            case .unavailable:
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
+                    Text("Warming up your host…")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
+    }
+
+    private var resolvedContentScale: CGFloat {
+        selectedAvatar == nil ? contentScale : 1
+    }
+
+    private var resolvedContentOffset: CGSize {
+        guard selectedAvatar != nil else { return contentOffset }
+        return CGSize(
+            width: contentOffset.width - 34,
+            height: contentOffset.height - 75
+        )
+    }
+}
+
+private struct AnimatedGIFView: UIViewRepresentable {
+    let resourceURL: URL
+
+    func makeUIView(context: Context) -> LoopingGIFImageView {
+        let imageView = LoopingGIFImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        imageView.isUserInteractionEnabled = false
+        imageView.play(resourceURL)
+        return imageView
+    }
+
+    func updateUIView(
+        _ imageView: LoopingGIFImageView,
+        context: Context
+    ) {
+        imageView.play(resourceURL)
+    }
+
+    static func dismantleUIView(
+        _ imageView: LoopingGIFImageView,
+        coordinator: Void
+    ) {
+        imageView.stopPlayback()
+    }
+}
+
+@MainActor
+private final class LoopingGIFImageView: UIImageView {
+    private var activeResourceURL: URL?
+    private var playbackToken = UUID()
+
+    override var intrinsicContentSize: CGSize {
+        CGSize(
+            width: UIView.noIntrinsicMetric,
+            height: UIView.noIntrinsicMetric
+        )
+    }
+
+    func play(_ resourceURL: URL) {
+        guard activeResourceURL != resourceURL else { return }
+
+        stopPlayback()
+        activeResourceURL = resourceURL
+        let token = UUID()
+        playbackToken = token
+
+        let status = CGAnimateImageAtURLWithBlock(
+            resourceURL as CFURL,
+            nil
+        ) { [weak self] _, frame, stop in
+            guard let self,
+                  self.playbackToken == token else {
+                stop.pointee = true
+                return
+            }
+            self.image = UIImage(cgImage: frame)
+        }
+
+        if status != noErr {
+            activeResourceURL = nil
+        }
+    }
+
+    func stopPlayback() {
+        playbackToken = UUID()
+        activeResourceURL = nil
+        image = nil
     }
 }
 

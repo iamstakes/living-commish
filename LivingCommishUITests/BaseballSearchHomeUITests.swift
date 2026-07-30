@@ -626,6 +626,21 @@ final class BaseballSearchHomeUITests: XCTestCase {
 
         app.buttons["baseball-profile-done"].tap()
 
+        let selectedAvatarHost = app.otherElements[
+            "baseball-animated-host"
+        ]
+        XCTAssertTrue(selectedAvatarHost.waitForExistence(timeout: 4))
+        XCTAssertTrue(selectedAvatarHost.label.contains("Hunter Goodman"))
+        XCTAssertEqual(
+            selectedAvatarHost.value as? String,
+            "Selected profile avatar"
+        )
+
+        let hostScreenshot = XCTAttachment(screenshot: app.screenshot())
+        hostScreenshot.name = "Hunter Goodman replaces the Commish"
+        hostScreenshot.lifetime = .keepAlways
+        add(hostScreenshot)
+
         let resetRewards = app.buttons["demo-reset-stickers"]
         XCTAssertTrue(resetRewards.waitForExistence(timeout: 4))
         resetRewards.tap()
@@ -634,6 +649,11 @@ final class BaseballSearchHomeUITests: XCTestCase {
             evaluatedWith: resetRewards
         )
         waitForExpectations(timeout: 3)
+        XCTAssertTrue(
+            selectedAvatarHost.label.contains(
+                "Living Commish animated baseball guide"
+            )
+        )
 
         let profile = app.otherElements["baseball-animated-host"]
         XCTAssertTrue(profile.waitForExistence(timeout: 3))

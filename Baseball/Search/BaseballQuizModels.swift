@@ -20,6 +20,7 @@ struct BaseballSticker: Equatable, Identifiable, Sendable {
     let tagline: String
     let systemImage: String
     let portraitURL: String
+    let animatedAvatarResourceName: String?
 }
 
 struct BaseballQuizStory: Equatable, Identifiable, Sendable {
@@ -61,7 +62,8 @@ enum BaseballStickerCatalog {
         rarity: .rare,
         tagline: "Three homers. One unforgettable afternoon.",
         systemImage: "figure.baseball",
-        portraitURL: "https://img.mlbstatic.com/mlb-photos/image/upload/w_426,q_auto:best/v1/people/696100/headshot/67/current"
+        portraitURL: "https://img.mlbstatic.com/mlb-photos/image/upload/w_426,q_auto:best/v1/people/696100/headshot/67/current",
+        animatedAvatarResourceName: "hunter-goodman-avatar"
     )
 
     static let all = [hunterGoodman]
