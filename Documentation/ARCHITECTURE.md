@@ -1,87 +1,24 @@
-# Baseball Living Host architecture
-
-The application is a single native SwiftUI experience. There is no legacy
-reaction composer, fan-memory database, alternate launch mode, App Intent, web
-client, server dependency, API key, or remote AI provider.
-
-## Application flow
+# College Football Commish architecture
+The app keeps the animated host as the persistent stage and treats search, discovery, player galleries, quizzes, rewards, and profile state as presentations around it.
 
 ```text
-LivingCommishApp
-    ↓
-BaseballExperienceRootView
-    ├── signed out → Commish-led team and player onboarding cards
-    └── signed in  → personalized discovery and search stage
+CollegeFootballExperienceRootView
+├── CollegeFootballOnboardingState
+├── CollegeFootballSearchEnvironment
+│   ├── AdaptiveCollegeFootballQueryInterpreter
+│   ├── DefaultCollegeFootballSearchPlanner
+│   ├── CollegeFootballDataProviding
+│   ├── CollegeFootballHostEditorializing
+│   └── DefaultCollegeFootballResultComposer
+├── CollegeFootballSearchHomeView
+├── CollegeFootballPlayerGalleryExperienceView
+└── CollegeFootballDailyDropFullScreenView
 ```
 
-`BaseballOnboardingState` owns the demo authentication state and selected team
-and player. It persists those explicit choices in `UserDefaults`. Signing out
-preserves the choices for a quick demo sign-in; resetting onboarding clears
-them and returns to team selection.
+`CollegeFootballOnboardingState` owns the selected program and player. The live roster adapter reads ESPN’s college-football roster response and merges featured Colorado legends into the demo program.
 
-`BaseballSearchEnvironment` is the application orchestrator. It owns the
-current profile snapshot, discovery cards, query text, search state, result
-composition, cancellation, and host behavior. The UI observes one explicit
-search state instead of coordinating independent presentation flags.
+`CollegeFootballSearchEnvironment` orchestrates interpretation, planning, data retrieval, editorial copy, result composition, discovery navigation, sticker collection, and avatar state. Views do not invent facts.
 
-## Search pipeline
+The deterministic demo provider currently supports Colorado, Nebraska, Travis Hunter, Shedeur Sanders, Ashton Jeanty, and Charles Woodson. A production provider can replace the fixture layer without changing the presentation contracts.
 
-```text
-Fan query
-    ↓
-AdaptiveBaseballQueryInterpreter
-    ├── AppleFoundationModelsBaseballQueryInterpreter
-    └── DeterministicBaseballQueryInterpreter
-    ↓
-DefaultBaseballSearchPlanner
-    ↓
-BaseballDataProviding
-    ↓
-BaseballHostEditorializing
-    ↓
-DefaultBaseballResultComposer
-    ↓
-Result cards on the existing Commish stage
-```
-
-Apple Foundation Models classifies intent, entities, time scope, and whether
-personal history is required. It does not answer the baseball question or
-supply facts. The planner requests structured data from the data provider, and
-the result composer builds the UI from that grounded snapshot. When Apple
-Intelligence is unavailable, fails, or returns an unknown classification, the
-deterministic interpreter handles the same query.
-
-The current `MockBaseballDataService` and discovery service contain
-hackathon-quality fixtures, including the Rockies game, standings, Mike
-Schmidt, and story preview. Replacing them with a live provider should not
-change views, query interpretation, or host control.
-
-## Animated host boundary
-
-Views depend on `AnimatedHostControlling` and generic `HostBehavior` values.
-`CommishHostAdapter` maps those behaviors to the current Commish animation
-actions. This lets a future team-specific host replace the artwork or behavior
-mapping without coupling search code to Rive or PNG details.
-
-```text
-HostBehavior
-    ↓
-CommishHostAdapter
-    ↓
-AdaptiveCommishController
-    ├── validated commish.riv → RiveCommishController
-    └── otherwise             → PngSequenceCommishController
-```
-
-The PNG controller preloads numerically sorted frames, cancels interrupted
-playback, returns one-shot actions to idle, and pauses when the app becomes
-inactive. The optional Rive controller activates only after validating the
-expected artboard, state machine, and trigger contract.
-
-## Product boundaries
-
-- Authentication is a local demo toggle, not production identity.
-- Personalization consists only of explicit team and player selections.
-- Apple Intelligence interprets searches; it is not a source of sports truth.
-- Baseball data is currently fixture-backed and not live.
-- Character playback is reusable infrastructure, not a second product mode.
+The default Xcode scheme runs unit tests only. The `CollegeFootballCommishE2E` scheme contains the slower simulator smoke tests.

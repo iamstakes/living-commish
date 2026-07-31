@@ -81,7 +81,7 @@ Editor script installation, the named placeholder timelines, `CommishSM`, export
 The intended export location is:
 
 ```text
-/Users/michaeliams/Desktop/LivingCommish/Resources/commish.riv
+/Users/michaeliams/Documents/New project/LivingCommishCFB/Resources/commish.riv
 ```
 
 ## Validation checklist after export

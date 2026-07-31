@@ -1,62 +1,29 @@
-# Baseball Living Host
+# College Football Commish
+College Football Commish is a native iOS prototype in which an animated host guides a personalized college-football experience. It is an isolated clone of the Living Commish interaction system with its own Xcode project, target, bundle identifier, domain models, and demo fixtures.
 
-Baseball Living Host is a native iOS prototype in which an animated Commish
-guides a personalized baseball experience. The character remains the primary
-interface while onboarding, discovery cards, and search results appear on the
-same stage.
+## Demo experience
 
-The app now has one product path:
+- Choose from 30 featured FBS programs and a current or legendary player.
+- Land on a personalized Saturday feed led by rivalry, conference, player, quiz, and watch-next cards.
+- Search for players and programs with deterministic fixture-backed results.
+- Explore Travis Hunter’s four-image two-way archive and complete his quiz for a legendary card.
+- Complete the Buffs history Daily Drop for a rare Rashaan Salaam card.
+- Reset onboarding, collected cards, and avatar state for repeatable demos.
 
-- Signed-out users meet the generic Commish and complete onboarding in cards.
-- Fans choose from all 30 MLB teams and then select a player from that team.
-- Completing onboarding opens the personalized discovery stage.
-- Search interprets natural language with Apple Foundation Models when
-  available and falls back to a deterministic local interpreter.
-- Search results replace the discovery cards without navigating away from the
-  Commish.
-- Tapping the personalized Commish opens the fan profile and demo sign-out
-  control.
+Colorado is the primary demo profile. Historical facts in the Hunter and Buffaloes flows are grounded in University of Colorado Athletics and Heisman Trophy Trust material. Schedule and playoff cards are clearly labeled prototype fixtures until a live provider is connected.
 
-Prototype baseball facts come from isolated local fixtures. They are not
-presented as live MLB data.
-
-## Requirements
-
-- Xcode 26.4.1 or newer
-- iOS 26.0 or newer
-- An Apple Intelligence-capable device or simulator for the Foundation Models
-  path
-
-No backend, API key, remote model, or web runtime is required.
-
-## Run
-
-1. Open `LivingCommish.xcodeproj`.
-2. Select the `LivingCommish` scheme and an iOS 26 simulator.
-3. Press Run.
-
-The checked-in PNG sequences are the production-safe character renderer. An
-exported Rive asset can replace them when available; see `RIVE_SETUP.md` and
-`Documentation/RIVE_IMPLEMENTATION.md`.
-
-## Verify
+## Build and test
 
 ```sh
-xcodebuild \
-  -project LivingCommish.xcodeproj \
-  -scheme LivingCommish \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  build
+xcodebuild build \
+  -project CollegeFootballCommish.xcodeproj \
+  -scheme CollegeFootballCommish \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
-xcodebuild \
-  -project LivingCommish.xcodeproj \
-  -scheme LivingCommish \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  test
+xcodebuild test \
+  -project CollegeFootballCommish.xcodeproj \
+  -scheme CollegeFootballCommish \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
 
-Start with:
-
-- `Documentation/ARCHITECTURE.md` for current product and code boundaries
-- `Documentation/APPLE_INTELLIGENCE_SETUP.md` for search interpretation
-- `Documentation/DEMO_SCRIPT.md` for the review flow
+The default scheme runs the fast unit suite. Use `CollegeFootballCommishE2E` for the focused UI smoke tests.
